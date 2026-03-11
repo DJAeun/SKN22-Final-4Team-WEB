@@ -56,14 +56,14 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict",
+            "typeValidation": "loose",
             "version": 2
           },
           "conditions": [
             {
               "id": "cond-always-false",
-              "leftValue": "=false",
-              "rightValue": "=true",
+              "leftValue": false,
+              "rightValue": true,
               "operator": {"type": "boolean", "operation": "equals"}
             }
           ],
