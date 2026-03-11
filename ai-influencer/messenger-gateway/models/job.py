@@ -1,0 +1,53 @@
+from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel
+
+
+class JobStatus(str, Enum):
+    DRAFT = "DRAFT"
+    SCRIPTING = "SCRIPTING"
+    GENERATING = "GENERATING"
+    WAITING_APPROVAL = "WAITING_APPROVAL"
+    REVISION_REQUESTED = "REVISION_REQUESTED"
+    APPROVED = "APPROVED"
+    PUBLISHING = "PUBLISHING"
+    PUBLISHED = "PUBLISHED"
+    ANALYTICS_COLLECTED = "ANALYTICS_COLLECTED"
+    FAILED = "FAILED"
+
+
+class MessengerSource(str, Enum):
+    DISCORD = "discord"
+
+
+class IncomingMessageRequest(BaseModel):
+    job_id: str
+    messenger_source: MessengerSource
+    messenger_user_id: str
+    messenger_channel_id: str
+    concept_text: str
+    ref_image_url: Optional[str] = None
+    character_id: str = "default-character"
+
+
+class SendConfirmRequest(BaseModel):
+    job_id: str
+    messenger_source: MessengerSource
+    messenger_user_id: str
+    messenger_channel_id: str
+    title: str
+    script_summary: str
+    preview_url: Optional[str] = None
+
+
+class ConfirmActionRequest(BaseModel):
+    job_id: str
+    action: str  # "approved" or "revision_requested"
+    revision_note: Optional[str] = None
+
+
+class SendTextRequest(BaseModel):
+    messenger_source: MessengerSource
+    messenger_channel_id: str
+    text: str

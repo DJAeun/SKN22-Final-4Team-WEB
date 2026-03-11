@@ -1,0 +1,197 @@
+{
+  "name": "WF-05: 컨펌 처리 (승인/수정)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf-05-confirm",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "node-webhook-wf05",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {"name": "job_id", "value": "={{$json.job_id}}"},
+            {"name": "action", "value": "={{$json.action}}"},
+            {"name": "revision_note", "value": "={{$json.revision_note ?? ''}}"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-set-parse",
+      "name": "Parse",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            {"value": "approved"},
+            {"value": "revision_requested"}
+          ]
+        },
+        "fallbackOutput": "none"
+      },
+      "id": "node-switch-action",
+      "name": "Route by Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE jobs SET status='APPROVED', updated_at=NOW() WHERE id='{{$json.job_id}}'",
+        "options": {}
+      },
+      "id": "node-pg-approved",
+      "name": "Set APPROVED",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [900, 180],
+      "credentials": {
+        "postgres": {"id": "pg-credentials", "name": "PostgreSQL"}
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT messenger_source, messenger_channel_id FROM jobs WHERE id='{{$json.job_id}}'",
+        "options": {}
+      },
+      "id": "node-pg-get-job-approved",
+      "name": "Get Job Meta (Approved)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1120, 180],
+      "credentials": {
+        "postgres": {"id": "pg-credentials", "name": "PostgreSQL"}
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://messenger-gateway:8080/internal/send-text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "X-Internal-Secret", "value": "={{$env.GATEWAY_INTERNAL_SECRET}}"}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {"name": "messenger_source", "value": "={{$json.messenger_source}}"},
+            {"name": "messenger_channel_id", "value": "={{$json.messenger_channel_id}}"},
+            {"name": "text", "value": "📌 Phase 4 (SNS 업로드)는 곧 구현됩니다."}
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-http-phase4-placeholder",
+      "name": "WF-06 Placeholder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1340, 180]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE jobs SET status='REVISION_REQUESTED', revision_note='{{$json.revision_note}}', revision_count=revision_count+1, updated_at=NOW() WHERE id='{{$json.job_id}}'",
+        "options": {}
+      },
+      "id": "node-pg-revision",
+      "name": "Set REVISION_REQUESTED",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [900, 420],
+      "credentials": {
+        "postgres": {"id": "pg-credentials", "name": "PostgreSQL"}
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT messenger_source, messenger_user_id, messenger_channel_id, concept_text, character_id FROM jobs WHERE id='{{$json.job_id}}'",
+        "options": {}
+      },
+      "id": "node-pg-get-job-revision",
+      "name": "Get Job Meta (Revision)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1120, 420],
+      "credentials": {
+        "postgres": {"id": "pg-credentials", "name": "PostgreSQL"}
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://n8n:5678/webhook/wf-01-input",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "X-Internal-Secret", "value": "={{$env.GATEWAY_INTERNAL_SECRET}}"}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {"name": "job_id", "value": "={{$json.job_id}}"},
+            {"name": "messenger_source", "value": "={{$json.messenger_source}}"},
+            {"name": "messenger_user_id", "value": "={{$json.messenger_user_id}}"},
+            {"name": "messenger_channel_id", "value": "={{$json.messenger_channel_id}}"},
+            {"name": "concept_text", "value": "={{$json.concept_text}} [수정 지시: {{$json.revision_note}}]"},
+            {"name": "character_id", "value": "={{$json.character_id}}"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-http-retrigger-wf01",
+      "name": "Re-trigger WF-01",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1340, 420]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Parse", "type": "main", "index": 0}]]
+    },
+    "Parse": {
+      "main": [[{"node": "Route by Action", "type": "main", "index": 0}]]
+    },
+    "Route by Action": {
+      "main": [
+        [{"node": "Set APPROVED", "type": "main", "index": 0}],
+        [{"node": "Set REVISION_REQUESTED", "type": "main", "index": 0}]
+      ]
+    },
+    "Set APPROVED": {
+      "main": [[{"node": "Get Job Meta (Approved)", "type": "main", "index": 0}]]
+    },
+    "Get Job Meta (Approved)": {
+      "main": [[{"node": "WF-06 Placeholder", "type": "main", "index": 0}]]
+    },
+    "Set REVISION_REQUESTED": {
+      "main": [[{"node": "Get Job Meta (Revision)", "type": "main", "index": 0}]]
+    },
+    "Get Job Meta (Revision)": {
+      "main": [[{"node": "Re-trigger WF-01", "type": "main", "index": 0}]]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": ["phase-1"]
+}
