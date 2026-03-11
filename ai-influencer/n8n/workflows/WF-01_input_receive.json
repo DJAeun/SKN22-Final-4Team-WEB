@@ -18,13 +18,13 @@
       "parameters": {
         "assignments": {
           "assignments": [
-            {"id": "a1", "name": "job_id", "value": "={{ $json.job_id }}", "type": "string"},
-            {"id": "a2", "name": "messenger_source", "value": "={{ $json.messenger_source }}", "type": "string"},
-            {"id": "a3", "name": "messenger_user_id", "value": "={{ $json.messenger_user_id }}", "type": "string"},
-            {"id": "a4", "name": "messenger_channel_id", "value": "={{ $json.messenger_channel_id }}", "type": "string"},
-            {"id": "a5", "name": "concept_text", "value": "={{ $json.concept_text }}", "type": "string"},
-            {"id": "a6", "name": "ref_image_url", "value": "={{ $json.ref_image_url ?? '' }}", "type": "string"},
-            {"id": "a7", "name": "character_id", "value": "={{ $json.character_id ?? 'default-character' }}", "type": "string"}
+            {"id": "a1", "name": "job_id", "value": "={{ $json.body.job_id }}", "type": "string"},
+            {"id": "a2", "name": "messenger_source", "value": "={{ $json.body.messenger_source }}", "type": "string"},
+            {"id": "a3", "name": "messenger_user_id", "value": "={{ $json.body.messenger_user_id }}", "type": "string"},
+            {"id": "a4", "name": "messenger_channel_id", "value": "={{ $json.body.messenger_channel_id }}", "type": "string"},
+            {"id": "a5", "name": "concept_text", "value": "={{ $json.body.concept_text }}", "type": "string"},
+            {"id": "a6", "name": "ref_image_url", "value": "={{ $json.body.ref_image_url ?? '' }}", "type": "string"},
+            {"id": "a7", "name": "character_id", "value": "={{ $json.body.character_id ?? 'default-character' }}", "type": "string"}
           ]
         },
         "options": {}
@@ -81,12 +81,11 @@
       "parameters": {
         "assignments": {
           "assignments": [
-            {
-              "id": "b1",
-              "name": "script_json",
-              "value": "={{ JSON.stringify({title: '테스트 영상 제목', duration_sec: 30, script_summary: 'Phase 2 연결 전 Mock 데이터입니다.', shots: [], voice_tone: '기본', hashtags: ['#테스트'], cta: '구독해주세요!'}) }}",
-              "type": "string"
-            }
+            {"id": "b1", "name": "job_id", "value": "={{ $('Preserve Messenger Meta').item.json.job_id }}", "type": "string"},
+            {"id": "b2", "name": "messenger_source", "value": "={{ $('Preserve Messenger Meta').item.json.messenger_source }}", "type": "string"},
+            {"id": "b3", "name": "messenger_user_id", "value": "={{ $('Preserve Messenger Meta').item.json.messenger_user_id }}", "type": "string"},
+            {"id": "b4", "name": "messenger_channel_id", "value": "={{ $('Preserve Messenger Meta').item.json.messenger_channel_id }}", "type": "string"},
+            {"id": "b5", "name": "script_json", "value": "={{ JSON.stringify({title: '테스트 영상 제목', duration_sec: 30, script_summary: 'Phase 2 연결 전 Mock 데이터입니다.', shots: [], voice_tone: '기본', hashtags: ['#테스트'], cta: '구독해주세요!'}) }}", "type": "string"}
           ]
         },
         "options": {}

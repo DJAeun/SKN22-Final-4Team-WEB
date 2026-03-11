@@ -16,6 +16,21 @@
     },
     {
       "parameters": {
+        "assignments": {
+          "assignments": [
+            {"id": "a1", "name": "job_id", "value": "={{ $json.body.job_id }}", "type": "string"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "wf04-set-parse",
+      "name": "Parse",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
         "operation": "executeQuery",
         "query": "SELECT * FROM jobs WHERE id='{{ $json.job_id }}'",
         "options": {}
@@ -24,7 +39,7 @@
       "name": "Get Job",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [460, 300],
+      "position": [680, 300],
       "credentials": {
         "postgres": {"id": "1", "name": "pg-credentials"}
       }
@@ -54,7 +69,7 @@
       "name": "Is WAITING_APPROVAL?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [680, 300]
+      "position": [900, 300]
     },
     {
       "parameters": {
@@ -85,7 +100,7 @@
       "name": "Send Confirm to Gateway",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [900, 200]
+      "position": [1120, 200]
     },
     {
       "parameters": {
@@ -100,11 +115,14 @@
       "name": "Status Error",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [900, 420]
+      "position": [1120, 420]
     }
   ],
   "connections": {
     "Webhook": {
+      "main": [[{"node": "Parse", "type": "main", "index": 0}]]
+    },
+    "Parse": {
       "main": [[{"node": "Get Job", "type": "main", "index": 0}]]
     },
     "Get Job": {
