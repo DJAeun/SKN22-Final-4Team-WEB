@@ -32,7 +32,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT * FROM jobs WHERE id='{{ $json.job_id }}'",
+        "query": "SELECT id, status, messenger_source, messenger_user_id, messenger_channel_id, preview_url, script_json FROM jobs WHERE id='{{ $json.job_id }}'",
         "options": {}
       },
       "id": "wf04-pg-get-job",
@@ -82,18 +82,8 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "keypair",
-        "bodyParameters": {
-          "parameters": [
-            {"name": "job_id", "value": "={{ $json.id }}"},
-            {"name": "messenger_source", "value": "={{ $json.messenger_source }}"},
-            {"name": "messenger_user_id", "value": "={{ $json.messenger_user_id }}"},
-            {"name": "messenger_channel_id", "value": "={{ $json.messenger_channel_id }}"},
-            {"name": "title", "value": "={{ $json.script_json?.title ?? '제목 없음' }}"},
-            {"name": "script_summary", "value": "={{ $json.script_json?.script_summary ?? '요약 없음' }}"},
-            {"name": "preview_url", "value": "={{ $json.preview_url ?? '' }}"}
-          ]
-        },
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ job_id: $json.id, messenger_source: $json.messenger_source, messenger_user_id: $json.messenger_user_id, messenger_channel_id: $json.messenger_channel_id, title: $json.script_json?.title ?? '제목 없음', script_summary: $json.script_json?.script_summary ?? '요약 없음', preview_url: $json.preview_url ?? '' }) }}",
         "options": {}
       },
       "id": "wf04-http-confirm",
