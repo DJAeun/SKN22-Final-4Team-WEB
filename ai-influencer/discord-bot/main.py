@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 class Settings(BaseSettings):
     discord_bot_token: str
     discord_allowed_user_ids: str = ""
+    discord_allowed_channel_ids: str = ""
     gateway_url: str = "http://messenger-gateway:8080"
     gateway_internal_secret: str
 
@@ -33,6 +34,9 @@ class Settings(BaseSettings):
 config = Settings()
 ALLOWED_USER_IDS: set[str] = {
     uid.strip() for uid in config.discord_allowed_user_ids.split(",") if uid.strip()
+}
+ALLOWED_CHANNEL_IDS: set[str] = {
+    cid.strip() for cid in config.discord_allowed_channel_ids.split(",") if cid.strip()
 }
 
 
@@ -89,6 +93,10 @@ async def on_ready() -> None:
 async def on_message(message: discord.Message) -> None:
     # 봇 자신의 메시지 무시
     if message.author.bot:
+        return
+
+    # 허용 채널 확인
+    if ALLOWED_CHANNEL_IDS and str(message.channel.id) not in ALLOWED_CHANNEL_IDS:
         return
 
     user_id = str(message.author.id)
@@ -148,6 +156,11 @@ async def on_interaction(interaction: discord.Interaction) -> None:
 
     action, job_id = custom_id.split(":", 1)
     user_id = str(interaction.user.id)
+
+    # 허용 채널 확인
+    if ALLOWED_CHANNEL_IDS and str(interaction.channel_id) not in ALLOWED_CHANNEL_IDS:
+        await interaction.response.send_message("이 채널에서는 사용할 수 없습니다.", ephemeral=True)
+        return
 
     if ALLOWED_USER_IDS and user_id not in ALLOWED_USER_IDS:
         await interaction.response.send_message("권한이 없습니다.", ephemeral=True)
