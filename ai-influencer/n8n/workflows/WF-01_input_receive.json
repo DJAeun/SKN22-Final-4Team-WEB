@@ -8,104 +8,108 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "node-webhook-wf01",
+      "id": "wf01-webhook",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
+      "typeVersion": 2,
       "position": [240, 300]
     },
     {
       "parameters": {
-        "values": {
-          "string": [
-            {"name": "job_id", "value": "={{$json.job_id}}"},
-            {"name": "messenger_source", "value": "={{$json.messenger_source}}"},
-            {"name": "messenger_user_id", "value": "={{$json.messenger_user_id}}"},
-            {"name": "messenger_channel_id", "value": "={{$json.messenger_channel_id}}"},
-            {"name": "concept_text", "value": "={{$json.concept_text}}"},
-            {"name": "ref_image_url", "value": "={{$json.ref_image_url ?? ''}}"},
-            {"name": "character_id", "value": "={{$json.character_id ?? 'default-character'}}"}
+        "assignments": {
+          "assignments": [
+            {"id": "a1", "name": "job_id", "value": "={{ $json.job_id }}", "type": "string"},
+            {"id": "a2", "name": "messenger_source", "value": "={{ $json.messenger_source }}", "type": "string"},
+            {"id": "a3", "name": "messenger_user_id", "value": "={{ $json.messenger_user_id }}", "type": "string"},
+            {"id": "a4", "name": "messenger_channel_id", "value": "={{ $json.messenger_channel_id }}", "type": "string"},
+            {"id": "a5", "name": "concept_text", "value": "={{ $json.concept_text }}", "type": "string"},
+            {"id": "a6", "name": "ref_image_url", "value": "={{ $json.ref_image_url ?? '' }}", "type": "string"},
+            {"id": "a7", "name": "character_id", "value": "={{ $json.character_id ?? 'default-character' }}", "type": "string"}
           ]
         },
         "options": {}
       },
-      "id": "node-set-meta",
+      "id": "wf01-set-meta",
       "name": "Preserve Messenger Meta",
       "type": "n8n-nodes-base.set",
-      "typeVersion": 1,
+      "typeVersion": 3.4,
       "position": [460, 300]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE jobs SET status='SCRIPTING', updated_at=NOW() WHERE id='{{$json.job_id}}'",
+        "query": "UPDATE jobs SET status='SCRIPTING', updated_at=NOW() WHERE id='{{ $json.job_id }}'",
         "options": {}
       },
-      "id": "node-pg-scripting",
+      "id": "wf01-pg-scripting",
       "name": "Update to SCRIPTING",
       "type": "n8n-nodes-base.postgres",
-      "typeVersion": 1,
+      "typeVersion": 2.5,
       "position": [680, 300],
       "credentials": {
-        "postgres": {"id": "pg-credentials", "name": "PostgreSQL"}
+        "postgres": {"id": "1", "name": "pg-credentials"}
       }
     },
     {
       "parameters": {
         "conditions": {
-          "boolean": [
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
             {
-              "value1": false,
-              "value2": true
+              "id": "cond-always-false",
+              "leftValue": "=false",
+              "rightValue": "=true",
+              "operator": {"type": "boolean", "operation": "equals"}
             }
-          ]
-        }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
       },
-      "id": "node-if-script-ready",
+      "id": "wf01-if-ready",
       "name": "Is Script Service Ready?",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
+      "typeVersion": 2.2,
       "position": [900, 300]
     },
     {
       "parameters": {
-        "values": {
-          "object": [
+        "assignments": {
+          "assignments": [
             {
+              "id": "b1",
               "name": "script_json",
-              "value": {
-                "title": "테스트 영상 제목",
-                "duration_sec": 30,
-                "script_summary": "Phase 2 연결 전 Mock 데이터입니다.",
-                "shots": [],
-                "voice_tone": "기본",
-                "hashtags": ["#테스트"],
-                "cta": "구독해주세요!"
-              }
+              "value": "={{ JSON.stringify({title: '테스트 영상 제목', duration_sec: 30, script_summary: 'Phase 2 연결 전 Mock 데이터입니다.', shots: [], voice_tone: '기본', hashtags: ['#테스트'], cta: '구독해주세요!'}) }}",
+              "type": "string"
             }
           ]
         },
         "options": {}
       },
-      "id": "node-mock-script",
+      "id": "wf01-mock-script",
       "name": "Mock Script Result",
       "type": "n8n-nodes-base.set",
-      "typeVersion": 1,
+      "typeVersion": 3.4,
       "position": [1120, 420]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE jobs SET script_json='{{JSON.stringify($json.script_json)}}'::jsonb, status='WAITING_APPROVAL', updated_at=NOW() WHERE id='{{$json.job_id}}'",
+        "query": "UPDATE jobs SET script_json='{{ $json.script_json }}'::jsonb, status='WAITING_APPROVAL', updated_at=NOW() WHERE id='{{ $json.job_id }}'",
         "options": {}
       },
-      "id": "node-pg-waiting",
+      "id": "wf01-pg-waiting",
       "name": "Save Script + WAITING_APPROVAL",
       "type": "n8n-nodes-base.postgres",
-      "typeVersion": 1,
+      "typeVersion": 2.5,
       "position": [1340, 420],
       "credentials": {
-        "postgres": {"id": "pg-credentials", "name": "PostgreSQL"}
+        "postgres": {"id": "1", "name": "pg-credentials"}
       }
     },
     {
@@ -115,27 +119,28 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {"name": "X-Internal-Secret", "value": "={{$env.GATEWAY_INTERNAL_SECRET}}"}
+            {"name": "X-Internal-Secret", "value": "={{ $env.GATEWAY_INTERNAL_SECRET }}"}
           ]
         },
         "sendBody": true,
+        "specifyBody": "keypair",
         "bodyParameters": {
           "parameters": [
-            {"name": "job_id", "value": "={{$json.job_id}}"},
-            {"name": "messenger_source", "value": "={{$json.messenger_source}}"},
-            {"name": "messenger_user_id", "value": "={{$json.messenger_user_id}}"},
-            {"name": "messenger_channel_id", "value": "={{$json.messenger_channel_id}}"},
-            {"name": "title", "value": "={{$json.script_json.title}}"},
-            {"name": "script_summary", "value": "={{$json.script_json.script_summary}}"},
+            {"name": "job_id", "value": "={{ $json.job_id }}"},
+            {"name": "messenger_source", "value": "={{ $json.messenger_source }}"},
+            {"name": "messenger_user_id", "value": "={{ $json.messenger_user_id }}"},
+            {"name": "messenger_channel_id", "value": "={{ $json.messenger_channel_id }}"},
+            {"name": "title", "value": "테스트 영상 제목"},
+            {"name": "script_summary", "value": "Phase 2 연결 전 Mock 데이터입니다."},
             {"name": "preview_url", "value": ""}
           ]
         },
         "options": {}
       },
-      "id": "node-http-send-confirm",
-      "name": "Request Confirm → Gateway",
+      "id": "wf01-http-confirm",
+      "name": "Request Confirm to Gateway",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
+      "typeVersion": 4.2,
       "position": [1560, 420]
     }
   ],
@@ -159,12 +164,10 @@
       "main": [[{"node": "Save Script + WAITING_APPROVAL", "type": "main", "index": 0}]]
     },
     "Save Script + WAITING_APPROVAL": {
-      "main": [[{"node": "Request Confirm → Gateway", "type": "main", "index": 0}]]
+      "main": [[{"node": "Request Confirm to Gateway", "type": "main", "index": 0}]]
     }
   },
   "active": true,
-  "settings": {
-    "executionOrder": "v1"
-  },
+  "settings": {"executionOrder": "v1"},
   "tags": ["phase-1"]
 }
