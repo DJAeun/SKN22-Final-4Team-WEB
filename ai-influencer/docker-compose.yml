@@ -33,6 +33,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       DB_TYPE: postgresdb
       DB_POSTGRESDB_HOST: ${POSTGRES_HOST}
@@ -74,6 +76,7 @@ services:
       DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
       N8N_WF01_WEBHOOK_URL: ${N8N_WF01_WEBHOOK_URL}
       N8N_WF05_WEBHOOK_URL: ${N8N_WF05_WEBHOOK_URL}
+      N8N_WF06_WEBHOOK_URL: ${N8N_WF06_WEBHOOK_URL}
     ports:
       - "8080:8080"
     networks:

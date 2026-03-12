@@ -1,4 +1,5 @@
 import logging
+import base64
 from contextlib import asynccontextmanager
 from typing import Annotated, Optional
 
@@ -10,7 +11,9 @@ from config import settings
 from models.job import (
     ConfirmActionRequest,
     IncomingMessageRequest,
+    ReportMessageRequest,
     SendConfirmRequest,
+    SendReportRequest,
     SendTextRequest,
 )
 from services import job_service, n8n_service
@@ -206,6 +209,67 @@ async def confirm_action(_: AuthDep, body: ConfirmActionRequest) -> dict:
         return {"job_id": body.job_id, "action": "revision_requested"}
 
     raise HTTPException(status_code=400, detail=f"Unknown action: {body.action}")
+
+
+@app.post("/internal/report-message")
+async def report_message(_: AuthDep, body: ReportMessageRequest) -> dict:
+    """봇 서비스가 report: 프리픽스 메시지를 포워딩한다."""
+    await job_service.create_job(body)
+
+    try:
+        await n8n_service.call_wf06_report(
+            job_id=body.job_id,
+            messenger_source=body.messenger_source.value,
+            messenger_user_id=body.messenger_user_id,
+            messenger_channel_id=body.messenger_channel_id,
+            prompt=body.prompt,
+            notebook_id=body.notebook_id,
+            character_id=body.character_id,
+        )
+    except Exception as e:
+        logger.error("[discord] call_wf06_report failed job_id=%s: %s", body.job_id, e)
+        await job_service.update_job(body.job_id, error_message=str(e))
+
+    try:
+        ack_text = (
+            f"📊 보고서 생성 요청이 접수되었습니다!\n"
+            f"Job ID: {body.job_id[:8]}...\n"
+            f"프롬프트: {body.prompt[:50]}...\n\n"
+            "NotebookLM에서 보고서를 생성 중입니다. 최대 5분 소요될 수 있습니다. ⏳"
+        )
+        await _discord_adapter.send_text_message(body.messenger_channel_id, ack_text)
+    except Exception as e:
+        logger.error("[discord] ack report message failed job_id=%s: %s", body.job_id, e)
+
+    return {"job_id": body.job_id, "status": "accepted"}
+
+
+@app.post("/internal/send-report")
+async def send_report(_: AuthDep, body: SendReportRequest) -> dict:
+    """n8n WF-06에서 호출 — Discord로 보고서 파일을 전송한다."""
+    try:
+        file_bytes = base64.b64decode(body.file_content_b64)
+    except Exception as e:
+        logger.error("[discord] base64 decode failed job_id=%s: %s", body.job_id, e)
+        raise HTTPException(status_code=400, detail=f"Invalid file_content_b64: {e}")
+
+    text = body.report_content
+    if len(text) > 1800:
+        text = text[:1800] + "\n\n[전체 내용은 첨부 파일 참조]"
+
+    try:
+        await _discord_adapter.send_file_message(
+            channel_id=body.messenger_channel_id,
+            text=text,
+            file_bytes=file_bytes,
+            filename=body.filename,
+        )
+    except Exception as e:
+        logger.error("[discord] send_file_message failed job_id=%s: %s", body.job_id, e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+    logger.info("[discord] send_report done job_id=%s filename=%s", body.job_id, body.filename)
+    return {"status": "sent"}
 
 
 @app.post("/internal/send-text")

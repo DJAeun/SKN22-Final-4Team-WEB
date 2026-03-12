@@ -51,3 +51,22 @@ class SendTextRequest(BaseModel):
     messenger_source: MessengerSource
     messenger_channel_id: str
     text: str
+
+
+class ReportMessageRequest(BaseModel):
+    job_id: str
+    messenger_source: MessengerSource
+    messenger_user_id: str
+    messenger_channel_id: str
+    prompt: str
+    notebook_id: str = ""
+    character_id: str = "default-character"
+
+
+class SendReportRequest(BaseModel):
+    messenger_source: MessengerSource
+    messenger_channel_id: str
+    job_id: str
+    report_content: str
+    file_content_b64: str
+    filename: str

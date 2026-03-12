@@ -79,3 +79,25 @@ async def call_wf05_confirm(
     }
     await _post_with_retry(settings.n8n_wf05_webhook_url, payload)
     logger.info("call_wf05_confirm job_id=%s action=%s", job_id, action)
+
+
+async def call_wf06_report(
+    job_id: str,
+    messenger_source: str,
+    messenger_user_id: str,
+    messenger_channel_id: str,
+    prompt: str,
+    notebook_id: str,
+    character_id: str,
+) -> None:
+    payload = {
+        "job_id": job_id,
+        "messenger_source": messenger_source,
+        "messenger_user_id": messenger_user_id,
+        "messenger_channel_id": messenger_channel_id,
+        "prompt": prompt,
+        "notebook_id": notebook_id,
+        "character_id": character_id,
+    }
+    await _post_with_retry(settings.n8n_wf06_webhook_url, payload)
+    logger.info("[%s] call_wf06_report job_id=%s", messenger_source, job_id)
