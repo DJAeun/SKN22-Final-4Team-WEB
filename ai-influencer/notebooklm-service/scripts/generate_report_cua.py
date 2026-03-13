@@ -1,5 +1,6 @@
 import argparse
 import base64
+import logging
 import sys
 import time
 from pathlib import Path
@@ -7,6 +8,13 @@ from datetime import datetime
 
 from playwright.sync_api import sync_playwright
 from openai import OpenAI
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    stream=sys.stdout,
+)
+logger = logging.getLogger("generate_report_cua")
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 BROWSER_PROFILE_DIR = DATA_DIR / "browser_state" / "browser_profile"
@@ -30,10 +38,12 @@ def execute_action(page, action: dict):
 
 
 def generate_report(prompt: str, notebook_url: str, output_path: str, headless: bool = True) -> str:
+    logger.info("[CUA] 시작 prompt=%r url=%s headless=%s", prompt, notebook_url, headless)
     client = OpenAI()
     BROWSER_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
 
     with sync_playwright() as p:
+        logger.info("[CUA] Chromium 브라우저 시작 profile=%s", BROWSER_PROFILE_DIR)
         context = p.chromium.launch_persistent_context(
             user_data_dir=str(BROWSER_PROFILE_DIR),
             headless=headless,
@@ -45,7 +55,9 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
             viewport={"width": 1280, "height": 800},
         )
         page = context.new_page()
+        logger.info("[CUA] 노트북 URL 이동 중...")
         page.goto(notebook_url, wait_until="networkidle", timeout=60000)
+        logger.info("[CUA] 페이지 로드 완료: %s", page.title())
 
         task = (
             f"NotebookLM 스튜디오에서 보고서를 생성하라.\n"
@@ -57,6 +69,7 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
         messages = [{"role": "user", "content": task}]
 
         for step in range(30):
+            logger.info("[CUA] 스텝 %d/30 — 스크린샷 캡처 후 GPT-5.4 호출", step + 1)
             screenshot_b64 = base64.b64encode(page.screenshot()).decode()
             messages.append({
                 "role": "user",
@@ -90,16 +103,20 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
 
             for output in response.output:
                 if output.type == "computer_call":
+                    logger.info("[CUA] 액션 실행: %s", output.action)
                     execute_action(page, output.action)
                     assistant_msgs.append(output)
                 elif output.type == "text":
+                    logger.info("[CUA] 모델 텍스트 응답: %s", output.text[:200])
                     if "REPORT_DONE:" in output.text:
                         report_text = output.text.split("REPORT_DONE:", 1)[1].strip()
+                        logger.info("[CUA] REPORT_DONE 감지 (길이=%d chars)", len(report_text))
                     assistant_msgs.append(output)
 
             if report_text:
                 Path(output_path).parent.mkdir(parents=True, exist_ok=True)
                 Path(output_path).write_text(report_text, encoding="utf-8")
+                logger.info("[CUA] 보고서 저장 완료: %s", output_path)
                 context.close()
                 return output_path
 

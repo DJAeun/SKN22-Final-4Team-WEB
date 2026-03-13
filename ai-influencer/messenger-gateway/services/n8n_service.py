@@ -99,5 +99,7 @@ async def call_wf06_report(
         "notebook_id": notebook_id,
         "character_id": character_id,
     }
-    await _post_with_retry(settings.n8n_wf06_webhook_url, payload)
+    client = get_http_client()
+    resp = await client.post(settings.n8n_wf06_webhook_url, json=payload, headers=_headers())
+    resp.raise_for_status()
     logger.info("[%s] call_wf06_report job_id=%s", messenger_source, job_id)
