@@ -138,7 +138,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE jobs SET status='FAILED', error_message='{{ $('Call NotebookLM Service').item.json.error ?? 'Unknown error' }}', updated_at=NOW() WHERE id='{{ $('Extract Fields').item.json.job_id }}'",
+        "query": "UPDATE jobs SET status='FAILED', updated_at=NOW() WHERE id='{{ $('Extract Fields').item.json.job_id }}'",
         "options": {}
       },
       "id": "wf06-pg-failed",
