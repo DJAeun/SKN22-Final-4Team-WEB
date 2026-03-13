@@ -73,8 +73,6 @@ async def gateway_call(path: str, payload: dict) -> None:
 
 revision_pending: dict[str, str] = {}  # user_id -> job_id
 
-REPORT_PREFIXES = ("report:", "/report ", "보고서:", "/보고서 ")
-
 
 # ─────────────────────────────────────────
 # Discord Bot
@@ -88,7 +86,8 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready() -> None:
-    logger.info("[discord] bot online: %s", bot.user)
+    await bot.tree.sync()
+    logger.info("[discord] bot online: %s / slash commands synced", bot.user)
 
 
 @bot.event
@@ -105,10 +104,9 @@ async def on_message(message: discord.Message) -> None:
 
     # 허용 사용자 확인
     if ALLOWED_USER_IDS and user_id not in ALLOWED_USER_IDS:
-        logger.info("[discord] unauthorized user_id=%s", user_id)
         return
 
-    # 수정 지시 텍스트 대기 중인 경우
+    # 수정 지시 텍스트 대기 중인 경우에만 처리
     if user_id in revision_pending:
         job_id = revision_pending.pop(user_id)
         try:
@@ -122,37 +120,24 @@ async def on_message(message: discord.Message) -> None:
             )
         except Exception:
             pass
+
+
+@bot.tree.command(name="create", description="AI 콘텐츠 생성을 요청합니다")
+async def create_command(interaction: discord.Interaction, concept: str) -> None:
+    user_id = str(interaction.user.id)
+
+    if ALLOWED_CHANNEL_IDS and str(interaction.channel_id) not in ALLOWED_CHANNEL_IDS:
+        await interaction.response.send_message("이 채널에서는 사용할 수 없습니다.", ephemeral=True)
         return
 
-    # 보고서 요청 처리 (report: 프리픽스)
-    content_lower = message.content.lower()
-    for prefix in REPORT_PREFIXES:
-        if content_lower.startswith(prefix.lower()):
-            prompt = message.content[len(prefix):].strip()
-            if not prompt:
-                await message.channel.send("❌ 보고서 프롬프트를 입력해주세요. 예: `report: 이란 경제 영향 분석`")
-                return
-            report_job_id = str(uuid.uuid4())
-            try:
-                await gateway_call(
-                    "/internal/report-message",
-                    {
-                        "job_id": report_job_id,
-                        "messenger_source": "discord",
-                        "messenger_user_id": user_id,
-                        "messenger_channel_id": str(message.channel.id),
-                        "prompt": prompt,
-                        "notebook_id": "",
-                        "character_id": "default-character",
-                    },
-                )
-            except Exception:
-                await message.channel.send("보고서 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-            return
+    if ALLOWED_USER_IDS and user_id not in ALLOWED_USER_IDS:
+        await interaction.response.send_message("권한이 없습니다.", ephemeral=True)
+        return
 
-    # 일반 콘텐츠 요청 처리
+    await interaction.response.defer()
+
     job_id = str(uuid.uuid4())
-    image_url = message.attachments[0].url if message.attachments else None
+    image_url = interaction.message.attachments[0].url if interaction.message and interaction.message.attachments else None
 
     try:
         await gateway_call(
@@ -161,14 +146,52 @@ async def on_message(message: discord.Message) -> None:
                 "job_id": job_id,
                 "messenger_source": "discord",
                 "messenger_user_id": user_id,
-                "messenger_channel_id": str(message.channel.id),
-                "concept_text": message.content,
+                "messenger_channel_id": str(interaction.channel_id),
+                "concept_text": concept,
                 "ref_image_url": image_url,
                 "character_id": "default-character",
             },
         )
+        await interaction.followup.send(
+            f"✅ 요청이 접수되었습니다!\nJob ID: {job_id[:8]}...\n콘셉트: {concept[:50]}...\n\n잠시 후 처리 결과를 알려드릴게요. ⏳"
+        )
     except Exception:
-        await message.channel.send("요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        await interaction.followup.send("요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+
+
+@bot.tree.command(name="report", description="NotebookLM 보고서를 생성합니다")
+async def report_command(interaction: discord.Interaction, prompt: str) -> None:
+    user_id = str(interaction.user.id)
+
+    if ALLOWED_CHANNEL_IDS and str(interaction.channel_id) not in ALLOWED_CHANNEL_IDS:
+        await interaction.response.send_message("이 채널에서는 사용할 수 없습니다.", ephemeral=True)
+        return
+
+    if ALLOWED_USER_IDS and user_id not in ALLOWED_USER_IDS:
+        await interaction.response.send_message("권한이 없습니다.", ephemeral=True)
+        return
+
+    await interaction.response.defer()
+
+    job_id = str(uuid.uuid4())
+    try:
+        await gateway_call(
+            "/internal/report-message",
+            {
+                "job_id": job_id,
+                "messenger_source": "discord",
+                "messenger_user_id": user_id,
+                "messenger_channel_id": str(interaction.channel_id),
+                "prompt": prompt,
+                "notebook_id": "",
+                "character_id": "default-character",
+            },
+        )
+        await interaction.followup.send(
+            f"📊 보고서 생성 요청이 접수되었습니다!\nJob ID: {job_id[:8]}...\n프롬프트: {prompt[:50]}...\n\nNotebookLM에서 보고서를 생성 중입니다. 최대 5분 소요될 수 있습니다. ⏳"
+        )
+    except Exception:
+        await interaction.followup.send("보고서 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
 
 
 @bot.event
