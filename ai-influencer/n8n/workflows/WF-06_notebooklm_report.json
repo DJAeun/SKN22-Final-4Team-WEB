@@ -51,7 +51,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://host.docker.internal:8090/generate",
+        "url": "http://notebooklm-service:8090/generate",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [

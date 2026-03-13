@@ -35,10 +35,10 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-SKILLS_DIR = Path.home() / ".claude" / "skills" / "notebooklm"
-SCRIPTS_DIR = SKILLS_DIR / "scripts"
-REPORTS_DIR = SKILLS_DIR / "data" / "reports"
-LIBRARY_JSON = SKILLS_DIR / "data" / "library.json"
+SCRIPTS_DIR = Path(os.getenv("NOTEBOOKLM_SCRIPTS_DIR", "/app/scripts"))
+DATA_DIR = Path(os.getenv("NOTEBOOKLM_DATA_DIR", "/app/data"))
+REPORTS_DIR = DATA_DIR / "reports"
+LIBRARY_JSON = DATA_DIR / "library.json"
 
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -116,18 +116,17 @@ def _run_generate_report(
     notebook_url: Optional[str],
     output_path: Path,
 ) -> GenerateResponse:
-    run_py = SCRIPTS_DIR / "run.py"
+    if not notebook_url:
+        return GenerateResponse(status="error", error="notebook_url이 필요합니다.")
 
     cmd = [
         "python3",
-        str(run_py),
-        "generate_report.py",
+        str(SCRIPTS_DIR / "generate_report_cua.py"),
         "--prompt", prompt,
+        "--notebook-url", notebook_url,
         "--output", str(output_path),
         "--headless",
     ]
-    if notebook_url:
-        cmd += ["--notebook-url", notebook_url]
 
     logger.info("[notebooklm] starting subprocess job_id=%s cmd=%s", job_id, cmd)
 
@@ -137,7 +136,6 @@ def _run_generate_report(
             capture_output=True,
             text=True,
             timeout=270,
-            cwd=str(SCRIPTS_DIR),
         )
     except subprocess.TimeoutExpired:
         logger.error("[notebooklm] subprocess timeout job_id=%s", job_id)

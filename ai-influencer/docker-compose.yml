@@ -33,8 +33,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     environment:
       DB_TYPE: postgresdb
       DB_POSTGRESDB_HOST: ${POSTGRES_HOST}
@@ -57,6 +55,19 @@ services:
     networks:
       - internal
 
+  notebooklm-service:
+    build: ./notebooklm-service
+    restart: always
+    environment:
+      GATEWAY_INTERNAL_SECRET: ${GATEWAY_INTERNAL_SECRET}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      NOTEBOOKLM_DATA_DIR: /app/data
+      NOTEBOOKLM_SCRIPTS_DIR: /app/scripts
+    volumes:
+      - ./notebooklm-service/data:/app/data
+    networks:
+      - internal
+
   messenger-gateway:
     build: ./messenger-gateway
     restart: always
@@ -64,6 +75,8 @@ services:
       postgres:
         condition: service_healthy
       n8n:
+        condition: service_started
+      notebooklm-service:
         condition: service_started
     environment:
       GATEWAY_PORT: ${GATEWAY_PORT}
