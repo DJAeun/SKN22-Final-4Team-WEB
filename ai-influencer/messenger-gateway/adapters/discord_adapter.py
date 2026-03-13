@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Optional
 
@@ -13,6 +14,7 @@ BASE_URL = "https://discord.com/api/v10"
 class DiscordAdapter(MessengerAdapter):
 
     def __init__(self, token: str, http_client: httpx.AsyncClient) -> None:
+        self._token = token
         self._headers = {
             "Authorization": f"Bot {token}",
             "Content-Type": "application/json",
@@ -96,3 +98,20 @@ class DiscordAdapter(MessengerAdapter):
 
         await self.send_text_message(channel_id, replacement_text)
         logger.info("[discord] remove_buttons channel=%s message_id=%s", channel_id, message_id)
+
+    async def send_file_message(
+        self,
+        channel_id: str,
+        text: str,
+        file_bytes: bytes,
+        filename: str,
+    ) -> None:
+        payload_json = json.dumps({"content": text})
+        resp = await self._client.post(
+            f"{BASE_URL}/channels/{channel_id}/messages",
+            headers={"Authorization": f"Bot {self._token}"},
+            files={"files[0]": (filename, file_bytes, "text/markdown")},
+            data={"payload_json": payload_json},
+        )
+        resp.raise_for_status()
+        logger.info("[discord] send_file_message channel=%s filename=%s", channel_id, filename)

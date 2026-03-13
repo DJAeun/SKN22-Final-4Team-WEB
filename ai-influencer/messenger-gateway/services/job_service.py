@@ -1,10 +1,10 @@
 import logging
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import asyncpg
 
 from config import settings
-from models.job import IncomingMessageRequest
+from models.job import IncomingMessageRequest, ReportMessageRequest
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +35,14 @@ async def close_db_pool() -> None:
         logger.info("DB pool closed")
 
 
-async def create_job(data: IncomingMessageRequest) -> dict[str, Any]:
+async def create_job(data: Union[IncomingMessageRequest, ReportMessageRequest]) -> dict[str, Any]:
     pool = await get_db_pool()
+    if isinstance(data, ReportMessageRequest):
+        concept_text = data.prompt
+        ref_image_url = None
+    else:
+        concept_text = data.concept_text
+        ref_image_url = data.ref_image_url
     row = await pool.fetchrow(
         """
         INSERT INTO jobs (
@@ -48,8 +54,8 @@ async def create_job(data: IncomingMessageRequest) -> dict[str, Any]:
         data.job_id,
         data.messenger_user_id,
         data.character_id,
-        data.concept_text,
-        data.ref_image_url,
+        concept_text,
+        ref_image_url,
         data.messenger_source.value,
         data.messenger_user_id,
         data.messenger_channel_id,

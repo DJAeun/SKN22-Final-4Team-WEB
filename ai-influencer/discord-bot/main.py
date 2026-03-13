@@ -73,6 +73,8 @@ async def gateway_call(path: str, payload: dict) -> None:
 
 revision_pending: dict[str, str] = {}  # user_id -> job_id
 
+REPORT_PREFIXES = ("report:", "/report ", "보고서:", "/보고서 ")
+
 
 # ─────────────────────────────────────────
 # Discord Bot
@@ -121,6 +123,32 @@ async def on_message(message: discord.Message) -> None:
         except Exception:
             pass
         return
+
+    # 보고서 요청 처리 (report: 프리픽스)
+    content_lower = message.content.lower()
+    for prefix in REPORT_PREFIXES:
+        if content_lower.startswith(prefix.lower()):
+            prompt = message.content[len(prefix):].strip()
+            if not prompt:
+                await message.channel.send("❌ 보고서 프롬프트를 입력해주세요. 예: `report: 이란 경제 영향 분석`")
+                return
+            report_job_id = str(uuid.uuid4())
+            try:
+                await gateway_call(
+                    "/internal/report-message",
+                    {
+                        "job_id": report_job_id,
+                        "messenger_source": "discord",
+                        "messenger_user_id": user_id,
+                        "messenger_channel_id": str(message.channel.id),
+                        "prompt": prompt,
+                        "notebook_id": "",
+                        "character_id": "default-character",
+                    },
+                )
+            except Exception:
+                await message.channel.send("보고서 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+            return
 
     # 일반 콘텐츠 요청 처리
     job_id = str(uuid.uuid4())
