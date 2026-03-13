@@ -102,17 +102,6 @@ async def receive_message(_: AuthDep, body: IncomingMessageRequest) -> dict:
         logger.error("[discord] call_wf01_input failed job_id=%s: %s", body.job_id, e)
         await job_service.update_job(body.job_id, error_message=str(e))
 
-    try:
-        ack_text = (
-            f"✅ 요청이 접수되었습니다!\n"
-            f"Job ID: {body.job_id[:8]}...\n"
-            f"콘셉트: {body.concept_text[:50]}...\n\n"
-            "잠시 후 처리 결과를 알려드릴게요. ⏳"
-        )
-        await _discord_adapter.send_text_message(body.messenger_channel_id, ack_text)
-    except Exception as e:
-        logger.error("[discord] ack message failed job_id=%s: %s", body.job_id, e)
-
     return {"job_id": body.job_id, "status": "accepted"}
 
 
@@ -229,17 +218,6 @@ async def report_message(_: AuthDep, body: ReportMessageRequest) -> dict:
     except Exception as e:
         logger.error("[discord] call_wf06_report failed job_id=%s: %s", body.job_id, e)
         await job_service.update_job(body.job_id, error_message=str(e))
-
-    try:
-        ack_text = (
-            f"📊 보고서 생성 요청이 접수되었습니다!\n"
-            f"Job ID: {body.job_id[:8]}...\n"
-            f"프롬프트: {body.prompt[:50]}...\n\n"
-            "NotebookLM에서 보고서를 생성 중입니다. 최대 5분 소요될 수 있습니다. ⏳"
-        )
-        await _discord_adapter.send_text_message(body.messenger_channel_id, ack_text)
-    except Exception as e:
-        logger.error("[discord] ack report message failed job_id=%s: %s", body.job_id, e)
 
     return {"job_id": body.job_id, "status": "accepted"}
 
