@@ -53,7 +53,7 @@ def get_gateway_client() -> httpx.AsyncClient:
         _gateway_client = httpx.AsyncClient(
             base_url=config.gateway_url,
             headers={"X-Internal-Secret": config.gateway_internal_secret},
-            timeout=15.0,
+            timeout=30.0,
         )
     return _gateway_client
 
