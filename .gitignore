@@ -64,3 +64,4 @@ docker-compose.override.yml
 
 # Log files
 *.log
+z_structure.md

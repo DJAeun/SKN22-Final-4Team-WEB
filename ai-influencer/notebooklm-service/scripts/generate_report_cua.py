@@ -2,6 +2,7 @@ import argparse
 import base64
 import json
 import logging
+import re
 import sys
 import time
 from pathlib import Path
@@ -55,6 +56,7 @@ _REPORT_SELECTORS = [
 
 def _extract_report_from_dom(page) -> str:
     """DOM에서 보고서 텍스트를 직접 추출. GPT OCR 대신 Playwright 사용."""
+    # 1단계: 특정 셀렉터 시도
     js = """
     (selectors) => {
         for (const sel of selectors) {
@@ -72,16 +74,29 @@ def _extract_report_from_dom(page) -> str:
     try:
         result = page.evaluate(js, _REPORT_SELECTORS)
         if result and len(result.strip()) > 100:
-            logger.info("[CUA] DOM 추출 성공: %d chars", len(result))
+            logger.info("[CUA] DOM 셀렉터 추출 성공: %d chars", len(result))
             return result.strip()
     except Exception as e:
         logger.warning("[CUA] DOM 셀렉터 추출 실패: %s", e)
 
-    # 폴백: body 전체 텍스트
+    # 2단계: body 전체 텍스트 + 보고서 영역 파싱
     try:
-        text = page.inner_text("body")
-        logger.info("[CUA] DOM 폴백(body) 추출: %d chars", len(text))
-        return text.strip()
+        body_text = page.inner_text("body")
+        logger.info("[CUA] body 텍스트 획득: %d chars", len(body_text))
+
+        # NotebookLM 구조: "소스 N개 기반\n<보고서>\nthumb_up"
+        match = re.search(
+            r'소스 \d+개 기반\n(.+?)(?=\nthumb_up|\nNotebookLM이)',
+            body_text,
+            re.DOTALL,
+        )
+        if match:
+            report = match.group(1).strip()
+            logger.info("[CUA] 보고서 영역 파싱 성공: %d chars", len(report))
+            return report
+
+        logger.warning("[CUA] 보고서 영역 패턴 미발견 — body 전체 반환")
+        return body_text.strip()
     except Exception as e:
         logger.error("[CUA] body 텍스트 추출 실패: %s", e)
         return ""
