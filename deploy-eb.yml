@@ -1,0 +1,71 @@
+name: 🚀 [EB] Deploy to Elastic Beanstalk
+on:
+  # 팀 저장소 정책: main 브랜치로의 머지(Merge) 또는 직접 푸시 발생 시 배포 수행
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  EB_APP_NAME: ${{ vars.EB_APP_NAME }}
+  EB_ENV_NAME: ${{ vars.EB_ENV_NAME }}
+  AWS_REGION: ${{ vars.AWS_REGION }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Generate Deployment Package
+        run: |
+          cd backend
+          zip -r ../deploy.zip . -x "*.git*" "db.sqlite3" "__pycache__/*" "*.pyc"
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v22
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: ${{ env.EB_APP_NAME }}
+          environment_name: ${{ env.EB_ENV_NAME }}
+          version_label: "app-${{ github.sha }}"
+          region: ${{ env.AWS_REGION }}
+          deployment_package: deploy.zip
+          wait_for_deployment: true
+
+      - name: Get EB Environment Info
+        id: get-info
+        run: |
+          # Get CNAME
+          CNAME=$(aws elasticbeanstalk describe-environments --application-name ${{ env.EB_APP_NAME }} --environment-names ${{ env.EB_ENV_NAME }} --query "Environments[0].CNAME" --output text)
+          
+          # Try to get Public IP (for Single Instance)
+          INSTANCE_ID=$(aws elasticbeanstalk describe-environment-resources --environment-name ${{ env.EB_ENV_NAME }} --query "EnvironmentResources.Instances[0].Id" --output text)
+          PUBLIC_IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query "Reservations[0].Instances[0].PublicIpAddress" --output text)
+          
+          if [ "$PUBLIC_IP" != "None" ] && [ -n "$PUBLIC_IP" ]; then
+            echo "display_url=http://$PUBLIC_IP" >> $GITHUB_OUTPUT
+          else
+            echo "display_url=http://$CNAME" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Display Deployment Summary
+        run: |
+          echo "=========================================================="
+          echo "🚀 Deployment Completed Successfully!"
+          echo "🔗 운영서비스URL: ${{ steps.get-info.outputs.display_url }}"
+          echo "=========================================================="
+          echo "### 🚀 EB Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Platform**: \`Elastic Beanstalk\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **운영서비스URL**: [${{ steps.get-info.outputs.display_url }}](${{ steps.get-info.outputs.display_url }})" >> $GITHUB_STEP_SUMMARY
+          echo "- **App**: \`${{ env.EB_APP_NAME }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Env**: \`${{ env.EB_ENV_NAME }}\`" >> $GITHUB_STEP_SUMMARY
