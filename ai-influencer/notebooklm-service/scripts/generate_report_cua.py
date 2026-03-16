@@ -96,7 +96,7 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
             logger.info("[CUA] 스텝 %d/30 — Responses API 호출", step + 1)
 
             response = client.responses.create(
-                model="gpt-5.4",
+                model="computer-use-preview",
                 tools=tools,
                 input=input_items,
                 truncation="auto",
