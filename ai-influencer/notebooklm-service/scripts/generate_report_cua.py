@@ -117,7 +117,7 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
             response = client.chat.completions.create(
                 model="gpt-5.4",
                 messages=messages,
-                max_tokens=512,
+                max_completion_tokens=512,
                 temperature=0,
             )
 
