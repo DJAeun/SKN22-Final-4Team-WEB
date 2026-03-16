@@ -93,7 +93,8 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
         )
         page = context.new_page()
         logger.info("[CUA] 노트북 URL 이동 중...")
-        page.goto(notebook_url, wait_until="networkidle", timeout=60000)
+        page.goto(notebook_url, wait_until="domcontentloaded", timeout=90000)
+        time.sleep(3)
         logger.info("[CUA] 페이지 로드 완료: %s", page.title())
 
         for step in range(30):
