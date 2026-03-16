@@ -21,6 +21,7 @@ def main():
         context = p.chromium.launch_persistent_context(
             user_data_dir=str(BROWSER_PROFILE_DIR),
             headless=False,
+            args=["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"],
         )
         page = context.new_page()
         page.goto("https://accounts.google.com")
