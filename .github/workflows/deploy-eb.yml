@@ -1,9 +1,9 @@
 name: 🚀 [EB] Deploy to Elastic Beanstalk
 on:
-  # 팀 저장소 정책: main 브랜치로의 머지(Merge) 또는 직접 푸시 발생 시 배포 수행
+  # 팀 저장소 정책: develop 브랜치로의 머지(Merge) 또는 직접 푸시 발생 시 배포 수행
   push:
     branches:
-      - main
+      - develop
   workflow_dispatch:
 
 env:
