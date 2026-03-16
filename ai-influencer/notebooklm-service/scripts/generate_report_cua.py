@@ -29,14 +29,62 @@ Output ONLY valid JSON in one of these formats:
 3. Key: {"action": "key", "key": "<key name e.g. Enter, Tab>"}
 4. Scroll: {"action": "scroll", "x": <int>, "y": <int>, "delta_y": <int>}
 5. Wait: {"action": "wait", "ms": <milliseconds>}
-6. Done: {"action": "done", "report": "<full report text>"}
+6. Done: {"action": "done"}
 
 Rules:
 - Output ONLY the JSON object, no explanation.
-- Use "done" only when you have read the complete report text.
+- Use "done" only when the report is fully generated and visible on screen.
+- Do NOT include report text in the done action — text will be extracted from the DOM automatically.
 - If the report is still generating, use "wait".
 - Coordinates must be within 1280x800 viewport.
 """
+
+# NotebookLM 보고서 컨테이너 후보 셀렉터 (우선순위 순)
+_REPORT_SELECTORS = [
+    "ms-content-chunk",
+    "[class*='output-text']",
+    "[class*='StudioOutput']",
+    "[class*='studio-output']",
+    "[class*='generated-output']",
+    "[class*='OutputContent']",
+    ".ProseMirror",
+    "[contenteditable='true']",
+    "[class*='report-content']",
+]
+
+
+def _extract_report_from_dom(page) -> str:
+    """DOM에서 보고서 텍스트를 직접 추출. GPT OCR 대신 Playwright 사용."""
+    js = """
+    (selectors) => {
+        for (const sel of selectors) {
+            const els = document.querySelectorAll(sel);
+            if (els.length === 0) continue;
+            const text = Array.from(els)
+                .map(e => e.innerText.trim())
+                .filter(t => t.length > 0)
+                .join('\\n\\n');
+            if (text.length > 100) return text;
+        }
+        return null;
+    }
+    """
+    try:
+        result = page.evaluate(js, _REPORT_SELECTORS)
+        if result and len(result.strip()) > 100:
+            logger.info("[CUA] DOM 추출 성공: %d chars", len(result))
+            return result.strip()
+    except Exception as e:
+        logger.warning("[CUA] DOM 셀렉터 추출 실패: %s", e)
+
+    # 폴백: body 전체 텍스트
+    try:
+        text = page.inner_text("body")
+        logger.info("[CUA] DOM 폴백(body) 추출: %d chars", len(text))
+        return text.strip()
+    except Exception as e:
+        logger.error("[CUA] body 텍스트 추출 실패: %s", e)
+        return ""
 
 
 def execute_action(page, action: dict) -> bool:
@@ -73,8 +121,9 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
         f"Task: Generate a NotebookLM report.\n"
         f"Steps: Click Studio tab → Click 'Create report' button → "
         f"Select '직접 만들기'(Custom) → Type '{prompt}' in the prompt field → "
-        f"Click Generate → Wait for completion → Read the full report text.\n"
-        f"When the report is fully loaded, output {{\"action\": \"done\", \"report\": \"<full report text>\"}}."
+        f"Click Generate → Wait for completion.\n"
+        f"When the report is fully generated and visible, output {{\"action\": \"done\"}}.\n"
+        f"Do NOT include the report text — it will be extracted automatically."
     )
 
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -118,7 +167,7 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
             response = client.chat.completions.create(
                 model="gpt-5.4",
                 messages=messages,
-                max_completion_tokens=512,
+                max_completion_tokens=256,
                 temperature=0,
             )
 
@@ -127,7 +176,6 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
 
             # JSON 파싱
             try:
-                # 코드블록 제거
                 if raw.startswith("```"):
                     raw = raw.split("```")[1]
                     if raw.startswith("json"):
@@ -143,7 +191,8 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
 
             done = execute_action(page, action)
             if done:
-                report_text = action.get("report", "")
+                logger.info("[CUA] done 감지 — DOM에서 보고서 텍스트 추출 중...")
+                report_text = _extract_report_from_dom(page)
                 if report_text:
                     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
                     Path(output_path).write_text(report_text, encoding="utf-8")
@@ -151,7 +200,7 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
                     context.close()
                     return output_path
                 else:
-                    logger.error("[CUA] done 액션인데 report 텍스트 없음")
+                    logger.error("[CUA] DOM 추출 결과 없음")
                     break
 
         context.close()
