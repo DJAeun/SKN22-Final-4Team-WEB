@@ -15,8 +15,24 @@ services:
       - DJANGO_SETTINGS_MODULE=config.settings
     depends_on:
       - redis
+      - db
 
   redis:
     image: redis:alpine
     ports:
       - "6379:6379"
+
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: hari1-db
+      POSTGRES_USER: postgres_hari
+      POSTGRES_PASSWORD: localpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
