@@ -135,11 +135,11 @@ def _run_generate_report(
             cmd,
             capture_output=True,
             text=True,
-            timeout=270,
+            timeout=540,
         )
     except subprocess.TimeoutExpired:
         logger.error("[notebooklm] subprocess timeout job_id=%s", job_id)
-        return GenerateResponse(status="error", error="subprocess timeout (270s)")
+        return GenerateResponse(status="error", error="subprocess timeout (540s)")
     except Exception as e:
         logger.error("[notebooklm] subprocess error job_id=%s: %s", job_id, e)
         return GenerateResponse(status="error", error=str(e))

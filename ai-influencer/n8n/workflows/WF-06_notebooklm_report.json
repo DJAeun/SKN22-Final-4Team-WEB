@@ -63,7 +63,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ job_id: $('Extract Fields').item.json.job_id, prompt: $('Extract Fields').item.json.prompt, notebook_id: $('Extract Fields').item.json.notebook_id }) }}",
         "options": {
-          "timeout": 300000
+          "timeout": 600000
         }
       },
       "id": "wf06-http-generate",
