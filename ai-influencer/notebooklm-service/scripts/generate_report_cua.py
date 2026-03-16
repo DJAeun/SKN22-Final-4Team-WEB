@@ -1,5 +1,6 @@
 import argparse
 import base64
+import json
 import logging
 import sys
 import time
@@ -18,26 +19,49 @@ logger = logging.getLogger("generate_report_cua")
 DATA_DIR = Path(__file__).parent.parent / "data"
 BROWSER_PROFILE_DIR = DATA_DIR / "browser_state" / "browser_profile"
 
+SYSTEM_PROMPT = """You are a browser automation assistant controlling a Chromium browser via Playwright.
+Given a screenshot of the current browser state and a task, output a JSON action to perform.
 
-def execute_action(page, action: dict):
-    t = action.get("type")
+Output ONLY valid JSON in one of these formats:
+
+1. Click: {"action": "click", "x": <int>, "y": <int>, "reason": "<why>"}
+2. Type: {"action": "type", "text": "<text to type>"}
+3. Key: {"action": "key", "key": "<key name e.g. Enter, Tab>"}
+4. Scroll: {"action": "scroll", "x": <int>, "y": <int>, "delta_y": <int>}
+5. Wait: {"action": "wait", "ms": <milliseconds>}
+6. Done: {"action": "done", "report": "<full report text>"}
+
+Rules:
+- Output ONLY the JSON object, no explanation.
+- Use "done" only when you have read the complete report text.
+- If the report is still generating, use "wait".
+- Coordinates must be within 1280x800 viewport.
+"""
+
+
+def execute_action(page, action: dict) -> bool:
+    """액션 실행. done이면 True 반환."""
+    t = action.get("action")
     if t == "click":
         page.mouse.click(action["x"], action["y"])
-    elif t == "double_click":
-        page.mouse.dblclick(action["x"], action["y"])
+        time.sleep(0.8)
     elif t == "type":
         page.keyboard.type(action["text"])
+        time.sleep(0.3)
     elif t == "key":
         page.keyboard.press(action["key"])
+        time.sleep(0.5)
     elif t == "scroll":
-        page.mouse.wheel(action.get("delta_x", 0), action.get("delta_y", 0))
+        page.mouse.move(action.get("x", 640), action.get("y", 400))
+        page.mouse.wheel(0, action.get("delta_y", 300))
+        time.sleep(0.3)
     elif t == "wait":
-        time.sleep(action.get("ms", 1000) / 1000)
-    elif t == "screenshot":
-        pass  # 모델이 screenshot 요청 시 — 다음 루프에서 자동 처리
+        time.sleep(action.get("ms", 2000) / 1000)
+    elif t == "done":
+        return True
     else:
-        logger.warning("[CUA] 알 수 없는 액션 타입: %s", t)
-    time.sleep(0.5)
+        logger.warning("[CUA] 알 수 없는 액션: %s", t)
+    return False
 
 
 def generate_report(prompt: str, notebook_url: str, output_path: str, headless: bool = True) -> str:
@@ -45,23 +69,18 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
     client = OpenAI()
     BROWSER_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
 
-    tools = [{
-        "type": "computer_use_preview",
-        "display_width": 1280,
-        "display_height": 800,
-        "environment": "browser",
-    }]
-
     task = (
-        f"NotebookLM 스튜디오에서 보고서를 생성하라.\n"
-        f"순서: Studio(스튜디오) 탭 클릭 → 보고서 생성 버튼 클릭 → "
-        f"'직접 만들기' 선택 → 프롬프트 입력란에 '{prompt}' 입력 → "
-        f"생성 버튼 클릭 → 생성 완료 대기 → 보고서 전체 텍스트 읽기.\n"
-        f"완료되면 정확히 'REPORT_DONE: <보고서 전체 텍스트>' 형식으로 응답하라."
+        f"Task: Generate a NotebookLM report.\n"
+        f"Steps: Click Studio tab → Click 'Create report' button → "
+        f"Select '직접 만들기'(Custom) → Type '{prompt}' in the prompt field → "
+        f"Click Generate → Wait for completion → Read the full report text.\n"
+        f"When the report is fully loaded, output {{\"action\": \"done\", \"report\": \"<full report text>\"}}."
     )
 
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+
     with sync_playwright() as p:
-        logger.info("[CUA] Chromium 시작 profile=%s", BROWSER_PROFILE_DIR)
+        logger.info("[CUA] Chromium 시작")
         context = p.chromium.launch_persistent_context(
             user_data_dir=str(BROWSER_PROFILE_DIR),
             headless=headless,
@@ -77,86 +96,62 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
         page.goto(notebook_url, wait_until="networkidle", timeout=60000)
         logger.info("[CUA] 페이지 로드 완료: %s", page.title())
 
-        # 초기 스크린샷 포함한 첫 번째 입력
-        screenshot_b64 = base64.b64encode(page.screenshot()).decode()
-        input_items = [
-            {
+        for step in range(30):
+            screenshot_b64 = base64.b64encode(page.screenshot()).decode()
+            logger.info("[CUA] 스텝 %d/30 — gpt-5.4 Vision 호출", step + 1)
+
+            messages.append({
                 "role": "user",
                 "content": [
-                    {"type": "input_text", "text": task},
+                    {"type": "text", "text": task if step == 0 else "Current state. What is the next action?"},
                     {
-                        "type": "input_image",
-                        "image_url": f"data:image/png;base64,{screenshot_b64}",
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{screenshot_b64}",
+                            "detail": "high",
+                        },
                     },
                 ],
-            }
-        ]
+            })
 
-        for step in range(30):
-            logger.info("[CUA] 스텝 %d/30 — Responses API 호출", step + 1)
-
-            response = client.responses.create(
-                model="computer-use-preview",
-                tools=tools,
-                input=input_items,
-                truncation="auto",
-                max_output_tokens=8192,
+            response = client.chat.completions.create(
+                model="gpt-5.4",
+                messages=messages,
+                max_tokens=512,
+                temperature=0,
             )
 
-            logger.info("[CUA] 응답 output 아이템 수: %d", len(response.output))
+            raw = response.choices[0].message.content.strip()
+            logger.info("[CUA] 모델 응답: %s", raw[:200])
 
-            # 응답 output을 다음 턴 input에 추가
-            input_items.extend(response.output)
+            # JSON 파싱
+            try:
+                # 코드블록 제거
+                if raw.startswith("```"):
+                    raw = raw.split("```")[1]
+                    if raw.startswith("json"):
+                        raw = raw[4:]
+                action = json.loads(raw.strip())
+            except json.JSONDecodeError as e:
+                logger.error("[CUA] JSON 파싱 실패: %s — %s", e, raw)
+                messages.append({"role": "assistant", "content": raw})
+                continue
 
-            report_text = None
-            computer_calls_found = False
+            messages.append({"role": "assistant", "content": raw})
+            logger.info("[CUA] 액션: %s", action)
 
-            for output in response.output:
-                logger.info("[CUA] output.type=%s", output.type)
-
-                if output.type == "computer_call":
-                    computer_calls_found = True
-                    logger.info("[CUA] 액션 실행: %s", output.action)
-                    execute_action(page, output.action)
-
-                    # 액션 후 스크린샷 → computer_call_output으로 반환
-                    new_screenshot_b64 = base64.b64encode(page.screenshot()).decode()
-                    input_items.append({
-                        "type": "computer_call_output",
-                        "call_id": output.call_id,
-                        "output": {
-                            "type": "input_image",
-                            "image_url": f"data:image/png;base64,{new_screenshot_b64}",
-                        },
-                    })
-
-                elif output.type == "message":
-                    for content in output.content:
-                        text = getattr(content, "text", "")
-                        if text:
-                            logger.info("[CUA] 모델 텍스트: %s", text[:300])
-                            if "REPORT_DONE:" in text:
-                                report_text = text.split("REPORT_DONE:", 1)[1].strip()
-                                logger.info("[CUA] REPORT_DONE 감지 길이=%d", len(report_text))
-
-            if report_text:
-                Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-                Path(output_path).write_text(report_text, encoding="utf-8")
-                logger.info("[CUA] 보고서 저장 완료: %s", output_path)
-                context.close()
-                return output_path
-
-            if not computer_calls_found:
-                # computer_call 없으면 현재 화면 스크린샷을 추가해 다음 스텝 유도
-                logger.warning("[CUA] computer_call 없음 — 현재 화면 재전송")
-                fresh_screenshot_b64 = base64.b64encode(page.screenshot()).decode()
-                input_items.append({
-                    "role": "user",
-                    "content": [{
-                        "type": "input_image",
-                        "image_url": f"data:image/png;base64,{fresh_screenshot_b64}",
-                    }],
-                })
+            done = execute_action(page, action)
+            if done:
+                report_text = action.get("report", "")
+                if report_text:
+                    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+                    Path(output_path).write_text(report_text, encoding="utf-8")
+                    logger.info("[CUA] 보고서 저장 완료: %s (%d chars)", output_path, len(report_text))
+                    context.close()
+                    return output_path
+                else:
+                    logger.error("[CUA] done 액션인데 report 텍스트 없음")
+                    break
 
         context.close()
 
