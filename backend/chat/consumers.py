@@ -1,4 +1,5 @@
 import json
+import uuid
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from .models import ChatSession, Message
@@ -25,7 +26,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             
             if self.session:
                 # Group by session ID to allow multiple sessions per user
-                self.room_group_name = f"chat_{self.session.id}"
+                self.room_group_name = f"chat_{self.session.session_id}"
             else:
                 # Fallback group for users without a valid session
                 self.room_group_name = f"chat_anon_{id(self)}"
@@ -50,24 +51,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
             if session_id:
                 # If specific session requested, find it and verify ownership
                 if user.is_authenticated:
-                    return ChatSession.objects.filter(id=session_id, user=user).first()
+                    return ChatSession.objects.filter(session_id=session_id, user=user).first()
                 else:
-                    return ChatSession.objects.filter(id=session_id, user=None, summary=session_key).first()
+                    return ChatSession.objects.filter(session_id=session_id, user=None).first()
 
             if user.is_authenticated:
-                session = ChatSession.objects.filter(user=user).order_by('-updated_at').first()
+                session = ChatSession.objects.filter(user=user, is_active=True).first()
                 if not session:
-                    session = ChatSession.objects.create(user=user)
+                    new_id = str(uuid.uuid4())
+                    session = ChatSession.objects.create(session_id=new_id, user=user)
+                return session
             else:
                 if not session_key:
                     logger.debug("No session_key for anonymous user in get_or_create_session")
                     return None
-                # session_key is stored in summary for guests
-                session = ChatSession.objects.filter(user=None, summary=session_key).order_by('-updated_at').first()
+                session = ChatSession.objects.filter(session_id=session_key, user=None).first()
                 if not session:
                     logger.debug(f"Creating new guest session for key: {session_key}")
-                    session = ChatSession.objects.create(user=None, summary=session_key)
-            return session
+                    session = ChatSession.objects.create(session_id=session_key, user=None)
+                return session
         except Exception as e:
             logger.error(f"get_or_create_session error: {e}", exc_info=True)
             raise e
@@ -75,7 +77,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def save_message(self, session, sender, text):
         if session:
-            return Message.objects.create(session=session, sender=sender, text=text)
+            # sender_type: True for User, False for Hari
+            is_user = (sender == 'user')
+            return Message.objects.create(session=session, sender_type=is_user, content=text)
         return None
 
     async def disconnect(self, close_code):
@@ -103,7 +107,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             
             try:
                 loop = asyncio.get_event_loop()
-                ai_response = await loop.run_in_executor(None, engine.get_response, message)
+                # Execute LangGraph request, parsing the correct thread ID
+                target_session_id = self.session.session_id if self.session else "anonymous_thread"
+                ai_response = await loop.run_in_executor(None, engine.get_response, message, target_session_id)
             except Exception as e:
                 import logging
                 logger = logging.getLogger(__name__)
