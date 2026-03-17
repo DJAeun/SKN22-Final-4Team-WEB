@@ -4,7 +4,6 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.graph import START, StateGraph, MessagesState
 from langgraph.checkpoint.postgres import PostgresSaver
-from psycopg_pool import ConnectionPool
 
 # Logger for chat engine
 logger = logging.getLogger(__name__)
@@ -45,8 +44,9 @@ class HariAIEngine:
             workflow.add_node("model", call_model)
             workflow.add_edge(START, "model")
 
-            # Setup PostgresSaver
-            # Ensure kwargs use psycopg 3 compatible settings for LangGraph
+            self.workflow = workflow
+
+            # Make Database URI
             db_host = os.environ.get("DB_HOST", "localhost")
             db_port = os.environ.get("DB_PORT", "5432")
             db_name = os.environ.get("DB_NAME", "hari_persona")
@@ -55,30 +55,22 @@ class HariAIEngine:
             
             self.db_uri = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
             
-            # Initializing psycopg ConnectionPool
-            self.pool = ConnectionPool(
-                conninfo=self.db_uri,
-                max_size=20,
-                kwargs={"autocommit": True, "prepare_threshold": 0}
-            )
-            
-            self.checkpointer = PostgresSaver(self.pool)
-            self.checkpointer.setup() # create checkpoint tables if not exists
-            
-            self.app = workflow.compile(checkpointer=self.checkpointer)
+            # Setup Tables once on initialization (short-lived connection to avoid pre-fork issues)
+            with PostgresSaver.from_conn_string(self.db_uri) as checkpointer:
+                checkpointer.setup()
+                
             logger.info("HariAIEngine (LangGraph) initialization successful")
 
         except Exception as e:
             self.init_error = str(e)
             logger.error(f"HariAIEngine initialization failed: {e}")
-            self.app = None
 
     def get_response(self, user_input, session_id):
         """
         Generates a response based on user input and long-term memory via LangGraph.
         """
-        if not self.app:
-            return "앗, 미안해! 내가 지금 상태가 좀 안 좋아. 나중에 다시 말해줄래? 😢 (엔진 초기화 실패)"
+        if self.init_error:
+            return f"앗, 미안해! 내가 지금 상태가 좀 안 좋아. 나중에 다시 말해줄래? 😢 (엔진 초기화 실패: {self.init_error})"
 
         try:
             logger.info(f"Invoking LLM graph for thread: {session_id}, input: {user_input[:50]}...")
@@ -86,16 +78,19 @@ class HariAIEngine:
             config = {"configurable": {"thread_id": str(session_id)}}
             input_message = HumanMessage(content=user_input)
             
-            # 1. StateGraph execution: incorporates past memory from PostgresSaver naturally
-            final_state = self.app.invoke({"messages": [input_message]}, config=config)
-            
-            # 2. Extract Response
-            ai_message = final_state["messages"][-1]
-            return ai_message.content
+            # Use short-lived context manager for PostgresSaver to prevent connection drop / fork issues
+            with PostgresSaver.from_conn_string(self.db_uri) as checkpointer:
+                app = self.workflow.compile(checkpointer=checkpointer)
+                # 1. StateGraph execution
+                final_state = app.invoke({"messages": [input_message]}, config=config)
+                # 2. Extract Response
+                ai_message = final_state["messages"][-1]
+                return ai_message.content
 
         except Exception as e:
             logger.error(f"Error generating AI response: {e}", exc_info=True)
-            return "앗, 미안해! 방금 무슨 생각하느라 잘 못 들었어. 다시 말해줄래? 😅"
+            return f"앗, 에러가 발생했어! 다시 말해줄래? 😅 (에러: {str(e)})"
 
 # Singleton instance
 engine = HariAIEngine()
+
