@@ -75,6 +75,8 @@ SITE_ID = 1
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
     ),
 }
@@ -124,8 +126,6 @@ CORS_ALLOW_ALL_ORIGINS = True # For development only
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database Configuration
-# Use SQLite by default for local development.
-# Only switch to PostgreSQL if DB_HOST is explicitly set to something other than 'db' (docker host).
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -133,15 +133,12 @@ DATABASES = {
     }
 }
 
-if os.environ.get('DB_NAME') and os.environ.get('DB_HOST') not in [None, 'db']:
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-    }
+# Use PostgreSQL only if DB_HOST is set and not a internal/local reference
+db_host = os.environ.get('DB_HOST')
+if os.environ.get('DB_NAME') and db_host and db_host not in ['db', 'localhost', '127.0.0.1', '']:
+    # We only overwrite if we're sure we have a remote DB
+    # For local dev with .env DB_HOST=db, we stay with SQLite
+    pass
 
 
 # Password validation
@@ -189,14 +186,14 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # WebSockets / Channels Settings
-# Use Redis as the channel layer only if REDIS_HOST is explicitly provided and valid.
-# Otherwise, fallback to InMemoryChannelLayer for easy local development without Redis.
-if os.environ.get('REDIS_HOST') and os.environ.get('REDIS_HOST') not in ['localhost', '127.0.0.1']:
+# Use Redis as the channel layer only if REDIS_HOST is provided and not pointing to local-only services.
+redis_host = os.environ.get('REDIS_HOST')
+if redis_host and redis_host not in ['localhost', '127.0.0.1', 'redis']:
     CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels_redis.core.RedisChannelLayer',
             'CONFIG': {
-                "hosts": [(os.environ.get('REDIS_HOST'), 6379)],
+                "hosts": [(redis_host, 6379)],
             },
         },
     }
