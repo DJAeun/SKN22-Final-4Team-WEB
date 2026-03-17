@@ -391,6 +391,29 @@
             transform: scale(1.05);
         }
 
+        /* Typing/Thinking Animation */
+        .typing-bubble {
+            display: flex;
+            gap: 4px;
+            padding: 10px 15px !important;
+        }
+        
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: pulse-dot 1.4s infinite;
+        }
+        
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes pulse-dot {
+            0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
+            30% { opacity: 1; transform: scale(1.2); }
+        }
+
         /* Hide scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -531,7 +554,32 @@
             chatLog.scrollTop = chatLog.scrollHeight;
         }
 
+        function showThinking() {
+            if (document.getElementById('thinking-row')) return;
+            const row = document.createElement('div');
+            row.className = 'message-row hari';
+            row.id = 'thinking-row';
+            row.innerHTML = `
+                <div class="hari-msg-avatar"></div>
+                <div class="message-col">
+                    <div class="message-bubble typing-bubble">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            `;
+            chatLog.appendChild(row);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        function hideThinking() {
+            const row = document.getElementById('thinking-row');
+            if (row) row.remove();
+        }
+
         function appendHariMessage(text) {
+            hideThinking();
             const row = document.createElement('div');
             row.className = 'message-row hari';
             
@@ -581,6 +629,7 @@
             
             // Immediate local feedback
             appendUserMessage(message);
+            showThinking();
             
             // Send socket message
             chatSocket.send(JSON.stringify({
