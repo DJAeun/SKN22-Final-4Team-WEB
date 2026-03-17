@@ -1,13 +1,5 @@
 import os
 import logging
-import sys
-
-# Monkeypatch for ChromaDB compatibility on environments with older sqlite3 (e.g., AWS Linux)
-try:
-    __import__('pysqlite3')
-    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-except ImportError:
-    pass
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate
