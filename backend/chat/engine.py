@@ -1,5 +1,13 @@
 import os
 import logging
+import sys
+
+# Monkeypatch for ChromaDB compatibility on environments with older sqlite3 (e.g., AWS Linux)
+try:
+    __import__('pysqlite3')
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    pass
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate
@@ -15,6 +23,7 @@ if not os.environ.get("OPENAI_API_KEY"):
 
 class HariAIEngine:
     def __init__(self):
+        self.init_error = None
         try:
             # Initialize the LLM
             self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
@@ -51,6 +60,7 @@ class HariAIEngine:
 
             self.chain = self.prompt_template | self.llm | self.parser
         except Exception as e:
+            self.init_error = str(e)
             logger.error(f"HariAIEngine initialization failed: {e}")
             self.llm = None
             self.chain = None
