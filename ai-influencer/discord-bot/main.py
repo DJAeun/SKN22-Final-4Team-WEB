@@ -159,6 +159,23 @@ async def create_command(interaction: discord.Interaction, concept: str) -> None
         await interaction.followup.send("요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
 
 
+_REPORT_SYSTEM_PROMPT = (
+    "[중요] 대사 외 다른 표기는 절대 넣지 않는다.(예시: \"[오프닝]\") "
+    "대본의 제목도 넣지 않는다. [내용]에 대한 대사만 작성한다. "
+    "\"?, !, ., ,\" 글쓰기에 필요한 기호만 사용한다. "
+    "쉼표(,)를 자주 사용해서 쉬어가는 틈을 준다. "
+    "[제약사항] 반드시 한글만으로 이루어져야 한다. "
+    "영어 사용 금지(예시: \"AI\" -> \"에이아이\") "
+    "숫자도 한글로 표기할 것. "
+    "마크다운 문법 사용하지 않고 텍스트만으로 작성한다. "
+    "[형식] 50초 분량의 짧은 영상의 대사(약 200자). "
+    "반드시 하리의 컨셉이 유지되어야 한다. "
+    "대사만 포함되어야 한다. "
+    "인삿말(오프닝) - 본문 - 마무리(엔딩) 구조로 진행한다. "
+    "[내용] "
+)
+
+
 @bot.tree.command(name="report", description="NotebookLM 보고서를 생성합니다")
 async def report_command(interaction: discord.Interaction, prompt: str) -> None:
     user_id = str(interaction.user.id)
@@ -182,7 +199,7 @@ async def report_command(interaction: discord.Interaction, prompt: str) -> None:
                 "messenger_source": "discord",
                 "messenger_user_id": user_id,
                 "messenger_channel_id": str(interaction.channel_id),
-                "prompt": prompt,
+                "prompt": _REPORT_SYSTEM_PROMPT + prompt,
                 "notebook_id": "",
                 "character_id": "default-character",
             },

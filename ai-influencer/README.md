@@ -219,6 +219,134 @@ Discord 설정 → **고급 → 개발자 모드** 활성화 후:
 
 ---
 
+## Server Control Lambda 설정 (`/server` 명령어)
+
+EC2가 꺼진 상태에서도 Discord에서 `/server on/off/status`로 인스턴스를 제어하는 별도 Lambda 봇.
+기존 `discord-bot`과 독립적으로 동작하며 같은 채널에 공존합니다.
+
+### 아키텍처
+
+```
+Discord 사용자 (/server on/off/status)
+    ↓ HTTPS POST (WebSocket 불필요)
+API Gateway (항상 ON, serverless)
+    ↓
+Lambda (항상 ON, ~무료)
+    ├─ 서명 검증 (Ed25519 / PyNaCl)
+    ├─ on     → ec2.start_instances()
+    ├─ off    → ec2.stop_instances()
+    └─ status → ec2.describe_instances()
+```
+
+### 수동 배포 순서
+
+#### 1. Discord Application 생성
+
+1. [discord.com/developers/applications](https://discord.com/developers/applications) → **New Application**
+2. **Bot** 탭 → **Reset Token** → 토큰 복사
+3. **General Information** → **Public Key** 복사
+
+#### 2. AWS IAM 역할 생성
+
+**신뢰 정책** (역할 → 신뢰 관계 탭):
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": { "Service": "lambda.amazonaws.com" },
+    "Action": "sts:AssumeRole"
+  }]
+}
+```
+
+**권한 정책** (인라인 정책 추가):
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+      "ec2:StartInstances",
+      "ec2:StopInstances",
+      "ec2:DescribeInstances"
+    ],
+    "Resource": "*"
+  }]
+}
+```
+
+역할 이름: `discord-server-control-role`
+추가 연결 정책: `AWSLambdaBasicExecutionRole` (CloudWatch 로그)
+
+#### 3. Lambda 함수 생성 (AWS 콘솔)
+
+1. AWS 콘솔 → **Lambda → 함수 생성 → 처음부터 작성**
+   - 함수 이름: `discord-server-control`
+   - 런타임: `Python 3.12`
+   - 실행 역할 → 기존 역할 사용 → `discord-server-control-role`
+2. **코드 업로드** — zip 파일 준비 후 업로드:
+   ```bash
+   cd ai-influencer/server-control-lambda
+   mkdir package
+   pip install PyNaCl==1.5.0 -t package/
+   cp lambda_function.py package/
+   cd package && zip -r ../function.zip . && cd ..
+   ```
+   함수 페이지 → **코드** 탭 → **업로드 위치 → .zip 파일** → `function.zip` 선택
+3. **환경변수 설정** — **구성** 탭 → **환경 변수 → 편집**:
+
+   | 키 | 값 |
+   |----|-----|
+   | `DISCORD_PUBLIC_KEY` | Discord 개발자 포털 Public Key |
+   | `EC2_INSTANCE_ID` | `i-xxxxxxxxxxxxxxxxx` |
+   | `EC2_REGION` | `ap-northeast-2` |
+   | `DISCORD_ALLOWED_USER_IDS` | 허용할 Discord 유저 ID (쉼표 구분) |
+
+4. **타임아웃 조정** — **구성** 탭 → **일반 구성 → 편집** → 타임아웃 `10초`
+
+#### 4. API Gateway 생성
+
+1. AWS 콘솔 → **API Gateway → HTTP API → 빌드**
+2. 통합: **Lambda** → `discord-server-control` 선택
+3. 라우트: `POST /discord`
+4. 생성 후 **엔드포인트 URL** 복사
+
+#### 5. Discord Interactions Endpoint 설정
+
+1. Discord 개발자 포털 → 해당 Application → **General Information**
+2. **Interactions Endpoint URL** = 4번에서 복사한 API Gateway URL
+3. **Save Changes** → Discord가 PING 전송 → Lambda PONG 반환으로 자동 검증
+
+#### 6. 슬래시 명령어 등록
+
+```bash
+cd ai-influencer/server-control-lambda
+python register_command.py \
+  --app-id <APPLICATION_ID> \
+  --token  <BOT_TOKEN>
+```
+
+#### 7. 봇 서버 초대
+
+1. Discord 개발자 포털 → **OAuth2 → URL Generator**
+2. Scopes: `applications.commands`
+3. 생성된 URL로 봇을 서버에 초대
+
+### 환경변수 (`.env` 추가 항목)
+
+| 변수 | 설명 |
+|------|------|
+| `EC2_INSTANCE_ID` | 제어할 EC2 인스턴스 ID |
+| `EC2_REGION` | 인스턴스 리전 (기본값: `ap-northeast-2`) |
+| `SERVER_CONTROL_DISCORD_PUBLIC_KEY` | Discord 개발자 포털 Public Key |
+| `SERVER_CONTROL_DISCORD_APP_ID` | Discord Application ID |
+| `SERVER_CONTROL_DISCORD_BOT_TOKEN` | Discord Bot Token |
+
+---
+
 ## 테스트 시나리오
 
 1. 허용된 채널에 콘셉트 텍스트 전송 (예: "20대 여성을 위한 재테크 팁 영상")
