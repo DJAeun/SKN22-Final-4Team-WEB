@@ -53,7 +53,9 @@ class HariAIEngine:
             db_user = os.environ.get("DB_USER", "postgres")
             db_password = os.environ.get("DB_PASSWORD", "")
             
-            self.db_uri = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+            # AWS RDS often requires SSL or dropping connections if strictly configured
+            self.db_uri = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?sslmode=require"
+
             
             # Setup Tables once on initialization (short-lived connection to avoid pre-fork issues)
             with PostgresSaver.from_conn_string(self.db_uri) as checkpointer:
