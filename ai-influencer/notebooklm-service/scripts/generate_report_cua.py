@@ -188,20 +188,30 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
         "Do NOT type anything yet — just navigate to and focus the input field."
     )
 
-    # Phase 3: 생성 버튼 클릭 + 완성 대기 — 프롬프트 텍스트 노출 없음
-    TASK_PHASE3 = (
-        "Task: Generate the report.\n"
-        "The prompt text has already been entered in the input field.\n"
-        "Steps:\n"
-        "1. Click the Generate (생성) button to start report generation\n"
-        "2. Wait for the report to finish generating (may take 30-60 seconds)\n"
-        "3. Output {\"action\": \"done\"} when the full report text is visible on screen\n"
-        "- If still generating, use {\"action\": \"wait\", \"ms\": 3000}\n"
-        "- Do NOT include report text in your response — it will be extracted automatically."
+    # Phase 3a: Generate 버튼 클릭만 — 클릭 후 즉시 done
+    TASK_PHASE3_CLICK = (
+        "Task: Click the Generate (생성) button.\n"
+        "The custom prompt text has already been typed in the input field.\n"
+        "Find the blue Generate/생성 button and click it.\n"
+        "Output {\"action\": \"done\"} immediately after clicking.\n"
+        "Do NOT wait for the report to finish — just click Generate and output done."
     )
 
-    def _run_cua_loop(page, task: str, max_steps: int, phase: str) -> bool:
-        """CUA 루프 실행. done이면 True 반환."""
+    # Phase 3b: 생성 완료 대기 — wait/done만 허용, 클릭 절대 금지
+    TASK_PHASE3_WAIT = (
+        "Task: Wait for the NotebookLM report to finish generating.\n"
+        "The report is currently being generated. DO NOT click anything.\n"
+        "You may ONLY use these two actions:\n"
+        "  {\"action\": \"wait\", \"ms\": 5000}  — while the report is still loading\n"
+        "  {\"action\": \"done\"}              — when the complete report text is visible\n"
+        "Output done when you can see the full generated report text on screen.\n"
+        "NEVER click tiles, buttons, or any UI element."
+    )
+
+    def _run_cua_loop(page, task: str, max_steps: int, phase: str,
+                      allowed_actions: set = None) -> bool:
+        """CUA 루프 실행. done이면 True 반환.
+        allowed_actions이 주어지면 그 외 액션은 wait으로 강제 대체."""
         msgs = [{"role": "system", "content": SYSTEM_PROMPT}]
         for step in range(max_steps):
             screenshot_b64 = base64.b64encode(page.screenshot()).decode()
@@ -247,6 +257,11 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
                 msgs.append({"role": "assistant", "content": raw})
                 continue
 
+            # 허용되지 않은 액션은 wait으로 강제 대체
+            if allowed_actions and action.get("action") not in allowed_actions:
+                logger.warning("[CUA][%s] 허용되지 않은 액션 차단 → wait: %s", phase, action)
+                action = {"action": "wait", "ms": 3000}
+
             msgs.append({"role": "assistant", "content": raw})
             logger.info("[CUA][%s] 액션: %s", phase, action)
 
@@ -289,12 +304,21 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
         time.sleep(1)
         logger.info("[CUA] Phase 2 완료: 프롬프트 입력됨")
 
-        # Phase 3: 생성 버튼 클릭 + 보고서 완성 대기 (프롬프트 텍스트 GPT에 노출 안 함)
-        logger.info("[CUA] Phase 3 시작: 생성 버튼 클릭 및 보고서 대기")
-        if not _run_cua_loop(page, TASK_PHASE3, max_steps=25, phase="P3"):
+        # Phase 3a: Generate 버튼 클릭
+        logger.info("[CUA] Phase 3a 시작: Generate 버튼 클릭")
+        if not _run_cua_loop(page, TASK_PHASE3_CLICK, max_steps=5, phase="P3a"):
             context.close()
-            raise RuntimeError("Phase 3 실패: 보고서 생성 완료 대기 시간 초과 (25 스텝)")
-        logger.info("[CUA] Phase 3 완료: 보고서 생성됨")
+            raise RuntimeError("Phase 3a 실패: Generate 버튼 클릭 불가 (5 스텝 초과)")
+        logger.info("[CUA] Phase 3a 완료: Generate 버튼 클릭됨")
+        time.sleep(3)  # 생성 시작 대기
+
+        # Phase 3b: 보고서 완성 대기 (wait/done만 허용 — 클릭 차단)
+        logger.info("[CUA] Phase 3b 시작: 보고서 생성 완료 대기 (클릭 차단)")
+        if not _run_cua_loop(page, TASK_PHASE3_WAIT, max_steps=20, phase="P3b",
+                             allowed_actions={"wait", "done"}):
+            context.close()
+            raise RuntimeError("Phase 3b 실패: 보고서 생성 완료 대기 시간 초과 (20 스텝)")
+        logger.info("[CUA] Phase 3b 완료: 보고서 생성됨")
 
         # 보고서 텍스트 DOM 추출
         logger.info("[CUA] DOM에서 보고서 텍스트 추출 중...")
