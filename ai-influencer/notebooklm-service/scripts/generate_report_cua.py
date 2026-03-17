@@ -176,11 +176,20 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
 
     task = (
         f"Task: Generate a NotebookLM report.\n"
-        f"Steps: Click Studio tab → Click 'Create report' button → "
-        f"Select '직접 만들기'(Custom) → Type '{prompt}' in the prompt field → "
-        f"Click Generate → Wait for completion.\n"
-        f"When the report is fully generated and visible, output {{\"action\": \"done\"}}.\n"
-        f"Do NOT include the report text — it will be extracted automatically."
+        f"Steps:\n"
+        f"1. Click the Studio tab (right panel)\n"
+        f"2. Click the '보고서' (report) tile\n"
+        f"3. Select '직접 만들기' (Custom)\n"
+        f"4. Click the prompt input field\n"
+        f"5. Type the PROMPT TEXT below verbatim — do not paraphrase or translate it\n"
+        f"6. Click the Generate (생성) button\n"
+        f"7. Wait for the report to finish generating\n"
+        f"8. Output {{\"action\": \"done\"}} when the full report text is visible\n\n"
+        f"PROMPT TEXT TO TYPE (copy exactly as-is):\n"
+        f"<PROMPT>\n"
+        f"{prompt}\n"
+        f"</PROMPT>\n\n"
+        f"Do NOT include the report text in your response — it will be extracted automatically."
     )
 
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
