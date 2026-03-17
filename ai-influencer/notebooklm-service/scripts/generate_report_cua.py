@@ -221,7 +221,7 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
             messages.append({
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": task if step == 0 else "Current state. What is the next action?"},
+                    {"type": "text", "text": task},
                     {
                         "type": "image_url",
                         "image_url": {
