@@ -34,11 +34,15 @@ class MessageViewSet(viewsets.ModelViewSet):
             raise PermissionError("You do not own this session.")
 
 def debug_env(request):
+    from .engine import engine
     api_key = os.environ.get("OPENAI_API_KEY", "NOT_FOUND")
     # Mask most of the key for security
-    masked_key = f"{api_key[:10]}..." if len(api_key) > 10 else api_key
+    masked_key = f"{api_key[:12]}..." if len(api_key) > 12 else api_key
+    
     return JsonResponse({
         "OPENAI_API_KEY_LOADED": api_key != "NOT_FOUND",
         "KEY_PREVIEW": masked_key,
+        "ENGINE_INITIALIZED": engine.chain is not None,
+        "ENGINE_INIT_ERROR": engine.init_error,
         "REDIS_HOST": os.environ.get("REDIS_HOST", "localhost (default)")
     })
