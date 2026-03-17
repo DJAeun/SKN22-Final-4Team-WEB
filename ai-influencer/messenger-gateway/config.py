@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     n8n_wf01_webhook_url: str = "http://n8n:5678/webhook/wf-01-input"
     n8n_wf05_webhook_url: str = "http://n8n:5678/webhook/wf-05-confirm"
     n8n_wf06_webhook_url: str = "http://n8n:5678/webhook/wf-06-report"
+    n8n_wf07_webhook_url: str = "http://n8n:5678/webhook/wf-07-tts-heygen"
+    n8n_wf08_webhook_url: str = "http://n8n:5678/webhook/wf-08-sns-upload"
 
     class Config:
         env_file = ".env"

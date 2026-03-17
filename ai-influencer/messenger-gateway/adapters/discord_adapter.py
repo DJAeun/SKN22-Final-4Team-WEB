@@ -99,14 +99,113 @@ class DiscordAdapter(MessengerAdapter):
         await self.send_text_message(channel_id, replacement_text)
         logger.info("[discord] remove_buttons channel=%s message_id=%s", channel_id, message_id)
 
+    async def send_video_preview(
+        self,
+        channel_id: str,
+        user_id: str,
+        job_id: str,
+        video_url: str,
+    ) -> str:
+        content = (
+            f"🎬 **영상이 생성되었습니다!**\n\n"
+            f"{video_url}\n\n"
+            "승인하시면 각 SNS에 자동 업로드됩니다."
+        )
+        payload = {
+            "content": content,
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "label": "✅ 승인",
+                            "style": 3,
+                            "custom_id": f"video_approve:{job_id}",
+                        },
+                        {
+                            "type": 2,
+                            "label": "❌ 반려",
+                            "style": 4,
+                            "custom_id": f"video_reject:{job_id}",
+                        },
+                    ],
+                }
+            ],
+        }
+        resp = await self._client.post(
+            f"{BASE_URL}/channels/{channel_id}/messages",
+            json=payload,
+            headers=self._headers,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        message_id = str(data["id"])
+        logger.info("[discord] send_video_preview job=%s message_id=%s", job_id, message_id)
+        return message_id
+
+    async def send_reject_step_buttons(self, channel_id: str, job_id: str) -> None:
+        payload = {
+            "content": "어느 단계로 돌아갈까요?",
+            "components": [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "label": "📝 대본 수정",
+                            "style": 2,
+                            "custom_id": f"video_reject_step:{job_id}:script",
+                        },
+                        {
+                            "type": 2,
+                            "label": "🔊 TTS 재생성",
+                            "style": 2,
+                            "custom_id": f"video_reject_step:{job_id}:tts",
+                        },
+                        {
+                            "type": 2,
+                            "label": "🔄 처음부터",
+                            "style": 4,
+                            "custom_id": f"video_reject_step:{job_id}:draft",
+                        },
+                    ],
+                }
+            ],
+        }
+        resp = await self._client.post(
+            f"{BASE_URL}/channels/{channel_id}/messages",
+            json=payload,
+            headers=self._headers,
+        )
+        resp.raise_for_status()
+        logger.info("[discord] send_reject_step_buttons job=%s channel=%s", job_id, channel_id)
+
     async def send_file_message(
         self,
         channel_id: str,
         text: str,
         file_bytes: bytes,
         filename: str,
+        include_video_button: bool = False,
+        job_id: str = "",
     ) -> None:
-        payload_json = json.dumps({"content": text})
+        components = []
+        if include_video_button and job_id:
+            components = [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "label": "🎬 영상으로 제작",
+                            "style": 1,
+                            "custom_id": f"report_to_video:{job_id}",
+                        }
+                    ],
+                }
+            ]
+        payload_json = json.dumps({"content": text, "components": components})
         resp = await self._client.post(
             f"{BASE_URL}/channels/{channel_id}/messages",
             headers={"Authorization": f"Bot {self._token}"},

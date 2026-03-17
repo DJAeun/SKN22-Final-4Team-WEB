@@ -79,7 +79,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE jobs SET status='APPROVED', updated_at=NOW() WHERE id='{{ $json.job_id }}' RETURNING messenger_source, messenger_channel_id",
+        "query": "UPDATE jobs SET status='APPROVED', updated_at=NOW() WHERE id='{{ $json.job_id }}' RETURNING messenger_source, messenger_channel_id, messenger_user_id, script_json",
         "options": {}
       },
       "id": "wf05-pg-approved",
@@ -94,7 +94,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://messenger-gateway:8080/internal/send-text",
+        "url": "http://n8n:5678/webhook/wf-07-tts-heygen",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -103,11 +103,11 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ messenger_source: $json.messenger_source, messenger_channel_id: $json.messenger_channel_id, text: '📌 Phase 4 (SNS 업로드)는 곧 구현됩니다.' }) }}",
+        "jsonBody": "={{ JSON.stringify({ job_id: $('Parse').item.json.job_id, script_text: $json.script_json ? $json.script_json.script : '', channel_id: $json.messenger_channel_id, user_id: $json.messenger_user_id }) }}",
         "options": {}
       },
-      "id": "wf05-http-placeholder",
-      "name": "WF-06 Placeholder",
+      "id": "wf05-http-trigger-wf07",
+      "name": "Trigger WF-07 TTS+HeyGen",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [1120, 160]
@@ -163,7 +163,7 @@
       ]
     },
     "Set APPROVED": {
-      "main": [[{"node": "WF-06 Placeholder", "type": "main", "index": 0}]]
+      "main": [[{"node": "Trigger WF-07 TTS+HeyGen", "type": "main", "index": 0}]]
     },
     "Set REVISION_REQUESTED": {
       "main": [[{"node": "Re-trigger WF-01", "type": "main", "index": 0}]]
