@@ -122,6 +122,9 @@ def logout_view(request):
     logout(request)
     return redirect('home')
 
+def health_check(request):
+    return JsonResponse({"status": "ok", "message": "Server is running!"})
+
 def debug_env(request):
     from .engine import engine
     api_key = os.environ.get("OPENAI_API_KEY", "NOT_FOUND")
