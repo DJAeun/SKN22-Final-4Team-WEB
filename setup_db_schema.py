@@ -18,7 +18,8 @@ def get_connection():
         port=DB_PORT,
         database=DB_NAME,
         user=DB_USER,
-        password=DB_PASSWORD
+        password=DB_PASSWORD,
+        sslmode='require'
     )
 
 @traceable(name="create_pgvector_extension")
