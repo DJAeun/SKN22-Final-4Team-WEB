@@ -21,6 +21,8 @@ __pycache__/
 *.so
 .Python
 env/
+.venv/
+venv/
 build/
 develop-eggs/
 dist/
@@ -43,6 +45,7 @@ htmlcov/
 .nox/
 .ruff_cache/
 .mypy_cache/
+*.pyc
 
 # Testing Scripts
 test_*.py
@@ -77,12 +80,28 @@ docker-compose.override.yml
 *.log
 backend/chat_debug.log
 backend/debug.log
+debug_output.txt
 
 # Media / Uploaded files
 media/
 backend/media/
 !media/.gitkeep
 !backend/media/.gitkeep
+generated_images/
+generated_videos/
+*.png
+*.jpg
+*.jpeg
+*.mp4
+*.srt
+*.webp
 
+# AI Model Weights
+*.safetensors
+*.pt
+*.ckpt
+*.bin
+
+# Project specific
 z_structure.md
 lambda.md
