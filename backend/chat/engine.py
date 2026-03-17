@@ -1,5 +1,6 @@
 import os
 import logging
+import psycopg
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.graph import START, StateGraph, MessagesState
@@ -15,6 +16,7 @@ if not os.environ.get("OPENAI_API_KEY"):
 class HariAIEngine:
     def __init__(self):
         self.init_error = None
+        self.setup_done = False
         try:
             # Initialize the LLM
             self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
@@ -46,22 +48,17 @@ class HariAIEngine:
 
             self.workflow = workflow
 
-            # Make Database URI
+            # Make Database URI (Do NOT connect here, it blocks Daphne async loop)
             db_host = os.environ.get("DB_HOST", "localhost")
             db_port = os.environ.get("DB_PORT", "5432")
             db_name = os.environ.get("DB_NAME", "hari_persona")
             db_user = os.environ.get("DB_USER", "postgres")
             db_password = os.environ.get("DB_PASSWORD", "")
             
-            # AWS RDS often requires SSL or dropping connections if strictly configured
-            self.db_uri = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?sslmode=require"
-
+            # Using connect timeout and sslmode prefer to prevent hanging
+            self.db_uri = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?sslmode=prefer&connect_timeout=10"
             
-            # Setup Tables once on initialization (short-lived connection to avoid pre-fork issues)
-            with PostgresSaver.from_conn_string(self.db_uri) as checkpointer:
-                checkpointer.setup()
-                
-            logger.info("HariAIEngine (LangGraph) initialization successful")
+            logger.info("HariAIEngine graph compiled. DB connection deferred to first request.")
 
         except Exception as e:
             self.init_error = str(e)
@@ -70,6 +67,7 @@ class HariAIEngine:
     def get_response(self, user_input, session_id):
         """
         Generates a response based on user input and long-term memory via LangGraph.
+        This runs inside run_in_executor, making it safe for synchronous psycopg operations.
         """
         if self.init_error:
             return f"앗, 미안해! 내가 지금 상태가 좀 안 좋아. 나중에 다시 말해줄래? 😢 (엔진 초기화 실패: {self.init_error})"
@@ -80,11 +78,20 @@ class HariAIEngine:
             config = {"configurable": {"thread_id": str(session_id)}}
             input_message = HumanMessage(content=user_input)
             
-            # Use short-lived context manager for PostgresSaver to prevent connection drop / fork issues
-            with PostgresSaver.from_conn_string(self.db_uri) as checkpointer:
+            # Open the psycopg connection purely inside the worker thread
+            with psycopg.connect(conninfo=self.db_uri, autocommit=True, prepare_threshold=0) as conn:
+                checkpointer = PostgresSaver(conn)
+                
+                # Setup tables once if not already done
+                if not self.setup_done:
+                    checkpointer.setup()
+                    self.setup_done = True
+                    
                 app = self.workflow.compile(checkpointer=checkpointer)
+                
                 # 1. StateGraph execution
                 final_state = app.invoke({"messages": [input_message]}, config=config)
+                
                 # 2. Extract Response
                 ai_message = final_state["messages"][-1]
                 return ai_message.content
