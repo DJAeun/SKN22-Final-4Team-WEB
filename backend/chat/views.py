@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.http import JsonResponse
+import os
 from rest_framework import viewsets, permissions
 from .models import ChatSession, Message
 from .serializers import ChatSessionSerializer, MessageSerializer
@@ -30,3 +32,13 @@ class MessageViewSet(viewsets.ModelViewSet):
             serializer.save()
         else:
             raise PermissionError("You do not own this session.")
+
+def debug_env(request):
+    api_key = os.environ.get("OPENAI_API_KEY", "NOT_FOUND")
+    # Mask most of the key for security
+    masked_key = f"{api_key[:10]}..." if len(api_key) > 10 else api_key
+    return JsonResponse({
+        "OPENAI_API_KEY_LOADED": api_key != "NOT_FOUND",
+        "KEY_PREVIEW": masked_key,
+        "REDIS_HOST": os.environ.get("REDIS_HOST", "localhost (default)")
+    })
