@@ -63,6 +63,8 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       NOTEBOOKLM_DATA_DIR: /app/data
       NOTEBOOKLM_SCRIPTS_DIR: /app/scripts
+      GOOGLE_EMAIL: ${GOOGLE_EMAIL}
+      GOOGLE_PASSWORD: ${GOOGLE_PASSWORD}
     volumes:
       - ./notebooklm-service/data:/app/data
     networks:

@@ -2,12 +2,13 @@ import argparse
 import base64
 import json
 import logging
+import os
 import re
 import sys
 import time
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, Page
 from openai import OpenAI
 
 logging.basicConfig(
@@ -52,6 +53,47 @@ _REPORT_SELECTORS = [
     "[contenteditable='true']",
     "[class*='report-content']",
 ]
+
+
+def _ensure_logged_in(page: Page) -> None:
+    """Google 로그인이 필요한 경우 자동으로 로그인한다.
+    GOOGLE_EMAIL / GOOGLE_PASSWORD 환경변수가 설정된 경우에만 동작."""
+    email = os.environ.get("GOOGLE_EMAIL", "")
+    password = os.environ.get("GOOGLE_PASSWORD", "")
+
+    if not email or not password:
+        logger.info("[login] GOOGLE_EMAIL/PASSWORD 미설정 — 자동 로그인 건너뜀")
+        return
+
+    # 로그인 페이지 여부 확인
+    if "accounts.google.com" not in page.url and "signin" not in page.url:
+        logger.info("[login] 이미 로그인됨 (url=%s)", page.url)
+        return
+
+    logger.info("[login] 로그인 페이지 감지 — 자동 로그인 시작")
+
+    try:
+        # 이메일 입력
+        page.wait_for_selector("input[type='email']", timeout=15000)
+        page.fill("input[type='email']", email)
+        page.click("button:has-text('다음'), button:has-text('Next'), #identifierNext")
+        logger.info("[login] 이메일 입력 완료")
+
+        # 비밀번호 입력
+        page.wait_for_selector("input[type='password']", timeout=15000)
+        time.sleep(0.5)
+        page.fill("input[type='password']", password)
+        page.click("button:has-text('다음'), button:has-text('Next'), #passwordNext")
+        logger.info("[login] 비밀번호 입력 완료")
+
+        # NotebookLM 리디렉션 대기 (최대 30초)
+        page.wait_for_url("**/notebooklm.google.com/**", timeout=30000)
+        logger.info("[login] 로그인 성공 — url=%s", page.url)
+
+    except Exception as e:
+        logger.error("[login] 자동 로그인 실패: %s", e)
+        logger.error("[login] 현재 URL: %s", page.url)
+        raise RuntimeError(f"Google 자동 로그인 실패: {e}")
 
 
 def _extract_report_from_dom(page) -> str:
@@ -159,7 +201,11 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
         logger.info("[CUA] 노트북 URL 이동 중...")
         page.goto(notebook_url, wait_until="domcontentloaded", timeout=90000)
         time.sleep(3)
-        logger.info("[CUA] 페이지 로드 완료: %s", page.title())
+        logger.info("[CUA] 페이지 로드 완료: %s / url=%s", page.title(), page.url)
+
+        # 로그인이 필요한 경우 자동 처리
+        _ensure_logged_in(page)
+        time.sleep(2)
 
         for step in range(30):
             screenshot_b64 = base64.b64encode(page.screenshot()).decode()
