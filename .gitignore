@@ -27,22 +27,26 @@ dist/
 downloads/
 eggs/
 .eggs/
-30: lib/
-31: lib64/
-32: parts/
-33: sdist/
-34: var/
-35: wheels/
-36: *.egg-info/
-37: .installed.cfg
-38: *.egg
-39: .pytest_cache/
-40: .coverage
-41: htmlcov/
-42: .tox/
-43: .nox/
-44: .ruff_cache/
-45: .mypy_cache/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.ruff_cache/
+.mypy_cache/
+
+# Testing Scripts
+test_*.py
+test_ws*.py
 
 # Node
 node_modules/

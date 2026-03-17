@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>강하리 AI 인플루언서 - 1:1 채팅</title>
+    <title>Chating Hari</title>
     <!-- Modern Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -212,13 +212,14 @@
         /* Chat Log Area */
         .chat-log {
             flex: 1;
-            padding: 30px;
+            padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
             z-index: 10;
             position: relative;
+            transition: opacity 0.3s ease;
         }
 
         /* Message Formatting */
@@ -414,6 +415,55 @@
             30% { opacity: 1; transform: scale(1.2); }
         }
 
+        /* History List */
+        .history-list {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            max-height: 250px;
+            padding-right: 5px;
+        }
+
+        .history-item {
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .history-item.active {
+            background: rgba(255, 51, 119, 0.1);
+            border-color: var(--primary-pink);
+            color: var(--text-main);
+        }
+
+        .history-item i {
+            font-size: 0.9rem;
+            color: var(--primary-pink);
+            flex-shrink: 0;
+        }
+
+        /* Hide scrollbar for components if needed */
+        .history-list::-webkit-scrollbar { width: 4px; }
+        
         /* Hide scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -423,18 +473,51 @@
 <body>
     <!-- Sidebar Setup based on specific Page 5 design -->
     <aside class="sidebar">
+        <button onclick="createNewChat()" style="margin-bottom: 20px; padding: 12px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); border-radius: 12px; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 500; transition: all 0.3s ease; width: 100%;">
+            <i class="fa-solid fa-plus"></i> 새 채팅
+        </button>
+
         <div class="sidebar-section-title">
+            <i class="fa-solid fa-clock-rotate-left" style="font-size: 1.2rem; color: #636e72;"></i>
+            <strong>최근 대화</strong>
+        </div>
+
+        <div class="history-list" id="history-list">
+            <!-- Sessions list will be loaded here -->
+            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.2); text-align: center; padding: 10px;">대화 기록이 없어</div>
+        </div>
+
+        <div class="sidebar-section-title" style="margin-top: 25px;">
             <i class="fa-solid fa-box-archive" style="font-size: 1.2rem; color: #636e72;"></i>
             <strong>하리 보관함</strong>
             저장한 특별 메시지
         </div>
         
         <div class="sidebar-info">
-            <span><i class="fa-regular fa-envelope" style="color:#ff3377;"></i> 하리 메시지 옆</span>
+            <span><i class="fa-regular fa-envelope" style="color:#ff3377;"></i> 하리 메시지</span>
             <span><i class="fa-solid fa-thumbtack" style="color:#ff3377;"></i> 눌러서 저장해요</span>
         </div>
         <div class="sidebar-bottom">
-            버전 1.0.0
+            {% if user.is_authenticated %}
+                <div style="margin-bottom: 10px; color: var(--text-main);">
+                    <strong>{{ user.username }}</strong> 님, 반가워요! 🌸
+                </div>
+                <a href="{% url 'logout' %}" style="color: var(--text-muted); text-decoration: none; font-size: 0.8rem;">
+                    <i class="fa-solid fa-right-from-bracket"></i> 로그아웃
+                </a>
+            {% else %}
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <a href="{% url 'login' %}" style="color: var(--primary-pink); text-decoration: none; font-weight: 500;">
+                        <i class="fa-solid fa-right-to-bracket"></i> 로그인
+                    </a>
+                    <a href="{% url 'signup' %}" style="color: var(--text-muted); text-decoration: none;">
+                        <i class="fa-solid fa-user-plus"></i> 회원가입
+                    </a>
+                </div>
+            {% endif %}
+            <div style="margin-top: 15px; font-size: 0.7rem; opacity: 0.5;">
+                버전 1.0.2
+            </div>
         </div>
     </aside>
 
@@ -450,7 +533,7 @@
                     <div class="header-status">
                         <span class="status-dot"></span>
                         <span class="header-status-text">온라인</span>
-                        <span class="header-status-sub">· AI 인플루언서</span>
+                        <span class="header-status-sub">엔터테이너</span>
                     </div>
                 </div>
             </div>
@@ -460,41 +543,10 @@
             </div>
         </header>
 
-        <div class="watermark"><i class="fa-solid fa-sparkles"></i> Claude AI 실시간 연동</div>
+        <div class="watermark"><i class="fa-solid fa-sparkles"></i> 하리 실시간 연동</div>
 
         <div class="chat-log" id="chat-log">
-            <!-- Initial mockup messages -->
-            <div class="message-row user">
-                <div class="message-col">
-                    <div class="message-bubble">요즘 뭐 하고 있어?</div>
-                    <div class="message-meta">17:28</div>
-                </div>
-            </div>
-
-            <div class="message-row user">
-                <div class="message-col">
-                    <div class="message-bubble">뷰티 루틴 알려줘</div>
-                    <div class="message-meta">17:30</div>
-                </div>
-            </div>
-
-            <div class="message-row user">
-                <div class="message-col">
-                    <div class="message-bubble">여행 추천해줘</div>
-                    <div class="message-meta">오후 05:34</div>
-                </div>
-            </div>
-
-            <div class="message-row hari">
-                <div class="hari-msg-avatar"></div>
-                <div class="message-col">
-                    <div class="message-bubble">하리가 잠깐 멍때렸어! 다시 말해줄래? 🌀</div>
-                    <div class="message-meta">
-                        오후 05:34
-                        <div class="save-badge"><i class="fa-solid fa-thumbtack"></i> 저장</div>
-                    </div>
-                </div>
-            </div>
+            <!-- Messages will be loaded here -->
         </div>
 
         <div class="input-container">
@@ -515,14 +567,49 @@
         </div>
     </main>
 
+    <script id="django-data" type="application/json">
+        {
+            "isAuthenticated": {{ user.is_authenticated|yesno:"true,false" }},
+            "userName": "{{ user.username|default:'사용자' }}",
+            "loginUrl": "{% url 'login' %}",
+            "csrfToken": "{{ csrf_token }}"
+        }
+    </script>
+
     <script>
         // Use wss:// for production securely, ws:// for local
         const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-        const chatSocket = new WebSocket(
-            protocol + window.location.host + '/ws/chat/'
-        );
+        let chatSocket = null;
+        let currentSessionId = null;
 
-        const chatLog = document.getElementById('chat-log');
+        function connectWebSocket(sessionId = null) {
+            if (chatSocket) {
+                chatSocket.close();
+            }
+            
+            const wsPath = sessionId ? `/ws/chat/${sessionId}/` : '/ws/chat/';
+            chatSocket = new WebSocket(protocol + window.location.host + wsPath);
+
+            chatSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                const msg = data.message;
+                const sender = data.sender;
+                if (sender === 'hari') {
+                    appendHariMessage(msg);
+                }
+            };
+
+            chatSocket.onclose = function(e) {
+                console.log('Chat socket closed');
+            };
+        }
+
+        // Initial connect
+        connectWebSocket();
+
+        const chatLog = document.querySelector('#chat-log');
+        const chatData = JSON.parse(document.getElementById('django-data').textContent);
+        const { isAuthenticated, userName, loginUrl, csrfToken } = chatData;
 
         function formatTime() {
             const now = new Date();
@@ -597,22 +684,7 @@
             chatLog.scrollTop = chatLog.scrollHeight;
         }
 
-        chatSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            const msg = data.message;
-            const sender = data.sender; // 'hari'
-
-            if (sender === 'hari') {
-                appendHariMessage(msg);
-            }
-        };
-
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-            setTimeout(() => {
-                appendHariMessage('오빠... 연결이 끊어졌어. 우리 대화방 새로고침 해줄래? 😢');
-            }, 1000);
-        };
+        // Remove old onmessage/onclose from global scope since they are in connectWebSocket now
 
         const messageInputDom = document.querySelector('#chat-message-input');
         
@@ -640,7 +712,134 @@
             messageInputDom.focus();
         };
         
-        // Scroll to bottom initially
+        async function loadHistory(sessionId = null) {
+            // History works for both authenticated and anonymous users
+            try {
+                const url = sessionId ? `/api/chat/api/messages/?session=${sessionId}` : '/api/chat/api/messages/';
+                const response = await fetch(url);
+                if (response.ok) {
+                    const data = await response.json();
+                    const messages = Array.isArray(data) ? data : data.results || [];
+                    
+                    chatLog.innerHTML = '';
+                    if (messages.length > 0) {
+                        messages.forEach(msg => {
+                            if (msg.sender === 'user') {
+                                appendUserMessage(msg.text, msg.created_at);
+                            } else {
+                                appendHariMessage(msg.text, msg.created_at);
+                            }
+                        });
+                        chatLog.scrollTop = chatLog.scrollHeight;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+
+        async function loadSessions() {
+            // Session list works for both authenticated and anonymous users
+            const historyList = document.getElementById('history-list');
+            try {
+                const response = await fetch('/api/chat/api/sessions/');
+                if (response.ok) {
+                    const data = await response.json();
+                    const sessions = Array.isArray(data) ? data : data.results || [];
+                    
+                    if (sessions.length > 0) {
+                        historyList.innerHTML = '';
+                        sessions.forEach(session => {
+                            const item = document.createElement('div');
+                            item.className = `history-item ${currentSessionId == session.id ? 'active' : ''}`;
+                            item.onclick = () => switchSession(session.id);
+                            
+                            const date = new Date(session.started_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+                            item.innerHTML = `
+                                <i class="fa-regular fa-message"></i>
+                                <span>${date} 대화 #${session.id}</span>
+                            `;
+                            historyList.appendChild(item);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading sessions:', error);
+            }
+        }
+
+        async function switchSession(sessionId) {
+            if (currentSessionId === sessionId) return;
+            
+            currentSessionId = sessionId;
+            chatLog.style.opacity = '0';
+            
+            // Reconnect WebSocket to specific session
+            connectWebSocket(sessionId);
+            
+            // Load messages for this session
+            await loadHistory(sessionId);
+            
+            // Refresh sessions list to update active state
+            await loadSessions();
+            
+            setTimeout(() => {
+                chatLog.style.opacity = '1';
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }, 300);
+        }
+
+        async function createNewChat() {
+            // New chat works for everyone
+            chatLog.style.opacity = '0';
+            
+            try {
+                const response = await fetch('/api/chat/api/sessions/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({})
+                });
+
+                if (response.ok) {
+                    const session = await response.json();
+                    currentSessionId = session.id;
+                    
+                    // Reconnect WebSocket to new session
+                    connectWebSocket(currentSessionId);
+                    
+                    setTimeout(() => {
+                        chatLog.innerHTML = '';
+                        chatLog.style.opacity = '1';
+                        // Refresh history list
+                        loadSessions();
+                        // Re-greet
+                        appendHariMessage(`${userName}님, 새로운 대화가 시작되었어! 이번엔 어떤 이야기를 할까? ✨`);
+                    }, 300);
+                } else {
+                    console.error('Failed to create new session');
+                    chatLog.style.opacity = '1';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                chatLog.style.opacity = '1';
+            }
+        }
+
+        // Load sessions and history for everyone
+        loadSessions().then(() => {
+            loadHistory().then(() => {
+                // If history is loaded but empty, show greeting
+                if (chatLog.innerHTML.trim() === '') {
+                    setTimeout(() => {
+                        appendHariMessage(`${userName}님, 반가워! 오늘 하리랑 무슨 이야기할까? ✨`);
+                    }, 500);
+                }
+            });
+        });
+
         chatLog.scrollTop = chatLog.scrollHeight;
     </script>
 </body>
