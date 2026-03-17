@@ -54,11 +54,15 @@ class HariAIEngine:
             db_password = os.environ.get("DB_PASSWORD", "")
             
             # AWS RDS often requires SSL or dropping connections if strictly configured
-            self.db_uri = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?sslmode=require"
-
+            # Using connect timeout and explicit parameters
+            self.db_uri = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?sslmode=prefer&connect_timeout=10"
             
-            # Setup Tables once on initialization (short-lived connection to avoid pre-fork issues)
-            with PostgresSaver.from_conn_string(self.db_uri) as checkpointer:
+            # Setup Tables once on initialization
+            # Using explicit connection instead of ConnectionPool or from_conn_string
+            # which might try to open multiple connections and fail immediately on AWS Free Tier RDS
+            import psycopg
+            with psycopg.connect(conninfo=self.db_uri, autocommit=True, prepare_threshold=0) as conn:
+                checkpointer = PostgresSaver(conn)
                 checkpointer.setup()
                 
             logger.info("HariAIEngine (LangGraph) initialization successful")
@@ -80,8 +84,10 @@ class HariAIEngine:
             config = {"configurable": {"thread_id": str(session_id)}}
             input_message = HumanMessage(content=user_input)
             
-            # Use short-lived context manager for PostgresSaver to prevent connection drop / fork issues
-            with PostgresSaver.from_conn_string(self.db_uri) as checkpointer:
+            # Use explicit psycopg connection to bypass pool issues and prepared statement blocks
+            import psycopg
+            with psycopg.connect(conninfo=self.db_uri, autocommit=True, prepare_threshold=0) as conn:
+                checkpointer = PostgresSaver(conn)
                 app = self.workflow.compile(checkpointer=checkpointer)
                 # 1. StateGraph execution
                 final_state = app.invoke({"messages": [input_message]}, config=config)
