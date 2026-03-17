@@ -147,8 +147,14 @@ def _run_generate_report(
     stdout = result.stdout or ""
     stderr = result.stderr or ""
     logger.info("[notebooklm] subprocess done job_id=%s returncode=%d", job_id, result.returncode)
-    if stderr:
-        logger.debug("[notebooklm] stderr: %s", stderr[:500])
+
+    # 서브프로세스 로그를 항상 출력 (로그인/CUA 흐름 추적용)
+    if stdout.strip():
+        for line in stdout.strip().splitlines():
+            logger.info("[script] %s", line)
+    if stderr.strip():
+        for line in stderr.strip().splitlines():
+            logger.warning("[script:err] %s", line)
 
     if result.returncode != 0:
         error_msg = stderr.strip() or stdout.strip() or f"returncode={result.returncode}"
