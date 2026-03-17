@@ -222,7 +222,15 @@ async def on_interaction(interaction: discord.Interaction) -> None:
         await interaction.response.send_message("잘못된 요청입니다.", ephemeral=True)
         return
 
-    action, job_id = custom_id.split(":", 1)
+    parts = custom_id.split(":")
+    action = parts[0]
+    # video_reject_step has format: video_reject_step:{job_id}:{step}
+    if action == "video_reject_step" and len(parts) >= 3:
+        job_id = parts[1]
+        step = parts[2]
+    else:
+        job_id = ":".join(parts[1:])
+        step = None
     user_id = str(interaction.user.id)
 
     # 허용 채널 확인
@@ -249,6 +257,42 @@ async def on_interaction(interaction: discord.Interaction) -> None:
     elif action == "revise":
         revision_pending[user_id] = job_id
         await interaction.channel.send("✏️ 어떤 점을 수정할까요? 구체적으로 입력해주세요.")
+
+    elif action == "video_approve":
+        try:
+            await gateway_call(
+                "/internal/video-action",
+                {"job_id": job_id, "action": "approved"},
+            )
+        except Exception as e:
+            await interaction.channel.send(f"오류가 발생했습니다: {e}")
+
+    elif action == "video_reject":
+        try:
+            await gateway_call(
+                "/internal/video-action",
+                {"job_id": job_id, "action": "reject_select"},
+            )
+        except Exception as e:
+            await interaction.channel.send(f"오류가 발생했습니다: {e}")
+
+    elif action == "video_reject_step":
+        try:
+            await gateway_call(
+                "/internal/video-action",
+                {"job_id": job_id, "action": "reject_step", "step": step},
+            )
+        except Exception as e:
+            await interaction.channel.send(f"오류가 발생했습니다: {e}")
+
+    elif action == "report_to_video":
+        try:
+            await gateway_call(
+                "/internal/report-to-video",
+                {"job_id": job_id},
+            )
+        except Exception as e:
+            await interaction.channel.send(f"오류가 발생했습니다: {e}")
 
 
 # ─────────────────────────────────────────

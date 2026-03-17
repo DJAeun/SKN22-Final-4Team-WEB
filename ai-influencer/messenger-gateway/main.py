@@ -12,9 +12,12 @@ from models.job import (
     ConfirmActionRequest,
     IncomingMessageRequest,
     ReportMessageRequest,
+    ReportToVideoRequest,
     SendConfirmRequest,
     SendReportRequest,
     SendTextRequest,
+    SendVideoPreviewRequest,
+    VideoActionRequest,
 )
 from services import job_service, n8n_service
 
@@ -151,7 +154,7 @@ async def confirm_action(_: AuthDep, body: ConfirmActionRequest) -> dict:
                 logger.error("[discord] remove_buttons failed job_id=%s: %s", body.job_id, e)
 
         try:
-            await _discord_adapter.send_text_message(channel_id, "🚀 승인되었습니다! SNS 업로드를 시작합니다.")
+            await _discord_adapter.send_text_message(channel_id, "🎬 승인되었습니다! TTS 및 영상 생성을 시작합니다. (약 5~10분 소요)")
         except Exception as e:
             logger.error("[discord] send_text_message failed job_id=%s: %s", body.job_id, e)
 
@@ -241,6 +244,8 @@ async def send_report(_: AuthDep, body: SendReportRequest) -> dict:
             text=text,
             file_bytes=file_bytes,
             filename=body.filename,
+            include_video_button=body.include_video_button,
+            job_id=body.job_id,
         )
     except Exception as e:
         logger.error("[discord] send_file_message failed job_id=%s: %s", body.job_id, e)
@@ -259,6 +264,130 @@ async def send_text(_: AuthDep, body: SendTextRequest) -> dict:
         logger.error("[discord] send_text failed: %s", e)
         raise HTTPException(status_code=500, detail=str(e))
     return {"status": "sent"}
+
+
+@app.post("/internal/send-video-preview")
+async def send_video_preview(_: AuthDep, body: SendVideoPreviewRequest) -> dict:
+    """WF-07 완료 후 호출 — Discord로 영상 미리보기 + 승인/반려 버튼을 전송한다."""
+    try:
+        message_id = await _discord_adapter.send_video_preview(
+            channel_id=body.channel_id,
+            user_id=body.user_id,
+            job_id=body.job_id,
+            video_url=body.video_url,
+        )
+    except Exception as e:
+        logger.error("[discord] send_video_preview failed job_id=%s: %s", body.job_id, e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+    await job_service.update_job(body.job_id, confirm_message_id=message_id)
+    logger.info("[discord] send_video_preview done job_id=%s", body.job_id)
+    return {"job_id": body.job_id, "message_id": message_id}
+
+
+@app.post("/internal/video-action")
+async def video_action(_: AuthDep, body: VideoActionRequest) -> dict:
+    """Discord 영상 승인/반려 버튼 클릭을 처리한다."""
+    job = await job_service.get_job(body.job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    channel_id = job["messenger_channel_id"]
+    user_id = job["messenger_user_id"]
+
+    if body.action == "approved":
+        video_url = job.get("video_url", "")
+        await job_service.transition_status(body.job_id, "PUBLISHING")
+
+        try:
+            await n8n_service.call_wf08_sns_upload(body.job_id, video_url, channel_id)
+        except Exception as e:
+            logger.error("call_wf08_sns_upload failed job_id=%s: %s", body.job_id, e)
+
+        logger.info("[discord] video_action=approved job_id=%s", body.job_id)
+        return {"job_id": body.job_id, "action": "approved"}
+
+    elif body.action == "reject_select":
+        try:
+            await _discord_adapter.send_reject_step_buttons(channel_id, body.job_id)
+        except Exception as e:
+            logger.error("[discord] send_reject_step_buttons failed job_id=%s: %s", body.job_id, e)
+            raise HTTPException(status_code=500, detail=str(e))
+
+        logger.info("[discord] video_action=reject_select job_id=%s", body.job_id)
+        return {"job_id": body.job_id, "action": "reject_select"}
+
+    elif body.action == "reject_step":
+        step = body.step or "draft"
+
+        if step == "script":
+            await job_service.transition_status(body.job_id, "WAITING_APPROVAL")
+            confirm_message_id = job.get("confirm_message_id")
+            script_json = job.get("script_json") or {}
+            title = script_json.get("title", "대본")
+            script_summary = script_json.get("script_summary") or script_json.get("script", "")[:100]
+            try:
+                new_msg_id = await _discord_adapter.send_confirm_message(
+                    channel_id=channel_id,
+                    user_id=user_id,
+                    job_id=body.job_id,
+                    title=title,
+                    script_summary=script_summary,
+                    preview_url=None,
+                )
+                await job_service.update_job(body.job_id, confirm_message_id=new_msg_id)
+            except Exception as e:
+                logger.error("[discord] re-send confirm failed job_id=%s: %s", body.job_id, e)
+
+        elif step == "tts":
+            await job_service.transition_status(body.job_id, "APPROVED")
+            script_json = job.get("script_json") or {}
+            script_text = script_json.get("script", "")
+            try:
+                await n8n_service.call_wf07_tts_heygen(body.job_id, script_text, channel_id, user_id)
+                await _discord_adapter.send_text_message(channel_id, "🔊 TTS를 재생성합니다...")
+            except Exception as e:
+                logger.error("call_wf07 (tts retry) failed job_id=%s: %s", body.job_id, e)
+
+        elif step == "draft":
+            await job_service.transition_status(body.job_id, "DRAFT")
+            try:
+                await _discord_adapter.send_text_message(channel_id, "🔄 처음부터 시작합니다. 새 콘셉트를 `/create`로 입력해주세요.")
+            except Exception as e:
+                logger.error("[discord] send_text_message failed job_id=%s: %s", body.job_id, e)
+
+        logger.info("[discord] video_action=reject_step step=%s job_id=%s", step, body.job_id)
+        return {"job_id": body.job_id, "action": "reject_step", "step": step}
+
+    raise HTTPException(status_code=400, detail=f"Unknown action: {body.action}")
+
+
+@app.post("/internal/report-to-video")
+async def report_to_video(_: AuthDep, body: ReportToVideoRequest) -> dict:
+    """/report 결과의 '영상으로 제작' 버튼 클릭 처리 — WF-07을 직접 트리거한다."""
+    job = await job_service.get_job(body.job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    script_json = job.get("script_json") or {}
+    script_text = script_json.get("script", "")
+    if not script_text:
+        raise HTTPException(status_code=400, detail="No script found in job")
+
+    channel_id = job["messenger_channel_id"]
+    user_id = job["messenger_user_id"]
+
+    await job_service.transition_status(body.job_id, "APPROVED")
+
+    try:
+        await n8n_service.call_wf07_tts_heygen(body.job_id, script_text, channel_id, user_id)
+        await _discord_adapter.send_text_message(channel_id, "🎬 영상 생성을 시작합니다! TTS 및 HeyGen 처리 중... (약 5~10분 소요)")
+    except Exception as e:
+        logger.error("call_wf07 (report_to_video) failed job_id=%s: %s", body.job_id, e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+    logger.info("[discord] report_to_video triggered job_id=%s", body.job_id)
+    return {"job_id": body.job_id, "status": "triggered"}
 
 
 @app.get("/health")

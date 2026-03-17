@@ -27,10 +27,13 @@ CREATE TABLE IF NOT EXISTS jobs (
                             'DRAFT','SCRIPTING','GENERATING',
                             'WAITING_APPROVAL','REVISION_REQUESTED',
                             'APPROVED','PUBLISHING','PUBLISHED',
-                            'ANALYTICS_COLLECTED','FAILED'
+                            'ANALYTICS_COLLECTED','FAILED',
+                            'WAITING_VIDEO_APPROVAL'
                         )),
     revision_count      INT DEFAULT 0,
     revision_note       TEXT,
+    audio_url           TEXT,
+    video_url           TEXT,
     error_message       TEXT,
     messenger_source    TEXT NOT NULL DEFAULT 'discord'
                         CHECK (messenger_source IN ('discord')),

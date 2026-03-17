@@ -11,6 +11,7 @@ class JobStatus(str, Enum):
     WAITING_APPROVAL = "WAITING_APPROVAL"
     REVISION_REQUESTED = "REVISION_REQUESTED"
     APPROVED = "APPROVED"
+    WAITING_VIDEO_APPROVAL = "WAITING_VIDEO_APPROVAL"
     PUBLISHING = "PUBLISHING"
     PUBLISHED = "PUBLISHED"
     ANALYTICS_COLLECTED = "ANALYTICS_COLLECTED"
@@ -70,3 +71,21 @@ class SendReportRequest(BaseModel):
     report_content: str
     file_content_b64: str
     filename: str
+    include_video_button: bool = False
+
+
+class SendVideoPreviewRequest(BaseModel):
+    job_id: str
+    video_url: str
+    channel_id: str
+    user_id: str
+
+
+class VideoActionRequest(BaseModel):
+    job_id: str
+    action: str  # "approved" | "reject_select" | "reject_step"
+    step: Optional[str] = None  # "script" | "tts" | "draft"
+
+
+class ReportToVideoRequest(BaseModel):
+    job_id: str

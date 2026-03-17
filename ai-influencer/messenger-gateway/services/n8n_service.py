@@ -81,6 +81,36 @@ async def call_wf05_confirm(
     logger.info("call_wf05_confirm job_id=%s action=%s", job_id, action)
 
 
+async def call_wf07_tts_heygen(
+    job_id: str,
+    script_text: str,
+    channel_id: str,
+    user_id: str,
+) -> None:
+    payload = {
+        "job_id": job_id,
+        "script_text": script_text,
+        "channel_id": channel_id,
+        "user_id": user_id,
+    }
+    await _post_with_retry(settings.n8n_wf07_webhook_url, payload)
+    logger.info("call_wf07_tts_heygen job_id=%s", job_id)
+
+
+async def call_wf08_sns_upload(
+    job_id: str,
+    video_url: str,
+    channel_id: str,
+) -> None:
+    payload = {
+        "job_id": job_id,
+        "video_url": video_url,
+        "channel_id": channel_id,
+    }
+    await _post_with_retry(settings.n8n_wf08_webhook_url, payload)
+    logger.info("call_wf08_sns_upload job_id=%s", job_id)
+
+
 async def call_wf06_report(
     job_id: str,
     messenger_source: str,
