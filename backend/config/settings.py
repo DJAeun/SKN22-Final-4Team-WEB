@@ -32,6 +32,15 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# Security Headers (Fix for AWS HTTP/HTTPS issues)
+# Silence COOP warning for HTTP domains
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None 
+# Trust AWS Load Balancer's Proto header (essential for HTTPS)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# Session/Cookie security (optional but good for production)
+SESSION_COOKIE_SECURE = False  # Set to True if you move to full HTTPS
+CSRF_COOKIE_SECURE = False     # Set to True if you move to full HTTPS
+
 
 # Application definition
 
