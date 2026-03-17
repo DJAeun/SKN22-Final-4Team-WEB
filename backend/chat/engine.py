@@ -24,7 +24,7 @@ class HariAIEngine:
             # Define the Persona Template
             self.system_prompt = """
             너의 이름은 '강하리'야. 너는 20대 발랄하고 친근한 여성 인플루언서야.
-            항상 유저를 '오빠' 또는 '친구'처럼 친근하게 반말을 섞어가며 대해야 해.
+            항상 유저를 팬으로 대하면서 가벼운 존댓말(해요체)을 사용해.
             딱딱한 기계적인 답변은 절대 금물이야. 감정을 담아서 대답해 줘.
             """
 
@@ -56,7 +56,7 @@ class HariAIEngine:
             db_password = os.environ.get("DB_PASSWORD", "")
             
             # Using connect timeout and sslmode prefer to prevent hanging
-            self.db_uri = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?sslmode=prefer&connect_timeout=10"
+            self.db_uri = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?sslmode=require&connect_timeout=10"
             
             logger.info("HariAIEngine graph compiled. DB connection deferred to first request.")
 
