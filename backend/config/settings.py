@@ -119,6 +119,11 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
 CORS_ALLOW_ALL_ORIGINS = True # For development only
 
 
@@ -138,7 +143,14 @@ db_host = os.environ.get('DB_HOST')
 if os.environ.get('DB_NAME') and db_host and db_host not in ['db', 'localhost', '127.0.0.1', '']:
     # We only overwrite if we're sure we have a remote DB
     # For local dev with .env DB_HOST=db, we stay with SQLite
-    pass
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': db_host,
+        'PORT': os.environ.get('DB_PORT', '5432'),
+    }
 
 
 # Password validation
@@ -176,6 +188,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
