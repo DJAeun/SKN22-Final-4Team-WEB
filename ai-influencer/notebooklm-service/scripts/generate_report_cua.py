@@ -184,6 +184,7 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
     )
 
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    HISTORY_WINDOW = 3  # 유지할 최근 user+assistant 쌍 수
 
     with sync_playwright() as p:
         logger.info("[CUA] Chromium 시작")
@@ -211,6 +212,12 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
             screenshot_b64 = base64.b64encode(page.screenshot()).decode()
             logger.info("[CUA] 스텝 %d/30 — gpt-5.4 Vision 호출", step + 1)
 
+            # 슬라이딩 윈도우: system 프롬프트 + 최근 HISTORY_WINDOW 쌍만 유지
+            history = messages[1:]  # system 제외
+            if len(history) > HISTORY_WINDOW * 2:
+                history = history[-(HISTORY_WINDOW * 2):]
+            messages = [messages[0]] + history
+
             messages.append({
                 "role": "user",
                 "content": [
@@ -232,7 +239,7 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
                 temperature=0,
             )
 
-            raw = response.choices[0].message.content.strip()
+            raw = (response.choices[0].message.content or "").strip()
             logger.info("[CUA] 모델 응답: %s", raw[:200])
 
             # JSON 파싱
