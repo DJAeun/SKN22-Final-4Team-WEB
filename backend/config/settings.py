@@ -89,6 +89,7 @@ REST_AUTH = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -119,6 +120,11 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
 CORS_ALLOW_ALL_ORIGINS = True # For development only
 
 
@@ -133,12 +139,19 @@ DATABASES = {
     }
 }
 
-# Use PostgreSQL only if DB_HOST is set and not a internal/local reference
-db_host = os.environ.get('DB_HOST')
-if os.environ.get('DB_NAME') and db_host and db_host not in ['db', 'localhost', '127.0.0.1', '']:
-    # We only overwrite if we're sure we have a remote DB
-    # For local dev with .env DB_HOST=db, we stay with SQLite
-    pass
+# Use PostgreSQL only if DB_HOST/RDS_HOSTNAME is set
+db_host = os.environ.get('DB_HOST') or os.environ.get('RDS_HOSTNAME')
+db_name = os.environ.get('DB_NAME') or os.environ.get('RDS_DB_NAME')
+
+if db_name and db_host and db_host not in ['db', 'localhost', '127.0.0.1', '']:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': db_name,
+        'USER': os.environ.get('DB_USER') or os.environ.get('RDS_USERNAME'),
+        'PASSWORD': os.environ.get('DB_PASSWORD') or os.environ.get('RDS_PASSWORD'),
+        'HOST': db_host,
+        'PORT': os.environ.get('DB_PORT') or os.environ.get('RDS_PORT', '5432'),
+    }
 
 
 # Password validation
@@ -176,6 +189,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

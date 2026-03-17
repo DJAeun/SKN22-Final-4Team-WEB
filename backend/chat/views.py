@@ -9,9 +9,14 @@ from .models import ChatSession, Message
 from .serializers import ChatSessionSerializer, MessageSerializer
 
 def chat_index(request):
-    if not request.user.is_authenticated and not request.session.session_key:
-        request.session.create()
-        request.session['init'] = True  # Ensure session is not empty so cookie is sent
+    try:
+        if not request.user.is_authenticated and not request.session.session_key:
+            request.session.create()
+            request.session['init'] = True
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Session failed: {e}")
     return render(request, 'chat/index.html')
 
 class ChatSessionViewSet(viewsets.ModelViewSet):
@@ -121,6 +126,30 @@ def signup_success(request):
 def logout_view(request):
     logout(request)
     return redirect('home')
+
+def health_check(request):
+    from django.db import connection
+    from django.conf import settings
+    
+    db_ok = False
+    db_error = None
+    db_type = settings.DATABASES['default']['ENGINE']
+    
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            db_ok = True
+    except Exception as e:
+        db_error = str(e)
+
+    return JsonResponse({
+        "status": "ok",
+        "database_type": db_type,
+        "database_connected": db_ok,
+        "database_error": db_error,
+        "static_root": str(settings.STATIC_ROOT),
+        "allowed_hosts": settings.ALLOWED_HOSTS
+    })
 
 def debug_env(request):
     from .engine import engine
