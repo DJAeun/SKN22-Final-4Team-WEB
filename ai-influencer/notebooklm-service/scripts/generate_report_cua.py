@@ -174,26 +174,86 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
     client = OpenAI()
     BROWSER_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
 
-    task = (
-        f"Task: Generate a NotebookLM report.\n"
-        f"Steps:\n"
-        f"1. Click the Studio tab (right panel)\n"
-        f"2. Click the '보고서' (report) tile\n"
-        f"3. Select '직접 만들기' (Custom)\n"
-        f"4. Click the prompt input field\n"
-        f"5. Type the PROMPT TEXT below verbatim — do not paraphrase or translate it\n"
-        f"6. Click the Generate (생성) button\n"
-        f"7. Wait for the report to finish generating\n"
-        f"8. Output {{\"action\": \"done\"}} when the full report text is visible\n\n"
-        f"PROMPT TEXT TO TYPE (copy exactly as-is):\n"
-        f"<PROMPT>\n"
-        f"{prompt}\n"
-        f"</PROMPT>\n\n"
-        f"Do NOT include the report text in your response — it will be extracted automatically."
+    HISTORY_WINDOW = 3
+
+    # Phase 1: 입력 필드 포커스까지만 — 프롬프트 텍스트 노출 없음
+    TASK_PHASE1 = (
+        "Task: Open the custom report input dialog in NotebookLM.\n"
+        "Steps:\n"
+        "1. If the Studio panel is not visible, click the Studio tab (right side)\n"
+        "2. Click the '보고서' (report) tile\n"
+        "3. Click '직접 만들기' (Custom) option\n"
+        "4. Click inside the prompt text input field so it is focused\n"
+        "Output {\"action\": \"done\"} when the text input field is focused and ready for input.\n"
+        "Do NOT type anything yet — just navigate to and focus the input field."
     )
 
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-    HISTORY_WINDOW = 3  # 유지할 최근 user+assistant 쌍 수
+    # Phase 3: 생성 버튼 클릭 + 완성 대기 — 프롬프트 텍스트 노출 없음
+    TASK_PHASE3 = (
+        "Task: Generate the report.\n"
+        "The prompt text has already been entered in the input field.\n"
+        "Steps:\n"
+        "1. Click the Generate (생성) button to start report generation\n"
+        "2. Wait for the report to finish generating (may take 30-60 seconds)\n"
+        "3. Output {\"action\": \"done\"} when the full report text is visible on screen\n"
+        "- If still generating, use {\"action\": \"wait\", \"ms\": 3000}\n"
+        "- Do NOT include report text in your response — it will be extracted automatically."
+    )
+
+    def _run_cua_loop(page, task: str, max_steps: int, phase: str) -> bool:
+        """CUA 루프 실행. done이면 True 반환."""
+        msgs = [{"role": "system", "content": SYSTEM_PROMPT}]
+        for step in range(max_steps):
+            screenshot_b64 = base64.b64encode(page.screenshot()).decode()
+            logger.info("[CUA][%s] 스텝 %d/%d — gpt-5.4 Vision 호출", phase, step + 1, max_steps)
+
+            history = msgs[1:]
+            if len(history) > HISTORY_WINDOW * 2:
+                history = history[-(HISTORY_WINDOW * 2):]
+            msgs = [msgs[0]] + history
+
+            msgs.append({
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": task},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{screenshot_b64}",
+                            "detail": "high",
+                        },
+                    },
+                ],
+            })
+
+            response = client.chat.completions.create(
+                model="gpt-5.4",
+                messages=msgs,
+                max_completion_tokens=256,
+                temperature=0,
+            )
+
+            raw = (response.choices[0].message.content or "").strip()
+            logger.info("[CUA][%s] 모델 응답: %s", phase, raw[:200])
+
+            try:
+                if raw.startswith("```"):
+                    raw = raw.split("```")[1]
+                    if raw.startswith("json"):
+                        raw = raw[4:]
+                action = json.loads(raw.strip())
+            except json.JSONDecodeError as e:
+                logger.error("[CUA][%s] JSON 파싱 실패: %s — %s", phase, e, raw)
+                msgs.append({"role": "assistant", "content": raw})
+                continue
+
+            msgs.append({"role": "assistant", "content": raw})
+            logger.info("[CUA][%s] 액션: %s", phase, action)
+
+            if execute_action(page, action):
+                return True
+
+        return False
 
     with sync_playwright() as p:
         logger.info("[CUA] Chromium 시작")
@@ -213,76 +273,41 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
         time.sleep(3)
         logger.info("[CUA] 페이지 로드 완료: %s / url=%s", page.title(), page.url)
 
-        # 로그인이 필요한 경우 자동 처리
         _ensure_logged_in(page)
         time.sleep(2)
 
-        for step in range(30):
-            screenshot_b64 = base64.b64encode(page.screenshot()).decode()
-            logger.info("[CUA] 스텝 %d/30 — gpt-5.4 Vision 호출", step + 1)
+        # Phase 1: 입력 필드까지 내비게이션 (프롬프트 텍스트 GPT에 노출 안 함)
+        logger.info("[CUA] Phase 1 시작: 보고서 입력 필드로 내비게이션")
+        if not _run_cua_loop(page, TASK_PHASE1, max_steps=15, phase="P1"):
+            context.close()
+            raise RuntimeError("Phase 1 실패: 입력 필드 포커스 불가 (15 스텝 초과)")
+        logger.info("[CUA] Phase 1 완료: 입력 필드 포커스됨")
 
-            # 슬라이딩 윈도우: system 프롬프트 + 최근 HISTORY_WINDOW 쌍만 유지
-            history = messages[1:]  # system 제외
-            if len(history) > HISTORY_WINDOW * 2:
-                history = history[-(HISTORY_WINDOW * 2):]
-            messages = [messages[0]] + history
+        # Phase 2: Playwright로 직접 프롬프트 입력 (GPT에 프롬프트 텍스트 비노출)
+        logger.info("[CUA] Phase 2: 프롬프트 직접 입력 (%d chars)", len(prompt))
+        page.keyboard.type(prompt)
+        time.sleep(1)
+        logger.info("[CUA] Phase 2 완료: 프롬프트 입력됨")
 
-            messages.append({
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": task},
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/png;base64,{screenshot_b64}",
-                            "detail": "high",
-                        },
-                    },
-                ],
-            })
+        # Phase 3: 생성 버튼 클릭 + 보고서 완성 대기 (프롬프트 텍스트 GPT에 노출 안 함)
+        logger.info("[CUA] Phase 3 시작: 생성 버튼 클릭 및 보고서 대기")
+        if not _run_cua_loop(page, TASK_PHASE3, max_steps=25, phase="P3"):
+            context.close()
+            raise RuntimeError("Phase 3 실패: 보고서 생성 완료 대기 시간 초과 (25 스텝)")
+        logger.info("[CUA] Phase 3 완료: 보고서 생성됨")
 
-            response = client.chat.completions.create(
-                model="gpt-5.4",
-                messages=messages,
-                max_completion_tokens=256,
-                temperature=0,
-            )
-
-            raw = (response.choices[0].message.content or "").strip()
-            logger.info("[CUA] 모델 응답: %s", raw[:200])
-
-            # JSON 파싱
-            try:
-                if raw.startswith("```"):
-                    raw = raw.split("```")[1]
-                    if raw.startswith("json"):
-                        raw = raw[4:]
-                action = json.loads(raw.strip())
-            except json.JSONDecodeError as e:
-                logger.error("[CUA] JSON 파싱 실패: %s — %s", e, raw)
-                messages.append({"role": "assistant", "content": raw})
-                continue
-
-            messages.append({"role": "assistant", "content": raw})
-            logger.info("[CUA] 액션: %s", action)
-
-            done = execute_action(page, action)
-            if done:
-                logger.info("[CUA] done 감지 — DOM에서 보고서 텍스트 추출 중...")
-                report_text = _extract_report_from_dom(page)
-                if report_text:
-                    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-                    Path(output_path).write_text(report_text, encoding="utf-8")
-                    logger.info("[CUA] 보고서 저장 완료: %s (%d chars)", output_path, len(report_text))
-                    context.close()
-                    return output_path
-                else:
-                    logger.error("[CUA] DOM 추출 결과 없음")
-                    break
-
+        # 보고서 텍스트 DOM 추출
+        logger.info("[CUA] DOM에서 보고서 텍스트 추출 중...")
+        report_text = _extract_report_from_dom(page)
         context.close()
 
-    raise RuntimeError("보고서 생성 실패: 30 스텝 초과")
+        if not report_text:
+            raise RuntimeError("보고서 DOM 추출 결과 없음")
+
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+        Path(output_path).write_text(report_text, encoding="utf-8")
+        logger.info("[CUA] 보고서 저장 완료: %s (%d chars)", output_path, len(report_text))
+        return output_path
 
 
 def main():
