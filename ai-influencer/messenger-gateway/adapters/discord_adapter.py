@@ -181,6 +181,49 @@ class DiscordAdapter(MessengerAdapter):
         resp.raise_for_status()
         logger.info("[discord] send_reject_step_buttons job=%s channel=%s", job_id, channel_id)
 
+    async def send_report_list(
+        self,
+        channel_id: str,
+        job_id: str,
+        reports: list[str],
+    ) -> None:
+        """기존 보고서 선택 버튼 + '새로 생성' 버튼을 Discord로 전송한다.
+        Discord 제한: 5버튼/행 × 5행 = 최대 25개. 보고서는 최대 24개."""
+        all_buttons = []
+        for i, title in enumerate(reports[:24]):
+            all_buttons.append({
+                "type": 2,
+                "label": f"{i + 1}. {title[:60]}",
+                "style": 2,  # Secondary
+                "custom_id": f"select_report:{job_id}:{i}",
+            })
+        all_buttons.append({
+            "type": 2,
+            "label": "🆕 새로 생성",
+            "style": 1,  # Primary
+            "custom_id": f"new_report:{job_id}",
+        })
+
+        # 5개씩 ActionRow로 묶음
+        rows = []
+        for chunk_start in range(0, len(all_buttons), 5):
+            rows.append({
+                "type": 1,
+                "components": all_buttons[chunk_start:chunk_start + 5],
+            })
+
+        payload = {
+            "content": "📋 **기존 보고서를 선택하거나 새로 생성하세요.**",
+            "components": rows,
+        }
+        resp = await self._client.post(
+            f"{BASE_URL}/channels/{channel_id}/messages",
+            json=payload,
+            headers=self._headers,
+        )
+        resp.raise_for_status()
+        logger.info("[discord] send_report_list job=%s reports=%d", job_id, len(reports))
+
     async def send_file_message(
         self,
         channel_id: str,

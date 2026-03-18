@@ -225,12 +225,19 @@ async def on_interaction(interaction: discord.Interaction) -> None:
     parts = custom_id.split(":")
     action = parts[0]
     # video_reject_step has format: video_reject_step:{job_id}:{step}
+    # select_report has format: select_report:{job_id}:{index}
     if action == "video_reject_step" and len(parts) >= 3:
         job_id = parts[1]
         step = parts[2]
+        report_index = None
+    elif action == "select_report" and len(parts) >= 3:
+        job_id = parts[1]
+        report_index = int(parts[2])
+        step = None
     else:
         job_id = ":".join(parts[1:])
         step = None
+        report_index = None
     user_id = str(interaction.user.id)
 
     # 허용 채널 확인
@@ -290,6 +297,24 @@ async def on_interaction(interaction: discord.Interaction) -> None:
             await gateway_call(
                 "/internal/report-to-video",
                 {"job_id": job_id},
+            )
+        except Exception as e:
+            await interaction.channel.send(f"오류가 발생했습니다: {e}")
+
+    elif action == "select_report":
+        try:
+            await gateway_call(
+                "/internal/report-select",
+                {"job_id": job_id, "action": "select", "report_index": report_index},
+            )
+        except Exception as e:
+            await interaction.channel.send(f"오류가 발생했습니다: {e}")
+
+    elif action == "new_report":
+        try:
+            await gateway_call(
+                "/internal/report-select",
+                {"job_id": job_id, "action": "new"},
             )
         except Exception as e:
             await interaction.channel.send(f"오류가 발생했습니다: {e}")

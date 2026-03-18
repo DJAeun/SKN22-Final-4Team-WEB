@@ -89,3 +89,9 @@ class VideoActionRequest(BaseModel):
 
 class ReportToVideoRequest(BaseModel):
     job_id: str
+
+
+class ReportSelectRequest(BaseModel):
+    job_id: str
+    action: str           # "select" | "new"
+    report_index: Optional[int] = None   # action="select" 시 필수

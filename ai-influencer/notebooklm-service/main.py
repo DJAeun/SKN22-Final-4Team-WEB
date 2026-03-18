@@ -66,6 +66,24 @@ class GenerateResponse(BaseModel):
     error: Optional[str] = None
 
 
+class ListReportsRequest(BaseModel):
+    notebook_id: Optional[str] = None
+    notebook_url: Optional[str] = None
+
+
+class ListReportsResponse(BaseModel):
+    status: str
+    reports: list[str] = []
+    error: Optional[str] = None
+
+
+class GetReportRequest(BaseModel):
+    job_id: str
+    notebook_id: Optional[str] = None
+    notebook_url: Optional[str] = None
+    report_index: int
+
+
 # ─────────────────────────────────────────
 # 인증
 # ─────────────────────────────────────────
@@ -179,6 +197,96 @@ def _run_generate_report(
     )
 
 
+def _run_list_reports(notebook_url: str) -> ListReportsResponse:
+    """subprocess로 --mode list 실행 → 보고서 제목 목록 반환."""
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
+        output_path = tmp.name
+
+    cmd = [
+        "python3",
+        str(SCRIPTS_DIR / "generate_report_cua.py"),
+        "--mode", "list",
+        "--notebook-url", notebook_url,
+        "--output", output_path,
+        "--headless",
+    ]
+    logger.info("[notebooklm] list_reports subprocess: %s", cmd)
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    except subprocess.TimeoutExpired:
+        return ListReportsResponse(status="error", error="list-reports timeout (120s)")
+    except Exception as e:
+        return ListReportsResponse(status="error", error=str(e))
+
+    for line in (result.stdout or "").strip().splitlines():
+        logger.info("[script] %s", line)
+    for line in (result.stderr or "").strip().splitlines():
+        logger.warning("[script:err] %s", line)
+
+    if result.returncode != 0:
+        err = (result.stderr or result.stdout or "").strip()[:300]
+        return ListReportsResponse(status="error", error=err)
+
+    try:
+        titles = json.loads(Path(output_path).read_text(encoding="utf-8"))
+        return ListReportsResponse(status="success", reports=titles)
+    except Exception as e:
+        return ListReportsResponse(status="error", error=f"JSON 파싱 실패: {e}")
+    finally:
+        Path(output_path).unlink(missing_ok=True)
+
+
+def _run_get_report(
+    job_id: str,
+    notebook_url: str,
+    report_index: int,
+    output_path: Path,
+) -> GenerateResponse:
+    """subprocess로 --mode get 실행 → 기존 보고서 추출."""
+    cmd = [
+        "python3",
+        str(SCRIPTS_DIR / "generate_report_cua.py"),
+        "--mode", "get",
+        "--notebook-url", notebook_url,
+        "--report-index", str(report_index),
+        "--output", str(output_path),
+        "--headless",
+    ]
+    logger.info("[notebooklm] get_report subprocess job_id=%s: %s", job_id, cmd)
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=360)
+    except subprocess.TimeoutExpired:
+        return GenerateResponse(status="error", error="get-report timeout (360s)")
+    except Exception as e:
+        return GenerateResponse(status="error", error=str(e))
+
+    for line in (result.stdout or "").strip().splitlines():
+        logger.info("[script] %s", line)
+    for line in (result.stderr or "").strip().splitlines():
+        logger.warning("[script:err] %s", line)
+
+    if result.returncode != 0:
+        err = (result.stderr or result.stdout or "").strip()[:500]
+        return GenerateResponse(status="error", error=err)
+
+    if not output_path.exists():
+        return GenerateResponse(status="error", error=f"output file not found: {output_path}")
+
+    report_content = output_path.read_text(encoding="utf-8")
+    file_b64 = base64.b64encode(output_path.read_bytes()).decode("utf-8")
+    logger.info("[notebooklm] get_report ready job_id=%s size=%d chars", job_id, len(report_content))
+    return GenerateResponse(
+        status="success",
+        report_content=report_content,
+        file_content_b64=file_b64,
+        filename=output_path.name,
+    )
+
+
 # ─────────────────────────────────────────
 # 엔드포인트
 # ─────────────────────────────────────────
@@ -213,6 +321,53 @@ async def generate(
         body.job_id,
         body.prompt,
         notebook_url,
+        output_path,
+    )
+    return response
+
+
+@app.post("/list-reports", response_model=ListReportsResponse)
+async def list_reports_endpoint(
+    body: ListReportsRequest,
+    x_internal_secret: Optional[str] = Header(default=None),
+) -> ListReportsResponse:
+    """NotebookLM 스튜디오에서 기존 보고서 목록을 조회한다."""
+    verify_secret(x_internal_secret)
+
+    notebook_url = body.notebook_url or _resolve_notebook_url(body.notebook_id)
+    if not notebook_url:
+        return ListReportsResponse(status="error", error="notebook_url을 결정할 수 없습니다.")
+
+    import asyncio
+    loop = asyncio.get_event_loop()
+    response = await loop.run_in_executor(_executor, _run_list_reports, notebook_url)
+    return response
+
+
+@app.post("/get-report", response_model=GenerateResponse)
+async def get_report_endpoint(
+    body: GetReportRequest,
+    x_internal_secret: Optional[str] = Header(default=None),
+) -> GenerateResponse:
+    """기존 보고서 타일을 클릭해서 내용을 추출한다."""
+    verify_secret(x_internal_secret)
+
+    notebook_url = body.notebook_url or _resolve_notebook_url(body.notebook_id)
+    if not notebook_url:
+        return GenerateResponse(status="error", error="notebook_url을 결정할 수 없습니다.")
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_filename = f"report_{body.job_id[:8]}_{timestamp}_existing.md"
+    output_path = REPORTS_DIR / output_filename
+
+    import asyncio
+    loop = asyncio.get_event_loop()
+    response = await loop.run_in_executor(
+        _executor,
+        _run_get_report,
+        body.job_id,
+        notebook_url,
+        body.report_index,
         output_path,
     )
     return response
