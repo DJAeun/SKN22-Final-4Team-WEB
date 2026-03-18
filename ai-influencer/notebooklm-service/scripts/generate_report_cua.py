@@ -329,18 +329,30 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
         logger.info("[CUA] Phase 3a 완료: Generate 버튼 클릭됨")
         time.sleep(3)  # 생성 시작 대기
 
-        # Phase 3b: Playwright 네이티브 대기 — "보고서 생성 중" 사라질 때까지
-        logger.info("[CUA] Phase 3b 시작: '보고서 생성 중' 완료 대기 (최대 %dms)", PHASE3B_WAIT_MS)
+        # Phase 3b: Playwright 네이티브 대기 (2단계)
+        # Step 1: "보고서 생성 중" 나타날 때까지 기다림 (생성이 시작됐는지 확인)
+        logger.info("[CUA] Phase 3b-1: '보고서 생성 중' 나타날 때까지 대기 (최대 30초)")
+        try:
+            page.wait_for_function(
+                "() => document.body.innerText.includes('보고서 생성 중')",
+                timeout=30000,
+            )
+            logger.info("[CUA] Phase 3b-1: '보고서 생성 중' 감지됨 — 생성 시작 확인")
+        except Exception as e:
+            logger.warning("[CUA] Phase 3b-1: '보고서 생성 중' 30초 내 미감지 (%s) — 이미 완료됐거나 다른 상태", e)
+
+        # Step 2: "보고서 생성 중" 사라질 때까지 기다림 (생성 완료 확인)
+        logger.info("[CUA] Phase 3b-2: '보고서 생성 중' 사라질 때까지 대기 (최대 %dms)", PHASE3B_WAIT_MS)
         try:
             page.wait_for_function(
                 "() => !document.body.innerText.includes('보고서 생성 중')",
                 timeout=PHASE3B_WAIT_MS,
             )
-            logger.info("[CUA] Phase 3b 완료: '보고서 생성 중' 사라짐 — 보고서 생성됨")
+            logger.info("[CUA] Phase 3b-2 완료: '보고서 생성 중' 사라짐")
         except Exception as e:
-            logger.warning("[CUA] Phase 3b 타임아웃 (%dms): %s — 강제 추출 시도", PHASE3B_WAIT_MS, e)
+            logger.warning("[CUA] Phase 3b-2 타임아웃 (%dms): %s — 강제 추출 시도", PHASE3B_WAIT_MS, e)
 
-        time.sleep(2)  # 렌더링 안정화
+        time.sleep(3)  # 렌더링 완전 안정화
 
         # 보고서 텍스트 DOM 추출
         logger.info("[CUA] DOM에서 보고서 텍스트 추출 중...")
