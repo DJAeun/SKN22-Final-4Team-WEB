@@ -22,12 +22,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Use user ID as LangGraph thread (persistent memory across sessions)
             if self.user.is_authenticated:
                 self.thread_id = str(self.user.id)
+                self.anonymous_id = None
             else:
                 django_session = self.scope.get("session")
-                self.thread_id = (
-                    django_session.session_key if django_session and django_session.session_key
-                    else str(uuid.uuid4())
+                if django_session and not django_session.session_key:
+                    # Ensure a session key exists so anonymous users get a stable ID
+                    await django_session.asave()
+                self.anonymous_id = (
+                    django_session.session_key if django_session else str(uuid.uuid4())
                 )
+                self.thread_id = f"anon_{self.anonymous_id}"
 
             self.room_group_name = f"chat_{self.thread_id}"
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
@@ -106,9 +110,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_message_count(self):
-        """Return the number of messages already saved for this user."""
+        """Return the number of messages already saved for this user/session."""
         if self.user.is_authenticated:
             return Message.objects.filter(user=self.user).count()
+        if self.anonymous_id:
+            return Message.objects.filter(anonymous_id=self.anonymous_id).count()
         return 0
 
     @database_sync_to_async
@@ -120,6 +126,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             sender_type=sender_type,
             content=content,
             count=self.message_count,
+            anonymous_id=self.anonymous_id,
         )
         self.session_messages.append({
             'sender': 'user' if sender_type else 'hari',
@@ -150,6 +157,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         ChatMemory.objects.create(
             user=user,
+            anonymous_id=self.anonymous_id,
             summary=summary,
             keywords=keywords,
             ended_at=timezone.now(),
