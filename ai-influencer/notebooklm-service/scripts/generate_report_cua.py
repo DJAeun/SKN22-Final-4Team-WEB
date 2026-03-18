@@ -96,6 +96,43 @@ def _ensure_logged_in(page: Page) -> None:
         raise RuntimeError(f"Google 자동 로그인 실패: {e}")
 
 
+def _extract_studio_report(page) -> str:
+    """스튜디오 패널의 보고서 내용만 추출. 생성 중이거나 찾을 수 없으면 빈 문자열 반환."""
+    try:
+        body_text = page.inner_text("body")
+
+        # "스튜디오" 위치를 유연하게 탐색 (공백/개행 차이 허용)
+        m_studio = re.search(r'\n\s*스튜디오\s*\n', body_text)
+        if not m_studio:
+            logger.debug("[CUA] '스튜디오' 마커 미발견")
+            return ""
+
+        studio_section = body_text[m_studio.start():]
+
+        # "기반:소스" 위치 탐색 (스튜디오 이후 첫 번째)
+        m_attrib = re.search(r'\n\s*기반:소스', studio_section)
+        if not m_attrib or m_attrib.start() < 30:
+            logger.debug("[CUA] '기반:소스' 마커 미발견 또는 너무 가까움")
+            return ""
+
+        content_area = studio_section[:m_attrib.start()]
+
+        # 스튜디오 네비게이션 버튼 제거 (20자 미만 라인), 보고서 본문만 유지
+        lines = [l.strip() for l in content_area.split('\n') if len(l.strip()) > 20]
+        report = '\n'.join(lines)
+
+        if len(report) < 50:
+            logger.debug("[CUA] 스튜디오 콘텐츠 너무 짧음 (%d chars) — 아직 생성 중", len(report))
+            return ""
+
+        logger.info("[CUA] 스튜디오 보고서 추출 성공: %d chars", len(report))
+        return report
+
+    except Exception as e:
+        logger.warning("[CUA] 스튜디오 추출 오류: %s", e)
+        return ""
+
+
 def _extract_report_from_dom(page) -> str:
     """DOM에서 보고서 텍스트를 직접 추출. GPT OCR 대신 Playwright 사용."""
     # 1단계: 특정 CSS 셀렉터 시도
@@ -121,52 +158,28 @@ def _extract_report_from_dom(page) -> str:
     except Exception as e:
         logger.warning("[CUA] DOM 셀렉터 추출 실패: %s", e)
 
-    # 2단계: body 전체 텍스트 + 다중 패턴 파싱
+    # 2단계: 스튜디오 패널 전용 추출
+    report = _extract_studio_report(page)
+    if report:
+        return report
+
+    # 3단계: 구버전 NotebookLM 구조 호환
     try:
         body_text = page.inner_text("body")
-        logger.info("[CUA] body 텍스트 획득: %d chars", len(body_text))
-
-        # 패턴 A: 스튜디오 패널에서 "기반:소스 N개" 이전 구간 추출
-        # 현재 NotebookLM 구조: 스튜디오 → [버튼들] → [보고서 내용] → 기반:소스 N개
-        studio_idx = body_text.find('\n스튜디오\n')
-        if studio_idx >= 0:
-            studio_section = body_text[studio_idx:]
-            attrib_idx = studio_section.find('\n기반:소스')
-            if attrib_idx > 50:
-                content_area = studio_section[:attrib_idx]
-                # 짧은 아이콘/버튼 라벨 제거 (20자 미만), 보고서 본문만 유지
-                lines = [l.strip() for l in content_area.split('\n') if len(l.strip()) > 20]
-                report = '\n'.join(lines)
-                if len(report) > 100:
-                    logger.info("[CUA] 스튜디오 구간 추출 성공: %d chars", len(report))
-                    return report
-
-        # 패턴 B: "기반:소스 N개" 직전 컨텐츠 블록
-        sections = body_text.split('\n기반:소스')
-        if len(sections) >= 2:
-            content_area = sections[0]  # 첫 번째 "기반:소스" 이전
-            lines = [l.strip() for l in content_area.split('\n') if len(l.strip()) > 20]
-            report = '\n'.join(lines[-40:])  # 마지막 40개 실질 라인
-            if len(report) > 100:
-                logger.info("[CUA] 기반:소스 이전 구간 추출 성공: %d chars", len(report))
-                return report
-
-        # 패턴 C: 구버전 NotebookLM 구조 호환 ("소스 N개 기반")
         match = re.search(
             r'소스 \d+개 기반\n(.+?)(?=\nthumb_up|\nNotebookLM이)',
             body_text,
             re.DOTALL,
         )
         if match:
-            report = match.group(1).strip()
-            logger.info("[CUA] 구버전 regex 추출 성공: %d chars", len(report))
-            return report
-
-        logger.warning("[CUA] 모든 패턴 미발견 — body 전체 반환 (%d chars)", len(body_text))
-        return body_text.strip()
+            result = match.group(1).strip()
+            logger.info("[CUA] 구버전 regex 추출 성공: %d chars", len(result))
+            return result
     except Exception as e:
-        logger.error("[CUA] body 텍스트 추출 실패: %s", e)
-        return ""
+        logger.error("[CUA] 구버전 추출 실패: %s", e)
+
+    logger.warning("[CUA] 모든 패턴 실패 — 빈 문자열 반환")
+    return ""
 
 
 def execute_action(page, action: dict) -> bool:
@@ -352,11 +365,23 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
         except Exception as e:
             logger.warning("[CUA] Phase 3b-2 타임아웃 (%dms): %s — 강제 추출 시도", PHASE3B_WAIT_MS, e)
 
-        time.sleep(3)  # 렌더링 완전 안정화
+        time.sleep(3)  # 렌더링 안정화
 
-        # 보고서 텍스트 DOM 추출
-        logger.info("[CUA] DOM에서 보고서 텍스트 추출 중...")
-        report_text = _extract_report_from_dom(page)
+        # 스튜디오 보고서 폴링 (최대 120초, 5초 간격)
+        # _extract_studio_report는 생성 중이면 "" 반환 → 실제 내용이 나올 때까지 재시도
+        report_text = ""
+        for attempt in range(24):
+            report_text = _extract_studio_report(page)
+            if report_text:
+                logger.info("[CUA] 스튜디오 보고서 확인됨 (시도 %d/%d)", attempt + 1, 24)
+                break
+            logger.info("[CUA] 추출 재시도 %d/24 — 스튜디오 콘텐츠 대기 중...", attempt + 1)
+            time.sleep(5)
+
+        if not report_text:
+            logger.warning("[CUA] 스튜디오 폴링 실패 — CSS 셀렉터 폴백 시도")
+            report_text = _extract_report_from_dom(page)
+
         context.close()
 
         if not report_text:
