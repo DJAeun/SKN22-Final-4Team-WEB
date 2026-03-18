@@ -152,6 +152,11 @@ if db_name and db_host and db_host not in ['db', 'localhost', '127.0.0.1', '']:
         'PASSWORD': os.environ.get('DB_PASSWORD') or os.environ.get('RDS_PASSWORD'),
         'HOST': db_host,
         'PORT': os.environ.get('DB_PORT') or os.environ.get('RDS_PORT', '5432'),
+        'CONN_MAX_AGE': 600,
+        'OPTIONS': {
+            'sslmode': 'require',
+            'connect_timeout': 10,
+        },
     }
 
 
