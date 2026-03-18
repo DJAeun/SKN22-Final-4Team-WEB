@@ -216,6 +216,74 @@ def execute_action(page, action: dict) -> bool:
     return False
 
 
+def _run_cua_loop(
+    page,
+    client,
+    task: str,
+    max_steps: int,
+    phase: str,
+    allowed_actions: set = None,
+) -> bool:
+    """CUA 루프 실행 (모듈 레벨). done이면 True 반환."""
+    HISTORY_WINDOW = 3
+    msgs = [{"role": "system", "content": SYSTEM_PROMPT}]
+    for step in range(max_steps):
+        screenshot_b64 = base64.b64encode(page.screenshot()).decode()
+        logger.info("[CUA][%s] 스텝 %d/%d — gpt-5.4 Vision 호출", phase, step + 1, max_steps)
+
+        history = msgs[1:]
+        if len(history) > HISTORY_WINDOW * 2:
+            history = history[-(HISTORY_WINDOW * 2):]
+        msgs = [msgs[0]] + history
+
+        msgs.append({
+            "role": "user",
+            "content": [
+                {"type": "text", "text": task},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/png;base64,{screenshot_b64}",
+                        "detail": "high",
+                    },
+                },
+            ],
+        })
+
+        response = client.chat.completions.create(
+            model="gpt-5.4",
+            messages=msgs,
+            max_completion_tokens=256,
+            temperature=0,
+        )
+
+        raw = (response.choices[0].message.content or "").strip()
+        logger.info("[CUA][%s] 모델 응답: %s", phase, raw[:200])
+
+        try:
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            action = json.loads(raw.strip())
+        except json.JSONDecodeError as e:
+            logger.error("[CUA][%s] JSON 파싱 실패: %s — %s", phase, e, raw)
+            msgs.append({"role": "assistant", "content": raw})
+            continue
+
+        if allowed_actions and action.get("action") not in allowed_actions:
+            logger.warning("[CUA][%s] 허용되지 않은 액션 차단 → wait: %s", phase, action)
+            action = {"action": "wait", "ms": 3000}
+
+        msgs.append({"role": "assistant", "content": raw})
+        logger.info("[CUA][%s] 액션: %s", phase, action)
+
+        if execute_action(page, action):
+            return True
+
+    return False
+
+
 def _parse_report_titles(body_text: str) -> list[str]:
     """body text에서 스튜디오 보고서 타일 제목 목록을 파싱. 페이지 이동 없음."""
     studio_pos = body_text.find("스튜디오")
@@ -252,67 +320,11 @@ def list_reports(page, notebook_url: str) -> list[str]:
     return titles
 
 
-def _click_report_tile(page, target_title: str, report_index: int) -> bool:
-    """보고서 타일을 클릭하는 다중 전략. 성공 시 True."""
-
-    # 전략 1: exact=True → scroll → force click
-    for exact in (True, False):
-        try:
-            loc = page.get_by_text(target_title[:80], exact=exact).first
-            loc.scroll_into_view_if_needed(timeout=3000)
-            time.sleep(0.3)
-            loc.click(timeout=3000, force=True)
-            logger.info("[click] 전략1 exact=%s 성공", exact)
-            time.sleep(2)
-            return True
-        except Exception as e:
-            logger.warning("[click] 전략1 exact=%s 실패: %s", exact, e)
-
-    # 전략 2: JavaScript — 시간 패턴 인접 컨테이너를 index로 클릭
-    try:
-        result = page.evaluate(
-            """
-            (idx) => {
-                const timePattern = /\\d+[시분일주]간?\\s*전/;
-                const containers = [];
-                const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-                while (walker.nextNode()) {
-                    const node = walker.currentNode;
-                    if (timePattern.test(node.textContent)) {
-                        let el = node.parentElement;
-                        while (el && el !== document.body) {
-                            if (el.offsetHeight > 30 && el.offsetWidth > 100) {
-                                containers.push(el);
-                                break;
-                            }
-                            el = el.parentElement;
-                        }
-                    }
-                }
-                if (containers[idx]) {
-                    containers[idx].scrollIntoView();
-                    containers[idx].click();
-                    return true;
-                }
-                return false;
-            }
-            """,
-            report_index,
-        )
-        if result:
-            logger.info("[click] 전략2 JS 성공")
-            time.sleep(2)
-            return True
-    except Exception as e:
-        logger.warning("[click] 전략2 JS 실패: %s", e)
-
-    return False
-
-
 def get_existing_report(page, notebook_url: str, report_index: int, output_path: str) -> str:
-    """기존 보고서 타일을 클릭해서 내용을 추출하고 파일로 저장한다."""
+    """GPT-5.4 CUA로 기존 보고서 타일을 클릭해서 내용을 추출하고 파일로 저장한다."""
     logger.info("[get_existing_report] index=%d url=%s", report_index, notebook_url)
-    # 한 번만 navigate (list_reports 재호출 금지)
+    client = OpenAI()
+
     page.goto(notebook_url, wait_until="domcontentloaded", timeout=90000)
     try:
         page.wait_for_load_state("networkidle", timeout=30000)
@@ -322,7 +334,7 @@ def get_existing_report(page, notebook_url: str, report_index: int, output_path:
     _ensure_logged_in(page)
     time.sleep(2)
 
-    # 현재 페이지에서 직접 타일 목록 파싱 (재 navigate 없음)
+    # 타일 목록 파싱 (제목 확인용, navigate 없음)
     titles = _parse_report_titles(page.inner_text("body"))
     if not titles:
         raise RuntimeError("보고서 목록이 비어 있습니다.")
@@ -330,15 +342,31 @@ def get_existing_report(page, notebook_url: str, report_index: int, output_path:
         raise RuntimeError(f"report_index={report_index} out of range (총 {len(titles)}개)")
 
     target_title = titles[report_index]
-    logger.info("[get_existing_report] 클릭 대상 [%d]: %r", report_index, target_title)
+    logger.info("[get_existing_report] 대상 [%d]: %r", report_index, target_title)
 
-    if not _click_report_tile(page, target_title, report_index):
-        raise RuntimeError(f"보고서 타일 클릭 실패: '{target_title[:50]}'")
+    # CUA Phase: 타일 클릭 (GPT-5.4 vision이 UI를 보고 올바른 타일 클릭)
+    TASK_OPEN_TILE = (
+        f"Task: In the NotebookLM Studio panel, find and click the saved report/document tile.\n"
+        f"Target title: '{target_title[:80]}'\n"
+        f"It is report number {report_index + 1} in the list.\n"
+        "Steps:\n"
+        "1. If the Studio panel is not open on the right, click the Studio tab\n"
+        "2. Scroll down in the Studio panel if needed to find the tile\n"
+        f"3. Click on the tile titled '{target_title[:60]}'\n"
+        "4. Wait for the report content to appear\n"
+        f'Output {{"action": "done"}} when the report content is fully visible on screen.\n'
+        "Do NOT generate a new report — only open an existing one."
+    )
 
-    # 스튜디오 보고서 폴링 (최대 60초)
+    if not _run_cua_loop(page, client, TASK_OPEN_TILE, max_steps=12, phase="GET_TILE"):
+        raise RuntimeError("CUA 타일 클릭 실패 (12 스텝 초과)")
+
+    time.sleep(3)
+
+    # 추출: CSS 셀렉터 → 스튜디오 패턴 → 구버전 순으로 시도
     report_text = ""
     for attempt in range(12):
-        report_text = _extract_studio_report(page)
+        report_text = _extract_report_from_dom(page)
         if report_text:
             logger.info("[get_existing_report] 추출 성공 (시도 %d/12)", attempt + 1)
             break
@@ -358,8 +386,6 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
     logger.info("[CUA] 시작 prompt=%r url=%s headless=%s", prompt, notebook_url, headless)
     client = OpenAI()
     BROWSER_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
-
-    HISTORY_WINDOW = 3
 
     # Phase 1: 입력 필드 포커스까지만 — 프롬프트 텍스트 노출 없음
     TASK_PHASE1 = (
@@ -385,68 +411,6 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
     # Phase 3b는 GPT 없이 Playwright 네이티브 대기로 처리
     PHASE3B_WAIT_MS = 180000  # 최대 3분
 
-    def _run_cua_loop(page, task: str, max_steps: int, phase: str,
-                      allowed_actions: set = None) -> bool:
-        """CUA 루프 실행. done이면 True 반환.
-        allowed_actions이 주어지면 그 외 액션은 wait으로 강제 대체."""
-        msgs = [{"role": "system", "content": SYSTEM_PROMPT}]
-        for step in range(max_steps):
-            screenshot_b64 = base64.b64encode(page.screenshot()).decode()
-            logger.info("[CUA][%s] 스텝 %d/%d — gpt-5.4 Vision 호출", phase, step + 1, max_steps)
-
-            history = msgs[1:]
-            if len(history) > HISTORY_WINDOW * 2:
-                history = history[-(HISTORY_WINDOW * 2):]
-            msgs = [msgs[0]] + history
-
-            msgs.append({
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": task},
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/png;base64,{screenshot_b64}",
-                            "detail": "high",
-                        },
-                    },
-                ],
-            })
-
-            response = client.chat.completions.create(
-                model="gpt-5.4",
-                messages=msgs,
-                max_completion_tokens=256,
-                temperature=0,
-            )
-
-            raw = (response.choices[0].message.content or "").strip()
-            logger.info("[CUA][%s] 모델 응답: %s", phase, raw[:200])
-
-            try:
-                if raw.startswith("```"):
-                    raw = raw.split("```")[1]
-                    if raw.startswith("json"):
-                        raw = raw[4:]
-                action = json.loads(raw.strip())
-            except json.JSONDecodeError as e:
-                logger.error("[CUA][%s] JSON 파싱 실패: %s — %s", phase, e, raw)
-                msgs.append({"role": "assistant", "content": raw})
-                continue
-
-            # 허용되지 않은 액션은 wait으로 강제 대체
-            if allowed_actions and action.get("action") not in allowed_actions:
-                logger.warning("[CUA][%s] 허용되지 않은 액션 차단 → wait: %s", phase, action)
-                action = {"action": "wait", "ms": 3000}
-
-            msgs.append({"role": "assistant", "content": raw})
-            logger.info("[CUA][%s] 액션: %s", phase, action)
-
-            if execute_action(page, action):
-                return True
-
-        return False
-
     with sync_playwright() as p:
         logger.info("[CUA] Chromium 시작")
         context = p.chromium.launch_persistent_context(
@@ -470,7 +434,7 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
 
         # Phase 1: 입력 필드까지 내비게이션 (프롬프트 텍스트 GPT에 노출 안 함)
         logger.info("[CUA] Phase 1 시작: 보고서 입력 필드로 내비게이션")
-        if not _run_cua_loop(page, TASK_PHASE1, max_steps=15, phase="P1"):
+        if not _run_cua_loop(page, client, TASK_PHASE1, max_steps=15, phase="P1"):
             context.close()
             raise RuntimeError("Phase 1 실패: 입력 필드 포커스 불가 (15 스텝 초과)")
         logger.info("[CUA] Phase 1 완료: 입력 필드 포커스됨")
@@ -483,7 +447,7 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
 
         # Phase 3a: Generate 버튼 클릭
         logger.info("[CUA] Phase 3a 시작: Generate 버튼 클릭")
-        if not _run_cua_loop(page, TASK_PHASE3_CLICK, max_steps=5, phase="P3a"):
+        if not _run_cua_loop(page, client, TASK_PHASE3_CLICK, max_steps=5, phase="P3a"):
             context.close()
             raise RuntimeError("Phase 3a 실패: Generate 버튼 클릭 불가 (5 스텝 초과)")
         logger.info("[CUA] Phase 3a 완료: Generate 버튼 클릭됨")
