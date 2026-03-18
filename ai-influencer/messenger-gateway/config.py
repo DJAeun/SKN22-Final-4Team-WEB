@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     n8n_wf07_webhook_url: str = "http://n8n:5678/webhook/wf-07-tts-heygen"
     n8n_wf08_webhook_url: str = "http://n8n:5678/webhook/wf-08-sns-upload"
 
+    notebooklm_service_url: str = "http://notebooklm-service:8090"
+
     class Config:
         env_file = ".env"
         case_sensitive = False

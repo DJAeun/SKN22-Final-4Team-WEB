@@ -216,6 +216,91 @@ def execute_action(page, action: dict) -> bool:
     return False
 
 
+def list_reports(page, notebook_url: str) -> list[str]:
+    """NotebookLM 스튜디오 패널에서 기존 보고서 타일 제목 목록을 반환."""
+    logger.info("[list_reports] 노트북 이동 중: %s", notebook_url)
+    page.goto(notebook_url, wait_until="domcontentloaded", timeout=90000)
+    try:
+        page.wait_for_load_state("networkidle", timeout=30000)
+    except Exception as e:
+        logger.warning("[list_reports] networkidle 타임아웃: %s", e)
+
+    _ensure_logged_in(page)
+    time.sleep(2)
+
+    body_text = page.inner_text("body")
+
+    studio_pos = body_text.find("스튜디오")
+    if studio_pos < 0:
+        logger.warning("[list_reports] '스튜디오' 섹션 없음")
+        return []
+
+    studio_section = body_text[studio_pos:]
+    lines = [l.strip() for l in studio_section.split("\n") if l.strip()]
+
+    time_pattern = re.compile(r"\d+[시분일주]간?\s*전")
+    titles = []
+    for i, line in enumerate(lines):
+        if time_pattern.search(line) and i > 0:
+            candidate = lines[i - 1]
+            # 스튜디오 네비게이션 버튼(짧은 텍스트) 제외
+            if len(candidate) > 3 and candidate not in ("스튜디오", "보고서", "직접 만들기"):
+                titles.append(candidate)
+
+    logger.info("[list_reports] 보고서 %d개 발견: %s", len(titles), titles)
+    return titles
+
+
+def get_existing_report(page, notebook_url: str, report_index: int, output_path: str) -> str:
+    """기존 보고서 타일을 클릭해서 내용을 추출하고 파일로 저장한다."""
+    logger.info("[get_existing_report] index=%d url=%s", report_index, notebook_url)
+    page.goto(notebook_url, wait_until="domcontentloaded", timeout=90000)
+    try:
+        page.wait_for_load_state("networkidle", timeout=30000)
+    except Exception as e:
+        logger.warning("[get_existing_report] networkidle 타임아웃: %s", e)
+
+    _ensure_logged_in(page)
+    time.sleep(2)
+
+    # 타일 목록 조회
+    titles = list_reports(page, notebook_url)
+    if not titles:
+        raise RuntimeError("보고서 목록이 비어 있습니다.")
+    if report_index >= len(titles):
+        raise RuntimeError(f"report_index={report_index} out of range (총 {len(titles)}개)")
+
+    target_title = titles[report_index]
+    logger.info("[get_existing_report] 클릭 대상: %r", target_title)
+
+    # 타일 클릭 시도
+    try:
+        page.get_by_text(target_title, exact=False).first.click()
+        logger.info("[get_existing_report] get_by_text 클릭 성공")
+        time.sleep(2)
+    except Exception as e:
+        logger.warning("[get_existing_report] get_by_text 클릭 실패: %s — 재시도 생략", e)
+        raise RuntimeError(f"보고서 타일 클릭 실패: {e}")
+
+    # 스튜디오 보고서 폴링 (최대 60초)
+    report_text = ""
+    for attempt in range(12):
+        report_text = _extract_studio_report(page)
+        if report_text:
+            logger.info("[get_existing_report] 추출 성공 (시도 %d/12)", attempt + 1)
+            break
+        logger.info("[get_existing_report] 추출 재시도 %d/12", attempt + 1)
+        time.sleep(5)
+
+    if not report_text:
+        raise RuntimeError("기존 보고서 DOM 추출 결과 없음")
+
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    Path(output_path).write_text(report_text, encoding="utf-8")
+    logger.info("[get_existing_report] 저장 완료: %s (%d chars)", output_path, len(report_text))
+    return output_path
+
+
 def generate_report(prompt: str, notebook_url: str, output_path: str, headless: bool = True) -> str:
     logger.info("[CUA] 시작 prompt=%r url=%s headless=%s", prompt, notebook_url, headless)
     client = OpenAI()
@@ -404,14 +489,50 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--prompt", required=True)
+    parser.add_argument("--mode", default="generate", choices=["generate", "list", "get"])
+    parser.add_argument("--prompt", default="")
     parser.add_argument("--notebook-url", required=True)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--report-index", type=int, default=0)
     parser.add_argument("--headless", action="store_true")
     args = parser.parse_args()
 
-    result = generate_report(args.prompt, args.notebook_url, args.output, args.headless)
-    print(f"✅ {result}")
+    BROWSER_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
+
+    if args.mode == "generate":
+        if not args.prompt:
+            parser.error("--prompt is required for --mode generate")
+        result = generate_report(args.prompt, args.notebook_url, args.output, args.headless)
+        print(f"✅ {result}")
+
+    elif args.mode == "list":
+        with sync_playwright() as p:
+            context = p.chromium.launch_persistent_context(
+                user_data_dir=str(BROWSER_PROFILE_DIR),
+                headless=args.headless,
+                args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-blink-features=AutomationControlled"],
+                viewport={"width": 1280, "height": 800},
+            )
+            page = context.new_page()
+            titles = list_reports(page, args.notebook_url)
+            context.close()
+
+        Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.output).write_text(json.dumps(titles, ensure_ascii=False), encoding="utf-8")
+        print(f"✅ {len(titles)} reports listed → {args.output}")
+
+    elif args.mode == "get":
+        with sync_playwright() as p:
+            context = p.chromium.launch_persistent_context(
+                user_data_dir=str(BROWSER_PROFILE_DIR),
+                headless=args.headless,
+                args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-blink-features=AutomationControlled"],
+                viewport={"width": 1280, "height": 800},
+            )
+            page = context.new_page()
+            result = get_existing_report(page, args.notebook_url, args.report_index, args.output)
+            context.close()
+        print(f"✅ {result}")
 
 
 if __name__ == "__main__":
