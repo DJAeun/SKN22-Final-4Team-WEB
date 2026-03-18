@@ -1,19 +1,16 @@
 from rest_framework import serializers
-from .models import ChatSession, Message
-from django.contrib.auth import get_user_model
+from .models import Message, ChatMemory
 
-User = get_user_model()
 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = ['id', 'session', 'sender', 'text', 'created_at', 'emotion_state']
-        read_only_fields = ['id', 'created_at', 'emotion_state']
+        fields = ['message_id', 'user', 'sender_type', 'content', 'is_read', 'count', 'created_at']
+        read_only_fields = ['message_id', 'count', 'created_at']
 
-class ChatSessionSerializer(serializers.ModelSerializer):
-    messages = MessageSerializer(many=True, read_only=True)
-    
+
+class ChatMemorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = ChatSession
-        fields = ['id', 'user', 'started_at', 'updated_at', 'summary', 'messages']
-        read_only_fields = ['id', 'user', 'started_at', 'updated_at', 'summary']
+        model = ChatMemory
+        fields = ['memory_id', 'user', 'summary', 'keywords', 'ended_at']
+        read_only_fields = ['memory_id']
