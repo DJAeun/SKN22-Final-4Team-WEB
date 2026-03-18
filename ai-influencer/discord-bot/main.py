@@ -205,7 +205,7 @@ async def report_command(interaction: discord.Interaction, prompt: str) -> None:
             },
         )
         await interaction.followup.send(
-            f"📊 보고서 생성 요청이 접수되었습니다!\nJob ID: {job_id[:8]}...\n프롬프트: {prompt[:50]}...\n\nNotebookLM에서 보고서를 생성 중입니다. 최대 5분 소요될 수 있습니다. ⏳"
+            f"📊 요청 접수! 기존 보고서가 있으면 선택지가, 없으면 새 보고서 생성을 시작합니다. ⏳\nJob ID: `{job_id[:8]}`"
         )
     except Exception:
         await interaction.followup.send("보고서 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
