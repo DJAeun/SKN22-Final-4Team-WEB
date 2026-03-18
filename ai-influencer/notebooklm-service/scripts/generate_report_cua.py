@@ -98,7 +98,7 @@ def _ensure_logged_in(page: Page) -> None:
 
 def _extract_report_from_dom(page) -> str:
     """DOM에서 보고서 텍스트를 직접 추출. GPT OCR 대신 Playwright 사용."""
-    # 1단계: 특정 셀렉터 시도
+    # 1단계: 특정 CSS 셀렉터 시도
     js = """
     (selectors) => {
         for (const sel of selectors) {
@@ -121,12 +121,37 @@ def _extract_report_from_dom(page) -> str:
     except Exception as e:
         logger.warning("[CUA] DOM 셀렉터 추출 실패: %s", e)
 
-    # 2단계: body 전체 텍스트 + 보고서 영역 파싱
+    # 2단계: body 전체 텍스트 + 다중 패턴 파싱
     try:
         body_text = page.inner_text("body")
         logger.info("[CUA] body 텍스트 획득: %d chars", len(body_text))
 
-        # NotebookLM 구조: "소스 N개 기반\n<보고서>\nthumb_up"
+        # 패턴 A: 스튜디오 패널에서 "기반:소스 N개" 이전 구간 추출
+        # 현재 NotebookLM 구조: 스튜디오 → [버튼들] → [보고서 내용] → 기반:소스 N개
+        studio_idx = body_text.find('\n스튜디오\n')
+        if studio_idx >= 0:
+            studio_section = body_text[studio_idx:]
+            attrib_idx = studio_section.find('\n기반:소스')
+            if attrib_idx > 50:
+                content_area = studio_section[:attrib_idx]
+                # 짧은 아이콘/버튼 라벨 제거 (20자 미만), 보고서 본문만 유지
+                lines = [l.strip() for l in content_area.split('\n') if len(l.strip()) > 20]
+                report = '\n'.join(lines)
+                if len(report) > 100:
+                    logger.info("[CUA] 스튜디오 구간 추출 성공: %d chars", len(report))
+                    return report
+
+        # 패턴 B: "기반:소스 N개" 직전 컨텐츠 블록
+        sections = body_text.split('\n기반:소스')
+        if len(sections) >= 2:
+            content_area = sections[0]  # 첫 번째 "기반:소스" 이전
+            lines = [l.strip() for l in content_area.split('\n') if len(l.strip()) > 20]
+            report = '\n'.join(lines[-40:])  # 마지막 40개 실질 라인
+            if len(report) > 100:
+                logger.info("[CUA] 기반:소스 이전 구간 추출 성공: %d chars", len(report))
+                return report
+
+        # 패턴 C: 구버전 NotebookLM 구조 호환 ("소스 N개 기반")
         match = re.search(
             r'소스 \d+개 기반\n(.+?)(?=\nthumb_up|\nNotebookLM이)',
             body_text,
@@ -134,10 +159,10 @@ def _extract_report_from_dom(page) -> str:
         )
         if match:
             report = match.group(1).strip()
-            logger.info("[CUA] 보고서 영역 파싱 성공: %d chars", len(report))
+            logger.info("[CUA] 구버전 regex 추출 성공: %d chars", len(report))
             return report
 
-        logger.warning("[CUA] 보고서 영역 패턴 미발견 — body 전체 반환")
+        logger.warning("[CUA] 모든 패턴 미발견 — body 전체 반환 (%d chars)", len(body_text))
         return body_text.strip()
     except Exception as e:
         logger.error("[CUA] body 텍스트 추출 실패: %s", e)
@@ -197,16 +222,8 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
         "Do NOT wait for the report to finish — just click Generate and output done."
     )
 
-    # Phase 3b: 생성 완료 대기 — wait/done만 허용, 클릭 절대 금지
-    TASK_PHASE3_WAIT = (
-        "Task: Wait for the NotebookLM report to finish generating.\n"
-        "The report is currently being generated. DO NOT click anything.\n"
-        "You may ONLY use these two actions:\n"
-        "  {\"action\": \"wait\", \"ms\": 5000}  — while the report is still loading\n"
-        "  {\"action\": \"done\"}              — when the complete report text is visible\n"
-        "Output done when you can see the full generated report text on screen.\n"
-        "NEVER click tiles, buttons, or any UI element."
-    )
+    # Phase 3b는 GPT 없이 Playwright 네이티브 대기로 처리
+    PHASE3B_WAIT_MS = 180000  # 최대 3분
 
     def _run_cua_loop(page, task: str, max_steps: int, phase: str,
                       allowed_actions: set = None) -> bool:
@@ -312,13 +329,18 @@ def generate_report(prompt: str, notebook_url: str, output_path: str, headless: 
         logger.info("[CUA] Phase 3a 완료: Generate 버튼 클릭됨")
         time.sleep(3)  # 생성 시작 대기
 
-        # Phase 3b: 보고서 완성 대기 (wait/done만 허용 — 클릭 차단)
-        logger.info("[CUA] Phase 3b 시작: 보고서 생성 완료 대기 (클릭 차단)")
-        if not _run_cua_loop(page, TASK_PHASE3_WAIT, max_steps=20, phase="P3b",
-                             allowed_actions={"wait", "done"}):
-            context.close()
-            raise RuntimeError("Phase 3b 실패: 보고서 생성 완료 대기 시간 초과 (20 스텝)")
-        logger.info("[CUA] Phase 3b 완료: 보고서 생성됨")
+        # Phase 3b: Playwright 네이티브 대기 — "보고서 생성 중" 사라질 때까지
+        logger.info("[CUA] Phase 3b 시작: '보고서 생성 중' 완료 대기 (최대 %dms)", PHASE3B_WAIT_MS)
+        try:
+            page.wait_for_function(
+                "() => !document.body.innerText.includes('보고서 생성 중')",
+                timeout=PHASE3B_WAIT_MS,
+            )
+            logger.info("[CUA] Phase 3b 완료: '보고서 생성 중' 사라짐 — 보고서 생성됨")
+        except Exception as e:
+            logger.warning("[CUA] Phase 3b 타임아웃 (%dms): %s — 강제 추출 시도", PHASE3B_WAIT_MS, e)
+
+        time.sleep(2)  # 렌더링 안정화
 
         # 보고서 텍스트 DOM 추출
         logger.info("[CUA] DOM에서 보고서 텍스트 추출 중...")
