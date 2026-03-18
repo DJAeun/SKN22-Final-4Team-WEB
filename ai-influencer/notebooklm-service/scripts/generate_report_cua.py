@@ -216,6 +216,25 @@ def execute_action(page, action: dict) -> bool:
     return False
 
 
+def _parse_report_titles(body_text: str) -> list[str]:
+    """body text에서 스튜디오 보고서 타일 제목 목록을 파싱. 페이지 이동 없음."""
+    studio_pos = body_text.find("스튜디오")
+    if studio_pos < 0:
+        return []
+
+    studio_section = body_text[studio_pos:]
+    lines = [l.strip() for l in studio_section.split("\n") if l.strip()]
+
+    time_pattern = re.compile(r"\d+[시분일주]간?\s*전")
+    titles = []
+    for i, line in enumerate(lines):
+        if time_pattern.search(line) and i > 0:
+            candidate = lines[i - 1]
+            if len(candidate) > 3 and candidate not in ("스튜디오", "보고서", "직접 만들기"):
+                titles.append(candidate)
+    return titles
+
+
 def list_reports(page, notebook_url: str) -> list[str]:
     """NotebookLM 스튜디오 패널에서 기존 보고서 타일 제목 목록을 반환."""
     logger.info("[list_reports] 노트북 이동 중: %s", notebook_url)
@@ -228,32 +247,72 @@ def list_reports(page, notebook_url: str) -> list[str]:
     _ensure_logged_in(page)
     time.sleep(2)
 
-    body_text = page.inner_text("body")
-
-    studio_pos = body_text.find("스튜디오")
-    if studio_pos < 0:
-        logger.warning("[list_reports] '스튜디오' 섹션 없음")
-        return []
-
-    studio_section = body_text[studio_pos:]
-    lines = [l.strip() for l in studio_section.split("\n") if l.strip()]
-
-    time_pattern = re.compile(r"\d+[시분일주]간?\s*전")
-    titles = []
-    for i, line in enumerate(lines):
-        if time_pattern.search(line) and i > 0:
-            candidate = lines[i - 1]
-            # 스튜디오 네비게이션 버튼(짧은 텍스트) 제외
-            if len(candidate) > 3 and candidate not in ("스튜디오", "보고서", "직접 만들기"):
-                titles.append(candidate)
-
+    titles = _parse_report_titles(page.inner_text("body"))
     logger.info("[list_reports] 보고서 %d개 발견: %s", len(titles), titles)
     return titles
+
+
+def _click_report_tile(page, target_title: str, report_index: int) -> bool:
+    """보고서 타일을 클릭하는 다중 전략. 성공 시 True."""
+
+    # 전략 1: exact=True → scroll → force click
+    for exact in (True, False):
+        try:
+            loc = page.get_by_text(target_title[:80], exact=exact).first
+            loc.scroll_into_view_if_needed(timeout=3000)
+            time.sleep(0.3)
+            loc.click(timeout=3000, force=True)
+            logger.info("[click] 전략1 exact=%s 성공", exact)
+            time.sleep(2)
+            return True
+        except Exception as e:
+            logger.warning("[click] 전략1 exact=%s 실패: %s", exact, e)
+
+    # 전략 2: JavaScript — 시간 패턴 인접 컨테이너를 index로 클릭
+    try:
+        result = page.evaluate(
+            """
+            (idx) => {
+                const timePattern = /\\d+[시분일주]간?\\s*전/;
+                const containers = [];
+                const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+                while (walker.nextNode()) {
+                    const node = walker.currentNode;
+                    if (timePattern.test(node.textContent)) {
+                        let el = node.parentElement;
+                        while (el && el !== document.body) {
+                            if (el.offsetHeight > 30 && el.offsetWidth > 100) {
+                                containers.push(el);
+                                break;
+                            }
+                            el = el.parentElement;
+                        }
+                    }
+                }
+                if (containers[idx]) {
+                    containers[idx].scrollIntoView();
+                    containers[idx].click();
+                    return true;
+                }
+                return false;
+            }
+            """,
+            report_index,
+        )
+        if result:
+            logger.info("[click] 전략2 JS 성공")
+            time.sleep(2)
+            return True
+    except Exception as e:
+        logger.warning("[click] 전략2 JS 실패: %s", e)
+
+    return False
 
 
 def get_existing_report(page, notebook_url: str, report_index: int, output_path: str) -> str:
     """기존 보고서 타일을 클릭해서 내용을 추출하고 파일로 저장한다."""
     logger.info("[get_existing_report] index=%d url=%s", report_index, notebook_url)
+    # 한 번만 navigate (list_reports 재호출 금지)
     page.goto(notebook_url, wait_until="domcontentloaded", timeout=90000)
     try:
         page.wait_for_load_state("networkidle", timeout=30000)
@@ -263,24 +322,18 @@ def get_existing_report(page, notebook_url: str, report_index: int, output_path:
     _ensure_logged_in(page)
     time.sleep(2)
 
-    # 타일 목록 조회
-    titles = list_reports(page, notebook_url)
+    # 현재 페이지에서 직접 타일 목록 파싱 (재 navigate 없음)
+    titles = _parse_report_titles(page.inner_text("body"))
     if not titles:
         raise RuntimeError("보고서 목록이 비어 있습니다.")
     if report_index >= len(titles):
         raise RuntimeError(f"report_index={report_index} out of range (총 {len(titles)}개)")
 
     target_title = titles[report_index]
-    logger.info("[get_existing_report] 클릭 대상: %r", target_title)
+    logger.info("[get_existing_report] 클릭 대상 [%d]: %r", report_index, target_title)
 
-    # 타일 클릭 시도
-    try:
-        page.get_by_text(target_title, exact=False).first.click()
-        logger.info("[get_existing_report] get_by_text 클릭 성공")
-        time.sleep(2)
-    except Exception as e:
-        logger.warning("[get_existing_report] get_by_text 클릭 실패: %s — 재시도 생략", e)
-        raise RuntimeError(f"보고서 타일 클릭 실패: {e}")
+    if not _click_report_tile(page, target_title, report_index):
+        raise RuntimeError(f"보고서 타일 클릭 실패: '{target_title[:50]}'")
 
     # 스튜디오 보고서 폴링 (최대 60초)
     report_text = ""
