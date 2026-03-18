@@ -101,28 +101,37 @@ def _extract_studio_report(page) -> str:
     try:
         body_text = page.inner_text("body")
 
-        # "스튜디오" 위치를 유연하게 탐색 (공백/개행 차이 허용)
-        m_studio = re.search(r'\n\s*스튜디오\s*\n', body_text)
-        if not m_studio:
-            logger.debug("[CUA] '스튜디오' 마커 미발견")
+        # 진단: '스튜디오' 주변 텍스트 출력
+        studio_raw_pos = body_text.find('스튜디오')
+        if studio_raw_pos >= 0:
+            snippet = body_text[max(0, studio_raw_pos - 30):studio_raw_pos + 60]
+            logger.info("[CUA] '스튜디오' 주변 텍스트: %r", snippet)
+        else:
+            logger.warning("[CUA] body text에 '스튜디오' 없음 — 전체 앞 500자: %r", body_text[:500])
             return ""
 
-        studio_section = body_text[m_studio.start():]
-
-        # "기반:소스" 위치 탐색 (스튜디오 이후 첫 번째)
-        m_attrib = re.search(r'\n\s*기반:소스', studio_section)
-        if not m_attrib or m_attrib.start() < 30:
-            logger.debug("[CUA] '기반:소스' 마커 미발견 또는 너무 가까움")
+        # 진단: '기반:소스' 위치 확인
+        attrib_raw_pos = body_text.find('기반:소스')
+        if attrib_raw_pos >= 0:
+            logger.info("[CUA] '기반:소스' 위치: %d (studio: %d)", attrib_raw_pos, studio_raw_pos)
+        else:
+            logger.warning("[CUA] body text에 '기반:소스' 없음")
             return ""
 
-        content_area = studio_section[:m_attrib.start()]
+        # "스튜디오" 이후 ~ "기반:소스" 이전 구간 추출 (단순 find 사용)
+        if attrib_raw_pos <= studio_raw_pos:
+            logger.warning("[CUA] '기반:소스'가 '스튜디오' 앞에 있음 — 위치 역전")
+            return ""
+
+        content_area = body_text[studio_raw_pos:attrib_raw_pos]
+        logger.info("[CUA] 스튜디오~기반:소스 구간: %d chars — %r", len(content_area), content_area[:200])
 
         # 스튜디오 네비게이션 버튼 제거 (20자 미만 라인), 보고서 본문만 유지
         lines = [l.strip() for l in content_area.split('\n') if len(l.strip()) > 20]
         report = '\n'.join(lines)
 
         if len(report) < 50:
-            logger.debug("[CUA] 스튜디오 콘텐츠 너무 짧음 (%d chars) — 아직 생성 중", len(report))
+            logger.info("[CUA] 스튜디오 콘텐츠 너무 짧음 (%d chars) — 아직 생성 중", len(report))
             return ""
 
         logger.info("[CUA] 스튜디오 보고서 추출 성공: %d chars", len(report))
