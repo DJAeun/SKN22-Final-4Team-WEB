@@ -21,6 +21,14 @@ class Migration(migrations.Migration):
 
                 -- Drop chat_session table (replaced by chat_memory)
                 DROP TABLE IF EXISTS chat_session CASCADE;
+
+                -- Add anonymous_id for tracking anonymous users via Django session key
+                ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS anonymous_id VARCHAR(40) NULL;
+                ALTER TABLE chat_memory   ADD COLUMN IF NOT EXISTS anonymous_id VARCHAR(40) NULL;
+
+                -- Drop leftover duplicate tables from old Django migrations
+                DROP TABLE IF EXISTS chat_message CASCADE;
+                DROP TABLE IF EXISTS chat_chatsession CASCADE;
             """,
             reverse_sql=migrations.RunSQL.noop,
         ),
