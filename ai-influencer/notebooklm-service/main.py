@@ -69,6 +69,7 @@ class GenerateResponse(BaseModel):
 class ListReportsRequest(BaseModel):
     notebook_id: Optional[str] = None
     notebook_url: Optional[str] = None
+    topic: Optional[str] = None
 
 
 class ListReportsResponse(BaseModel):
@@ -81,7 +82,38 @@ class GetReportRequest(BaseModel):
     job_id: str
     notebook_id: Optional[str] = None
     notebook_url: Optional[str] = None
+    topic: Optional[str] = None
     report_index: int
+
+
+class AddSourceRequest(BaseModel):
+    source_url: str
+    source_title: str = ""
+    notebook_id: Optional[str] = None
+    notebook_url: Optional[str] = None
+    topic: Optional[str] = None       # 토픽명으로 노트북 자동 조회
+    max_sources: int = 20             # 슬라이딩 윈도우 한도
+
+
+class AddSourceResponse(BaseModel):
+    status: str
+    added: bool = False
+    duplicate: bool = False
+    cleaned_up: int = 0
+    error: Optional[str] = None
+
+
+class CreateNotebookRequest(BaseModel):
+    name: str                          # 노트북 표시 이름
+    topic: str = ""                    # 토픽 키 (library.json topics 섹션)
+    channel_ids: list[str] = []        # 이 노트북에 연결할 YouTube 채널 ID 목록
+
+
+class CreateNotebookResponse(BaseModel):
+    status: str
+    notebook_id: str = ""
+    notebook_url: str = ""
+    error: Optional[str] = None
 
 
 # ─────────────────────────────────────────
@@ -100,17 +132,33 @@ def verify_secret(x_internal_secret: Optional[str] = None) -> None:
 # 노트북 URL 결정
 # ─────────────────────────────────────────
 
-def _resolve_notebook_url(notebook_id: Optional[str]) -> Optional[str]:
-    """notebook_id → URL. 없으면 library.json의 active_notebook_id 사용."""
+def _resolve_notebook_url(
+    notebook_id: Optional[str] = None,
+    topic: Optional[str] = None,
+) -> Optional[str]:
+    """notebook_id 또는 topic → URL 해석.
+    우선순위: topic → notebook_id → active_notebook_id → 첫 번째 노트북."""
     try:
         if not LIBRARY_JSON.exists():
             return None
         with LIBRARY_JSON.open() as f:
             lib = json.load(f)
 
+        # 1. topic으로 현재 active 노트북 조회
+        if topic:
+            topics = lib.get("topics", {})
+            if topic in topics:
+                nid = topics[topic].get("active_notebook_id")
+                if nid:
+                    nb = lib.get("notebooks", {}).get(nid)
+                    if nb:
+                        logger.info("[resolve] topic=%s → notebook_id=%s", topic, nid)
+                        return nb.get("url")
+            logger.warning("[resolve] topic=%r 에 해당하는 active 노트북 없음", topic)
+
+        # 2. notebook_id 직접 지정
         nid = notebook_id or lib.get("active_notebook_id") or settings.notebooklm_default_notebook_id
         if not nid:
-            # 첫 번째 노트북 사용
             notebooks = lib.get("notebooks", {})
             if notebooks:
                 nid = next(iter(notebooks))
@@ -334,7 +382,7 @@ async def list_reports_endpoint(
     """NotebookLM 스튜디오에서 기존 보고서 목록을 조회한다."""
     verify_secret(x_internal_secret)
 
-    notebook_url = body.notebook_url or _resolve_notebook_url(body.notebook_id)
+    notebook_url = body.notebook_url or _resolve_notebook_url(body.notebook_id, body.topic)
     if not notebook_url:
         return ListReportsResponse(status="error", error="notebook_url을 결정할 수 없습니다.")
 
@@ -352,7 +400,7 @@ async def get_report_endpoint(
     """기존 보고서 타일을 클릭해서 내용을 추출한다."""
     verify_secret(x_internal_secret)
 
-    notebook_url = body.notebook_url or _resolve_notebook_url(body.notebook_id)
+    notebook_url = body.notebook_url or _resolve_notebook_url(body.notebook_id, body.topic)
     if not notebook_url:
         return GenerateResponse(status="error", error="notebook_url을 결정할 수 없습니다.")
 
@@ -369,6 +417,172 @@ async def get_report_endpoint(
         notebook_url,
         body.report_index,
         output_path,
+    )
+    return response
+
+
+def _run_check_and_add_source(
+    source_url: str,
+    source_title: str,
+    notebook_url: str,
+    max_sources: int,
+) -> AddSourceResponse:
+    """소스 추가 + 슬라이딩 윈도우 정리를 subprocess로 실행."""
+    scripts_dir = SCRIPTS_DIR
+    manage_script = scripts_dir / "manage_sources_cua.py"
+
+    # Step 1: 중복 확인 (sources_log.json 직접 읽기)
+    sources_log_path = DATA_DIR / "sources_log.json"
+    try:
+        if sources_log_path.exists():
+            log = json.loads(sources_log_path.read_text(encoding="utf-8"))
+            if any(
+                s["url"] == source_url and s.get("notebook_url") == notebook_url
+                for s in log.get("sources", [])
+            ):
+                logger.info("[add-source] 중복 건너뜀: %s", source_url)
+                return AddSourceResponse(status="ok", duplicate=True)
+    except Exception as e:
+        logger.warning("[add-source] 중복 체크 실패: %s", e)
+
+    # Step 2: 소스 추가
+    add_cmd = [
+        "python3", str(manage_script),
+        "--mode", "add",
+        "--notebook-url", notebook_url,
+        "--source-url", source_url,
+        "--source-title", source_title or source_url[:80],
+        "--headless",
+    ]
+    logger.info("[add-source] subprocess 시작: %s", source_url)
+    try:
+        result = subprocess.run(add_cmd, capture_output=True, text=True, timeout=300)
+    except subprocess.TimeoutExpired:
+        return AddSourceResponse(status="error", error="add-source timeout (300s)")
+    except Exception as e:
+        return AddSourceResponse(status="error", error=str(e))
+
+    for line in (result.stdout or "").strip().splitlines():
+        logger.info("[script] %s", line)
+    for line in (result.stderr or "").strip().splitlines():
+        logger.warning("[script:err] %s", line)
+
+    if result.returncode != 0:
+        err = (result.stderr or result.stdout or "").strip()[:400]
+        return AddSourceResponse(status="error", error=err)
+
+    # Step 3: 슬라이딩 윈도우 정리
+    cleaned_up = 0
+    cleanup_cmd = [
+        "python3", str(manage_script),
+        "--mode", "cleanup",
+        "--notebook-url", notebook_url,
+        "--max-sources", str(max_sources),
+        "--headless",
+    ]
+    try:
+        cr = subprocess.run(cleanup_cmd, capture_output=True, text=True, timeout=600)
+        for line in (cr.stdout or "").strip().splitlines():
+            logger.info("[script] %s", line)
+        # 삭제 개수 파싱
+        import re
+        m = re.search(r"(\d+) sources removed", cr.stdout or "")
+        if m:
+            cleaned_up = int(m.group(1))
+    except Exception as e:
+        logger.warning("[add-source] cleanup 실패 (무시): %s", e)
+
+    logger.info("[add-source] 완료: %s (cleaned=%d)", source_url, cleaned_up)
+    return AddSourceResponse(status="ok", added=True, cleaned_up=cleaned_up)
+
+
+def _run_create_notebook(name: str, topic: str, channel_ids: list[str]) -> CreateNotebookResponse:
+    """subprocess로 create_notebook_cua.py 실행."""
+    import tempfile
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
+        output_path = tmp.name
+
+    cmd = [
+        "python3",
+        str(SCRIPTS_DIR / "create_notebook_cua.py"),
+        "--name", name,
+        "--topic", topic,
+        "--channel-ids", ",".join(channel_ids),
+        "--output", output_path,
+        "--headless",
+    ]
+    logger.info("[create-notebook] subprocess 시작: name=%r topic=%r", name, topic)
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+    except subprocess.TimeoutExpired:
+        return CreateNotebookResponse(status="error", error="create-notebook timeout (300s)")
+    except Exception as e:
+        return CreateNotebookResponse(status="error", error=str(e))
+
+    for line in (result.stdout or "").strip().splitlines():
+        logger.info("[script] %s", line)
+    for line in (result.stderr or "").strip().splitlines():
+        logger.warning("[script:err] %s", line)
+
+    if result.returncode != 0:
+        err = (result.stderr or result.stdout or "").strip()[:400]
+        return CreateNotebookResponse(status="error", error=err)
+
+    try:
+        data = json.loads(Path(output_path).read_text(encoding="utf-8"))
+        return CreateNotebookResponse(
+            status="success",
+            notebook_id=data["notebook_id"],
+            notebook_url=data["notebook_url"],
+        )
+    except Exception as e:
+        return CreateNotebookResponse(status="error", error=f"결과 파싱 실패: {e}")
+    finally:
+        Path(output_path).unlink(missing_ok=True)
+
+
+@app.post("/create-notebook", response_model=CreateNotebookResponse)
+async def create_notebook_endpoint(
+    body: CreateNotebookRequest,
+    x_internal_secret: Optional[str] = Header(default=None),
+) -> CreateNotebookResponse:
+    """새 NotebookLM 노트북을 생성하고 library.json에 등록한다."""
+    verify_secret(x_internal_secret)
+
+    import asyncio
+    loop = asyncio.get_event_loop()
+    response = await loop.run_in_executor(
+        _executor,
+        _run_create_notebook,
+        body.name,
+        body.topic,
+        body.channel_ids,
+    )
+    return response
+
+
+@app.post("/check-and-add-source", response_model=AddSourceResponse)
+async def check_and_add_source(
+    body: AddSourceRequest,
+    x_internal_secret: Optional[str] = Header(default=None),
+) -> AddSourceResponse:
+    """YouTube URL 등을 NotebookLM 소스로 추가. 중복 체크 + 슬라이딩 윈도우 정리 포함."""
+    verify_secret(x_internal_secret)
+
+    notebook_url = body.notebook_url or _resolve_notebook_url(body.notebook_id, body.topic)
+    if not notebook_url:
+        return AddSourceResponse(status="error", error="notebook_url을 결정할 수 없습니다.")
+
+    import asyncio
+    loop = asyncio.get_event_loop()
+    response = await loop.run_in_executor(
+        _executor,
+        _run_check_and_add_source,
+        body.source_url,
+        body.source_title,
+        notebook_url,
+        body.max_sources,
     )
     return response
 

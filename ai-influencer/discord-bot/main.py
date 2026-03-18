@@ -177,7 +177,12 @@ _REPORT_SYSTEM_PROMPT = (
 
 
 @bot.tree.command(name="report", description="NotebookLM 보고서를 생성합니다")
-async def report_command(interaction: discord.Interaction, prompt: str) -> None:
+async def report_command(
+    interaction: discord.Interaction,
+    prompt: str,
+    topic: Optional[str] = None,
+) -> None:
+    """topic: 노트북 토픽 (예: 'AI뉴스', '맛집'). 미지정 시 기본 노트북 사용."""
     user_id = str(interaction.user.id)
 
     if ALLOWED_CHANNEL_IDS and str(interaction.channel_id) not in ALLOWED_CHANNEL_IDS:
@@ -201,11 +206,13 @@ async def report_command(interaction: discord.Interaction, prompt: str) -> None:
                 "messenger_channel_id": str(interaction.channel_id),
                 "prompt": _REPORT_SYSTEM_PROMPT + prompt,
                 "notebook_id": "",
+                "topic": topic or "",
                 "character_id": "default-character",
             },
         )
+        topic_label = f" `{topic}`" if topic else ""
         await interaction.followup.send(
-            f"📊 요청 접수! 기존 보고서가 있으면 선택지가, 없으면 새 보고서 생성을 시작합니다. ⏳\nJob ID: `{job_id[:8]}`"
+            f"📊 요청 접수!{topic_label} 기존 보고서가 있으면 선택지가, 없으면 새 보고서 생성을 시작합니다. ⏳\nJob ID: `{job_id[:8]}`"
         )
     except Exception:
         await interaction.followup.send("보고서 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")

@@ -1,0 +1,145 @@
+{
+  "name": "WF-09: YouTube 소스 자동 추가",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 1 }]
+        }
+      },
+      "id": "wf09-schedule",
+      "name": "매시간 실행",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 환경변수에서 채널 ID 목록 파싱\n// YOUTUBE_CHANNEL_IDS: 콤마 구분 채널ID (또는 채널ID:노트북ID 형태)\n// 예: UCxxxxxx,UCyyyyyy\n// 또는 다중 노트북: UCxxxxxx:notebook_id_1,UCyyyyyy:notebook_id_2\nconst raw = $env.YOUTUBE_CHANNEL_IDS || '';\nconst entries = raw.split(',').map(e => e.trim()).filter(Boolean);\n\nconst channels = entries.map(entry => {\n  const [channelId, notebookId] = entry.split(':');\n  return { channelId: channelId.trim(), notebookId: (notebookId || '').trim() };\n});\n\nreturn channels.map(ch => ({ json: ch }));",
+        "options": {}
+      },
+      "id": "wf09-parse-channels",
+      "name": "채널 목록 파싱",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://www.youtube.com/feeds/videos.xml?channel_id={{ $json.channelId }}",
+        "method": "GET",
+        "options": {
+          "response": { "response": { "responseFormat": "text" } }
+        }
+      },
+      "id": "wf09-fetch-rss",
+      "name": "YouTube RSS 조회",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// RSS XML 파싱: 최근 1.5시간 이내 업로드 영상만 추출\nconst xml = $input.item.json.data || '';\nconst channelId = $input.item.json.channelId || '';\nconst notebookId = $input.item.json.notebookId || '';\n\n// 간단 XML 파싱 (n8n Code 노드에서 DOMParser 미지원 → regex 사용)\nconst entries = [];\nconst entryRegex = /<entry>([\\s\\S]*?)<\\/entry>/g;\nlet match;\n\nwhile ((match = entryRegex.exec(xml)) !== null) {\n  const block = match[1];\n  const videoId = (block.match(/<yt:videoId>([^<]+)<\\/yt:videoId>/) || [])[1];\n  const title = (block.match(/<title>([^<]+)<\\/title>/) || [])[1] || '';\n  const published = (block.match(/<published>([^<]+)<\\/published>/) || [])[1] || '';\n\n  if (!videoId) continue;\n\n  const publishedMs = new Date(published).getTime();\n  const cutoffMs = Date.now() - 90 * 60 * 1000; // 1.5시간 이내\n\n  if (publishedMs >= cutoffMs) {\n    entries.push({\n      videoUrl: `https://www.youtube.com/watch?v=${videoId}`,\n      title: title.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>'),\n      publishedAt: published,\n      channelId,\n      notebookId,\n    });\n  }\n}\n\nif (entries.length === 0) {\n  return [{ json: { skip: true, channelId, reason: '새 영상 없음' } }];\n}\n\nreturn entries.map(e => ({ json: e }));",
+        "options": {}
+      },
+      "id": "wf09-parse-rss",
+      "name": "새 영상 필터링",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [840, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true },
+          "conditions": [
+            {
+              "id": "skip-check",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "notEquals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "wf09-if-new",
+      "name": "새 영상 있는 경우만",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1040, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.NOTEBOOKLM_SERVICE_URL }}/check-and-add-source",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Internal-Secret", "value": "={{ $env.GATEWAY_INTERNAL_SECRET }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "source_url": "={{ $json.videoUrl }}",
+          "source_title": "={{ $json.title }}",
+          "notebook_id": "={{ $json.notebookId || '' }}",
+          "max_sources": "={{ $env.NOTEBOOKLM_MAX_SOURCES ? parseInt($env.NOTEBOOKLM_MAX_SOURCES) : 20 }}"
+        },
+        "options": {
+          "timeout": 360000
+        }
+      },
+      "id": "wf09-add-source",
+      "name": "NotebookLM 소스 추가",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1240, 220]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 결과 로깅\nconst result = $input.item.json;\nconst videoUrl = $input.item.json.source_url || '';\n\nif (result.duplicate) {\n  console.log(`[WF-09] 중복 건너뜀: ${videoUrl}`);\n} else if (result.added) {\n  console.log(`[WF-09] 소스 추가 완료: ${videoUrl} (cleaned=${result.cleaned_up})`);\n} else if (result.error) {\n  console.error(`[WF-09] 소스 추가 실패: ${result.error}`);\n}\n\nreturn [{ json: result }];",
+        "options": {}
+      },
+      "id": "wf09-log",
+      "name": "결과 로깅",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1440, 220]
+    }
+  ],
+  "connections": {
+    "매시간 실행": {
+      "main": [[{ "node": "채널 목록 파싱", "type": "main", "index": 0 }]]
+    },
+    "채널 목록 파싱": {
+      "main": [[{ "node": "YouTube RSS 조회", "type": "main", "index": 0 }]]
+    },
+    "YouTube RSS 조회": {
+      "main": [[{ "node": "새 영상 필터링", "type": "main", "index": 0 }]]
+    },
+    "새 영상 필터링": {
+      "main": [[{ "node": "새 영상 있는 경우만", "type": "main", "index": 0 }]]
+    },
+    "새 영상 있는 경우만": {
+      "main": [
+        [{ "node": "NotebookLM 소스 추가", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "NotebookLM 소스 추가": {
+      "main": [[{ "node": "결과 로깅", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {}
+}

@@ -219,7 +219,10 @@ async def _handle_report_message_bg(body: ReportMessageRequest) -> None:
     try:
         resp = await _http_client.post(
             f"{settings.notebooklm_service_url}/list-reports",
-            json={"notebook_id": body.notebook_id or None},
+            json={
+                "notebook_id": body.notebook_id or None,
+                "topic": body.topic or None,
+            },
             headers={"X-Internal-Secret": settings.gateway_internal_secret},
             timeout=60.0,
         )

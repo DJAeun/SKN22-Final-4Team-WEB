@@ -1,0 +1,108 @@
+{
+  "name": "WF-10: 일일 토픽 노트북 자동 생성",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 0 * * *" }]
+        }
+      },
+      "id": "wf10-schedule",
+      "name": "매일 자정 실행",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 환경변수에서 토픽 설정 파싱\n// TOPIC_CHANNELS 형식: \"토픽명:채널ID1+채널ID2,토픽명2:채널ID3\"\n// 예: \"AI뉴스:UCxxxxxx+UCyyyyyy,맛집:UCzzzzzz\"\nconst raw = $env.TOPIC_CHANNELS || '';\nif (!raw.trim()) return [{ json: { skip: true, reason: 'TOPIC_CHANNELS 미설정' } }];\n\nconst today = new Date();\nconst dateStr = today.toISOString().slice(0, 10); // '2025-03-18'\n\nconst topics = raw.split(',').map(entry => {\n  const [topicPart, channelsPart] = entry.split(':');\n  const topic = (topicPart || '').trim();\n  const channelIds = (channelsPart || '').split('+').map(c => c.trim()).filter(Boolean);\n  return {\n    topic,\n    channelIds,\n    notebookName: `${topic} ${dateStr}`,\n    date: dateStr,\n  };\n}).filter(t => t.topic);\n\nreturn topics.map(t => ({ json: t }));",
+        "options": {}
+      },
+      "id": "wf10-parse-topics",
+      "name": "토픽 목록 파싱",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "id": "skip-check",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "notEquals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "wf10-if-valid",
+      "name": "토픽 존재 확인",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.NOTEBOOKLM_SERVICE_URL }}/create-notebook",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Internal-Secret", "value": "={{ $env.GATEWAY_INTERNAL_SECRET }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "name": "={{ $json.notebookName }}",
+          "topic": "={{ $json.topic }}",
+          "channel_ids": "={{ $json.channelIds }}"
+        },
+        "options": {
+          "timeout": 360000
+        }
+      },
+      "id": "wf10-create-notebook",
+      "name": "노트북 생성",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [840, 220]
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.item.json;\nconst topic = $input.item.json.topic || '(unknown)';\n\nif (result.status === 'success') {\n  console.log(`[WF-10] ✅ 노트북 생성 완료: ${topic} → ${result.notebook_id} (${result.notebook_url})`);\n} else {\n  console.error(`[WF-10] ❌ 노트북 생성 실패: ${topic} — ${result.error}`);\n}\n\nreturn [{ json: result }];",
+        "options": {}
+      },
+      "id": "wf10-log",
+      "name": "결과 로깅",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1040, 220]
+    }
+  ],
+  "connections": {
+    "매일 자정 실행": {
+      "main": [[{ "node": "토픽 목록 파싱", "type": "main", "index": 0 }]]
+    },
+    "토픽 목록 파싱": {
+      "main": [[{ "node": "토픽 존재 확인", "type": "main", "index": 0 }]]
+    },
+    "토픽 존재 확인": {
+      "main": [
+        [{ "node": "노트북 생성", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "노트북 생성": {
+      "main": [[{ "node": "결과 로깅", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "meta": { "templateCredsSetupCompleted": true },
+  "pinData": {}
+}
