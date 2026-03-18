@@ -61,6 +61,7 @@ class ReportMessageRequest(BaseModel):
     messenger_channel_id: str
     prompt: str
     notebook_id: str = ""
+    topic: str = ""       # 토픽명 → notebooklm-service에서 active 노트북 조회
     character_id: str = "default-character"
 
 
