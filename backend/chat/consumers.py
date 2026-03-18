@@ -37,6 +37,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.message_count = await self.get_message_count()
             logger.info(f"WS connected: thread={self.thread_id}, message_count={self.message_count}")
 
+            # Send welcome message
+            await self.send(text_data=json.dumps({
+                'message': '안녕하세요! 저는 강하리예요 😊 오늘은 어떤 이야기 나눠볼까요?',
+                'sender': 'hari',
+            }))
+
         except Exception as e:
             logger.error(f"WS connect error: {e}", exc_info=True)
             await self.close()
