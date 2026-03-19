@@ -15,7 +15,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// 환경변수에서 채널별 노트북 생성 항목 파싱\n// TOPIC_CHANNELS 형식: \"채널이름/채널ID+채널이름/채널ID+...\"\n// 예: \"노마드코더/UCUpJs89fSBXNolQGOYKn0YQ+조코딩/UCQNE2JmbasNYbjGAcuBiRRg\"\n// 채널당 독립 노트북 1개 생성, topic 키 = 채널이름\nconst raw = $env.TOPIC_CHANNELS || '';\nif (!raw.trim()) return [{ json: { skip: true, reason: 'TOPIC_CHANNELS 미설정' } }];\n\nconst today = new Date().toISOString().slice(0, 10);\n\nconst items = [];\nfor (const ch of raw.split('+')) {\n  const slashIdx = ch.indexOf('/');\n  if (slashIdx < 0) continue;\n  const channelName = ch.slice(0, slashIdx).trim();\n  const channelId   = ch.slice(slashIdx + 1).trim();\n  if (!channelName || !channelId) continue;\n  items.push({\n    topic: channelName,\n    channelIds: [channelId],\n    notebookName: `${channelName} ${today}`,\n  });\n}\n\nif (items.length === 0) return [{ json: { skip: true, reason: '파싱된 채널 없음' } }];\nreturn items.map(t => ({ json: t }));",
+        "jsCode": "// 환경변수에서 채널별 노트북 생성 항목 파싱\n// TOPIC_CHANNELS 형식: \"채널이름/채널ID+채널이름/채널ID+...\"\n// 예: \"노마드코더/UCUpJs89fSBXNolQGOYKn0YQ+조코딩/UCQNE2JmbasNYbjGAcuBiRRg\"\n// 채널당 독립 노트북 1개 생성\nconst raw = $env.TOPIC_CHANNELS || '';\nif (!raw.trim()) return [{ json: { skip: true, reason: 'TOPIC_CHANNELS 미설정' } }];\n\nconst today = new Date().toISOString().slice(0, 10);\n\nconst items = [];\nfor (const ch of raw.split('+')) {\n  const slashIdx = ch.indexOf('/');\n  if (slashIdx < 0) continue;\n  const channelName = ch.slice(0, slashIdx).trim();\n  const channelId   = ch.slice(slashIdx + 1).trim();\n  if (!channelName || !channelId) continue;\n  items.push({\n    channelId: channelId,\n    channelName: channelName,\n    notebookName: `${channelName} ${today}`,\n  });\n}\n\nif (items.length === 0) return [{ json: { skip: true, reason: '파싱된 채널 없음' } }];\nreturn items.map(t => ({ json: t }));",
         "options": {}
       },
       "id": "wf10-parse-topics",
@@ -57,7 +57,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ name: $json.notebookName, topic: $json.topic, channel_ids: $json.channelIds }) }}",
+        "jsonBody": "={{ JSON.stringify({ name: $json.notebookName, channel_id: $json.channelId, channel_name: $json.channelName }) }}",
         "options": {
           "timeout": 360000
         }
@@ -70,7 +70,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const result = $input.item.json;\nconst topic = $input.item.json.topic || '(unknown)';\n\nif (result.status === 'success') {\n  console.log(`[WF-10] ✅ 노트북 생성 완료: ${topic} → ${result.notebook_id} (${result.notebook_url})`);\n} else {\n  console.error(`[WF-10] ❌ 노트북 생성 실패: ${topic} — ${result.error}`);\n}\n\nreturn [{ json: result }];",
+        "jsCode": "const result = $input.item.json;\nconst channelId = $input.item.json.channel_id || '(unknown)';\n\nif (result.status === 'success') {\n  console.log(`[WF-10] ✅ 노트북 생성 완료: channel_id=${channelId} → ${result.notebook_url}`);\n} else {\n  console.error(`[WF-10] ❌ 노트북 생성 실패: channel_id=${channelId} — ${result.error}`);\n}\n\nreturn [{ json: result }];",
         "options": {}
       },
       "id": "wf10-log",

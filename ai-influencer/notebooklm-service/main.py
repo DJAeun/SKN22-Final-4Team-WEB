@@ -69,7 +69,7 @@ class GenerateResponse(BaseModel):
 class ListReportsRequest(BaseModel):
     notebook_id: Optional[str] = None
     notebook_url: Optional[str] = None
-    topic: Optional[str] = None
+    channel_id: Optional[str] = None
 
 
 class ListReportsResponse(BaseModel):
@@ -82,7 +82,7 @@ class GetReportRequest(BaseModel):
     job_id: str
     notebook_id: Optional[str] = None
     notebook_url: Optional[str] = None
-    topic: Optional[str] = None
+    channel_id: Optional[str] = None
     report_index: int
 
 
@@ -91,7 +91,7 @@ class AddSourceRequest(BaseModel):
     source_title: str = ""
     notebook_id: Optional[str] = None
     notebook_url: Optional[str] = None
-    topic: Optional[str] = None       # 토픽명으로 노트북 자동 조회
+    channel_id: str = ""              # YouTube 채널 ID로 노트북 자동 조회
     max_sources: int = 20             # 슬라이딩 윈도우 한도
 
 
@@ -105,8 +105,8 @@ class AddSourceResponse(BaseModel):
 
 class CreateNotebookRequest(BaseModel):
     name: str                          # 노트북 표시 이름
-    topic: str = ""                    # 토픽 키 (library.json topics 섹션)
-    channel_ids: list[str] = []        # 이 노트북에 연결할 YouTube 채널 ID 목록
+    channel_id: str                    # YouTube 채널 ID (예: "UCUpJs89fSBXNolQGOYKn0YQ")
+    channel_name: str = ""             # 채널 표시 이름 (예: "노마드코더")
 
 
 class CreateNotebookResponse(BaseModel):
@@ -118,7 +118,7 @@ class CreateNotebookResponse(BaseModel):
 
 class AllChannelsResponse(BaseModel):
     status: str
-    channels: list[str] = []   # ["노마드코더", "조코딩", ...]
+    channels: list[dict] = []  # [{"id": "UCxxx", "name": "노마드코더"}, ...]
 
 
 # ─────────────────────────────────────────
@@ -137,41 +137,17 @@ def verify_secret(x_internal_secret: Optional[str] = None) -> None:
 # 노트북 URL 결정
 # ─────────────────────────────────────────
 
-def _resolve_notebook_url(
-    notebook_id: Optional[str] = None,
-    topic: Optional[str] = None,
-) -> Optional[str]:
-    """notebook_id 또는 topic → URL 해석.
-    우선순위: topic → notebook_id → active_notebook_id → 첫 번째 노트북."""
+def _get_notebook_url(channel_id: str) -> Optional[str]:
+    """channel_id → notebook_url 직접 조회."""
     try:
         if not LIBRARY_JSON.exists():
             return None
-        with LIBRARY_JSON.open() as f:
-            lib = json.load(f)
-
-        # 1. topic으로 현재 active 노트북 조회
-        if topic:
-            topics = lib.get("topics", {})
-            if topic in topics:
-                nid = topics[topic].get("active_notebook_id")
-                if nid:
-                    nb = lib.get("notebooks", {}).get(nid)
-                    if nb:
-                        logger.info("[resolve] topic=%s → notebook_id=%s", topic, nid)
-                        return nb.get("url")
-            logger.warning("[resolve] topic=%r 에 해당하는 active 노트북 없음", topic)
-
-        # 2. notebook_id 직접 지정
-        nid = notebook_id or lib.get("active_notebook_id") or settings.notebooklm_default_notebook_id
-        if not nid:
-            notebooks = lib.get("notebooks", {})
-            if notebooks:
-                nid = next(iter(notebooks))
-
-        if nid:
-            nb = lib.get("notebooks", {}).get(nid)
-            if nb:
-                return nb.get("url")
+        lib = json.loads(LIBRARY_JSON.read_text())
+        ch = lib.get("channels", {}).get(channel_id)
+        if ch and ch.get("notebook_url"):
+            logger.info("[resolve] channel_id=%s → %s", channel_id, ch["notebook_url"])
+            return ch["notebook_url"]
+        logger.warning("[resolve] channel_id=%r 에 해당하는 노트북 없음", channel_id)
     except Exception as e:
         logger.warning("library.json 읽기 실패: %s", e)
     return None
@@ -354,13 +330,11 @@ async def generate(
 
     notebook_url = body.notebook_url
     if not notebook_url:
-        notebook_url = _resolve_notebook_url(body.notebook_id)
-        if not notebook_url:
-            logger.error("[notebooklm] no notebook_url resolved job_id=%s", body.job_id)
-            return GenerateResponse(
-                status="error",
-                error="노트북 URL을 결정할 수 없습니다. notebook_id 또는 library.json의 active_notebook_id를 확인하세요.",
-            )
+        logger.error("[notebooklm] no notebook_url resolved job_id=%s", body.job_id)
+        return GenerateResponse(
+            status="error",
+            error="notebook_url이 필요합니다.",
+        )
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_filename = f"report_{body.job_id[:8]}_{timestamp}.md"
@@ -387,7 +361,9 @@ async def list_reports_endpoint(
     """NotebookLM 스튜디오에서 기존 보고서 목록을 조회한다."""
     verify_secret(x_internal_secret)
 
-    notebook_url = body.notebook_url or _resolve_notebook_url(body.notebook_id, body.topic)
+    notebook_url = body.notebook_url or (
+        _get_notebook_url(body.channel_id) if body.channel_id else None
+    )
     if not notebook_url:
         return ListReportsResponse(status="error", error="notebook_url을 결정할 수 없습니다.")
 
@@ -405,7 +381,9 @@ async def get_report_endpoint(
     """기존 보고서 타일을 클릭해서 내용을 추출한다."""
     verify_secret(x_internal_secret)
 
-    notebook_url = body.notebook_url or _resolve_notebook_url(body.notebook_id, body.topic)
+    notebook_url = body.notebook_url or (
+        _get_notebook_url(body.channel_id) if body.channel_id else None
+    )
     if not notebook_url:
         return GenerateResponse(status="error", error="notebook_url을 결정할 수 없습니다.")
 
@@ -501,7 +479,7 @@ def _run_check_and_add_source(
     return AddSourceResponse(status="ok", added=True, cleaned_up=cleaned_up)
 
 
-def _run_create_notebook(name: str, topic: str, channel_ids: list[str]) -> CreateNotebookResponse:
+def _run_create_notebook(name: str, channel_id: str, channel_name: str) -> CreateNotebookResponse:
     """subprocess로 create_notebook_cua.py 실행."""
     import tempfile
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
@@ -511,12 +489,12 @@ def _run_create_notebook(name: str, topic: str, channel_ids: list[str]) -> Creat
         "python3",
         str(SCRIPTS_DIR / "create_notebook_cua.py"),
         "--name", name,
-        "--topic", topic,
-        "--channel-ids", ",".join(channel_ids),
+        "--channel-id", channel_id,
+        "--channel-name", channel_name,
         "--output", output_path,
         "--headless",
     ]
-    logger.info("[create-notebook] subprocess 시작: name=%r topic=%r", name, topic)
+    logger.info("[create-notebook] subprocess 시작: name=%r channel_id=%r", name, channel_id)
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
@@ -538,7 +516,6 @@ def _run_create_notebook(name: str, topic: str, channel_ids: list[str]) -> Creat
         data = json.loads(Path(output_path).read_text(encoding="utf-8"))
         return CreateNotebookResponse(
             status="success",
-            notebook_id=data["notebook_id"],
             notebook_url=data["notebook_url"],
         )
     except Exception as e:
@@ -561,8 +538,8 @@ async def create_notebook_endpoint(
         _executor,
         _run_create_notebook,
         body.name,
-        body.topic,
-        body.channel_ids,
+        body.channel_id,
+        body.channel_name,
     )
     return response
 
@@ -575,7 +552,9 @@ async def check_and_add_source(
     """YouTube URL 등을 NotebookLM 소스로 추가. 중복 체크 + 슬라이딩 윈도우 정리 포함."""
     verify_secret(x_internal_secret)
 
-    notebook_url = body.notebook_url or _resolve_notebook_url(body.notebook_id, body.topic)
+    notebook_url = body.notebook_url or (
+        _get_notebook_url(body.channel_id) if body.channel_id else None
+    )
     if not notebook_url:
         return AddSourceResponse(status="error", error="notebook_url을 결정할 수 없습니다.")
 
@@ -596,13 +575,16 @@ async def check_and_add_source(
 async def all_channels_endpoint(
     x_internal_secret: Optional[str] = Header(default=None),
 ) -> AllChannelsResponse:
-    """library.json에 등록된 모든 채널명(=topic 키) 목록을 반환한다."""
+    """library.json에 등록된 모든 채널 목록을 반환한다."""
     verify_secret(x_internal_secret)
     if not LIBRARY_JSON.exists():
         return AllChannelsResponse(status="success", channels=[])
     try:
         lib = json.loads(LIBRARY_JSON.read_text(encoding="utf-8"))
-        channels = list(lib.get("topics", {}).keys())
+        channels = [
+            {"id": k, "name": v.get("name", k)}
+            for k, v in lib.get("channels", {}).items()
+        ]
         return AllChannelsResponse(status="success", channels=channels)
     except Exception as e:
         logger.warning("[all-channels] library.json 읽기 실패: %s", e)

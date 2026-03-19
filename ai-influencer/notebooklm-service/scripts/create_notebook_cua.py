@@ -2,14 +2,14 @@
 
 Usage:
   python3 create_notebook_cua.py \
-    --name "AI뉴스 2025-03-18" \
-    --topic "AI뉴스" \
-    --channel-ids "UCxxxxxx,UCyyyyyy" \
+    --name "노마드코더 2025-03-18" \
+    --channel-id "UCUpJs89fSBXNolQGOYKn0YQ" \
+    --channel-name "노마드코더" \
     --output result.json \
     --headless
 
 Output JSON:
-  {"notebook_id": "nb_AI뉴스_20250318", "notebook_url": "https://notebooklm.google.com/..."}
+  {"notebook_url": "https://notebooklm.google.com/..."}
 """
 
 import argparse
@@ -52,7 +52,7 @@ def _load_library() -> dict:
             return json.loads(LIBRARY_JSON.read_text(encoding="utf-8"))
         except Exception:
             pass
-    return {"notebooks": {}, "topics": {}}
+    return {}
 
 
 def _save_library(lib: dict) -> None:
@@ -63,45 +63,23 @@ def _save_library(lib: dict) -> None:
 
 
 def _register_notebook(
-    notebook_id: str,
     notebook_url: str,
     notebook_name: str,
-    topic: str,
-    channel_ids: list[str],
+    channel_id: str,
+    channel_name: str,
 ) -> None:
-    """library.json에 새 노트북 등록 및 토픽 active 업데이트."""
+    """library.json의 channels[channel_id] 구조에 새 노트북 등록."""
     lib = _load_library()
     today = date.today().isoformat()
 
-    # notebooks 섹션 등록
-    lib.setdefault("notebooks", {})[notebook_id] = {
-        "name": notebook_name,
-        "url": notebook_url,
-        "topic": topic,
-        "date": today,
-    }
-
-    # topics 섹션 업데이트
-    topics = lib.setdefault("topics", {})
-    if topic not in topics:
-        topics[topic] = {"channel_ids": channel_ids, "history": []}
-
-    topics[topic]["active_notebook_id"] = notebook_id
-    topics[topic]["channel_ids"] = channel_ids or topics[topic].get("channel_ids", [])
-    topics[topic].setdefault("history", []).insert(0, {
-        "notebook_id": notebook_id,
-        "date": today,
-        "url": notebook_url,
-    })
-    # history는 최근 30일만 유지
-    topics[topic]["history"] = topics[topic]["history"][:30]
-
-    # 기본 active_notebook_id 유지 (기존 동작 하위 호환)
-    if not lib.get("active_notebook_id"):
-        lib["active_notebook_id"] = notebook_id
+    ch = lib.setdefault("channels", {}).setdefault(channel_id, {"name": channel_name, "history": []})
+    ch["name"] = channel_name
+    ch["notebook_url"] = notebook_url
+    ch.setdefault("history", []).insert(0, {"notebook_url": notebook_url, "date": today})
+    ch["history"] = ch["history"][:30]
 
     _save_library(lib)
-    logger.info("[library] 등록 완료: %s → %s", topic, notebook_id)
+    logger.info("[library] 등록 완료: channel_id=%s → %s", channel_id, notebook_url)
 
 
 # ─────────────────────────────────────────
@@ -152,20 +130,15 @@ def create_notebook(page, client, notebook_name: str) -> str:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--name", required=True, help="노트북 표시 이름 (예: 'AI뉴스 2025-03-18')")
-    parser.add_argument("--topic", default="", help="토픽 키 (예: 'AI뉴스')")
-    parser.add_argument("--channel-ids", default="", help="콤마 구분 YouTube 채널 ID 목록")
+    parser.add_argument("--name", required=True, help="노트북 표시 이름 (예: '노마드코더 2025-03-18')")
+    parser.add_argument("--channel-id", required=True, help="YouTube 채널 ID (예: 'UCUpJs89fSBXNolQGOYKn0YQ')")
+    parser.add_argument("--channel-name", default="", help="채널 표시 이름 (예: '노마드코더')")
     parser.add_argument("--output", default="", help="결과 JSON 출력 경로")
     parser.add_argument("--headless", action="store_true")
     args = parser.parse_args()
 
     BROWSER_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
     client = OpenAI()
-
-    channel_ids = [c.strip() for c in args.channel_ids.split(",") if c.strip()]
-    today = date.today().strftime("%Y%m%d")
-    topic_slug = args.topic.replace(" ", "_") if args.topic else "default"
-    notebook_id = f"nb_{topic_slug}_{today}"
 
     with sync_playwright() as p:
         context = p.chromium.launch_persistent_context(
@@ -184,21 +157,20 @@ def main():
         context.close()
 
     _register_notebook(
-        notebook_id=notebook_id,
         notebook_url=notebook_url,
         notebook_name=args.name,
-        topic=args.topic,
-        channel_ids=channel_ids,
+        channel_id=args.channel_id,
+        channel_name=args.channel_name,
     )
 
-    result = {"notebook_id": notebook_id, "notebook_url": notebook_url}
+    result = {"notebook_url": notebook_url}
 
     if args.output:
         Path(args.output).parent.mkdir(parents=True, exist_ok=True)
         Path(args.output).write_text(json.dumps(result, ensure_ascii=False), encoding="utf-8")
 
     print(json.dumps(result, ensure_ascii=False))
-    print(f"✅ Created: {notebook_id} → {notebook_url}")
+    print(f"✅ Created: channel_id={args.channel_id} → {notebook_url}")
 
 
 if __name__ == "__main__":

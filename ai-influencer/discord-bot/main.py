@@ -204,7 +204,7 @@ async def report_command(
                 "messenger_channel_id": str(interaction.channel_id),
                 "prompt": _REPORT_SYSTEM_PROMPT + prompt,
                 "notebook_id": "",
-                "topic": "",
+                "channel_id": "",
                 "character_id": "default-character",
             },
         )
@@ -230,10 +230,10 @@ async def on_interaction(interaction: discord.Interaction) -> None:
     action = parts[0]
     # video_reject_step: video_reject_step:{job_id}:{step}
     # select_report:     select_report:{job_id}:{index}
-    # select_channel:    select_channel:{job_id}:{topic}:{channel_name}
+    # select_channel:    select_channel:{job_id}:{channel_id}
     step = None
     report_index = None
-    channel_name = None
+    channel_id_value = None
     if action == "video_reject_step" and len(parts) >= 3:
         job_id = parts[1]
         step = parts[2]
@@ -242,7 +242,7 @@ async def on_interaction(interaction: discord.Interaction) -> None:
         report_index = int(parts[2])
     elif action == "select_channel" and len(parts) >= 3:
         job_id = parts[1]
-        channel_name = ":".join(parts[2:])
+        channel_id_value = ":".join(parts[2:])
     else:
         job_id = ":".join(parts[1:])
     user_id = str(interaction.user.id)
@@ -330,7 +330,7 @@ async def on_interaction(interaction: discord.Interaction) -> None:
         try:
             await gateway_call(
                 "/internal/channel-select",
-                {"job_id": job_id, "channel_name": channel_name},
+                {"job_id": job_id, "channel_id": channel_id_value},
             )
         except Exception as e:
             await interaction.channel.send(f"오류가 발생했습니다: {e}")
