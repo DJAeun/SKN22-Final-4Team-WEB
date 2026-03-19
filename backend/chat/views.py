@@ -8,13 +8,8 @@ from .serializers import MessageSerializer, ChatMemorySerializer
 
 
 def chat_index(request):
-    try:
-        if not request.user.is_authenticated and not request.session.session_key:
-            request.session.create()
-            request.session['init'] = True
-    except Exception as e:
-        import logging
-        logging.getLogger(__name__).error(f"Session failed: {e}")
+    if not request.user.is_authenticated:
+        return redirect('login')
     return render(request, 'chat/index.html')
 
 

@@ -600,7 +600,9 @@
             };
 
             chatSocket.onclose = function(e) {
-                console.log('Chat socket closed');
+                if (e.code === 4401) {
+                    window.location.href = loginUrl;
+                }
             };
         }
 
