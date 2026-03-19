@@ -22,12 +22,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Use user ID as LangGraph thread (persistent memory across sessions)
             if self.user.is_authenticated:
                 self.thread_id = str(self.user.id)
+                self.anonymous_id = None
             else:
                 django_session = self.scope.get("session")
-                self.thread_id = (
-                    django_session.session_key if django_session and django_session.session_key
-                    else str(uuid.uuid4())
+                if django_session and not django_session.session_key:
+                    # Ensure a session key exists so anonymous users get a stable ID
+                    await django_session.asave()
+                self.anonymous_id = (
+                    django_session.session_key if django_session else str(uuid.uuid4())
                 )
+                self.thread_id = f"anon_{self.anonymous_id}"
 
             self.room_group_name = f"chat_{self.thread_id}"
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
@@ -36,6 +40,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Get current message count so we continue the sequence correctly
             self.message_count = await self.get_message_count()
             logger.info(f"WS connected: thread={self.thread_id}, message_count={self.message_count}")
+
+            # Send welcome message
+            await self.send(text_data=json.dumps({
+                'message': '안녕하세요! 저는 강하리예요 😊 오늘은 어떤 이야기 나눠볼까요?',
+                'sender': 'hari',
+            }))
 
         except Exception as e:
             logger.error(f"WS connect error: {e}", exc_info=True)
@@ -56,43 +66,56 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     async def receive(self, text_data):
+        import asyncio
+        user_message = ''
+        ai_response = "앗, 미안해! 지금 목소리가 잘 안 나와... 잠시 후에 다시 말해줄래? 😢"
         try:
             data = json.loads(text_data)
             user_message = data.get('message', '')
             if not user_message:
                 return
 
-            # Save user message
-            await self.save_message(sender_type=True, content=user_message)
+            # Save user message (non-critical — don't let a DB failure block the reply)
+            try:
+                await self.save_message(sender_type=True, content=user_message)
+            except Exception as e:
+                logger.error(f"Failed to save user message: {e}", exc_info=True)
 
             # Get AI response
             from .engine import engine
-            import asyncio
             try:
-                loop = asyncio.get_event_loop()
-                ai_response = await loop.run_in_executor(
-                    None, engine.get_response, user_message, self.thread_id
+                loop = asyncio.get_running_loop()
+                ai_response = await asyncio.wait_for(
+                    loop.run_in_executor(None, engine.get_response, user_message, self.thread_id),
+                    timeout=60.0
                 )
+            except asyncio.TimeoutError:
+                logger.error(f"AI engine timed out for thread {self.thread_id}")
+                ai_response = "앗, 미안해! 하리가 잠깐 딴 생각 했나봐... 다시 말해줄래? 😅"
             except Exception as e:
                 logger.error(f"AI engine error: {e}", exc_info=True)
                 ai_response = "앗, 미안해! 지금 목소리가 잘 안 나와... 잠시 후에 다시 말해줄래? 😢"
 
-            # Save Hari's response
-            await self.save_message(sender_type=False, content=ai_response)
-
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {'type': 'chat_message', 'message': ai_response, 'sender': 'hari'}
-            )
-
         except Exception as e:
             logger.error(f"WS receive error: {e}", exc_info=True)
 
-    async def chat_message(self, event):
-        await self.send(text_data=json.dumps({
-            'message': event['message'],
-            'sender': event.get('sender', 'system'),
-        }))
+        finally:
+            # Always send a reply so the client never hangs
+            try:
+                await self.send(text_data=json.dumps({
+                    'message': ai_response,
+                    'sender': 'hari',
+                }))
+            except Exception as e:
+                logger.error(f"Failed to send WS response: {e}", exc_info=True)
+                return
+
+            # Save Hari's response after sending (non-critical)
+            if user_message:
+                try:
+                    await self.save_message(sender_type=False, content=ai_response)
+                except Exception as e:
+                    logger.error(f"Failed to save Hari response: {e}", exc_info=True)
 
     # ------------------------------------------------------------------ #
     #  DB helpers (run in thread pool via database_sync_to_async)         #
@@ -100,9 +123,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_message_count(self):
-        """Return the number of messages already saved for this user."""
+        """Return the number of messages already saved for this user/session."""
         if self.user.is_authenticated:
             return Message.objects.filter(user=self.user).count()
+        if self.anonymous_id:
+            return Message.objects.filter(anonymous_id=self.anonymous_id).count()
         return 0
 
     @database_sync_to_async
@@ -114,6 +139,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             sender_type=sender_type,
             content=content,
             count=self.message_count,
+            anonymous_id=self.anonymous_id,
         )
         self.session_messages.append({
             'sender': 'user' if sender_type else 'hari',
@@ -144,6 +170,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         ChatMemory.objects.create(
             user=user,
+            anonymous_id=self.anonymous_id,
             summary=summary,
             keywords=keywords,
             ended_at=timezone.now(),
