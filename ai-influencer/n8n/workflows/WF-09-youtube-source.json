@@ -103,13 +103,8 @@
           ]
         },
         "sendBody": true,
-        "contentType": "json",
-        "body": {
-          "source_url": "={{ $json.videoUrl }}",
-          "source_title": "={{ $json.title }}",
-          "topic": "={{ $json.topic }}",
-          "max_sources": "={{ $env.NOTEBOOKLM_MAX_SOURCES ? parseInt($env.NOTEBOOKLM_MAX_SOURCES) : 20 }}"
-        },
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ source_url: $json.videoUrl, source_title: $json.title, topic: $json.topic, max_sources: $env.NOTEBOOKLM_MAX_SOURCES ? parseInt($env.NOTEBOOKLM_MAX_SOURCES) : 20 }) }}",
         "options": {
           "timeout": 360000
         }
@@ -117,7 +112,7 @@
       "id": "wf09-add-source",
       "name": "NotebookLM 소스 추가",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
+      "typeVersion": 4.2,
       "position": [1440, 140]
     },
     {

@@ -56,12 +56,8 @@
           ]
         },
         "sendBody": true,
-        "contentType": "json",
-        "body": {
-          "name": "={{ $json.notebookName }}",
-          "topic": "={{ $json.topic }}",
-          "channel_ids": "={{ $json.channelIds }}"
-        },
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ name: $json.notebookName, topic: $json.topic, channel_ids: $json.channelIds }) }}",
         "options": {
           "timeout": 360000
         }
