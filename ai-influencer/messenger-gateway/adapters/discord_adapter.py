@@ -228,14 +228,14 @@ class DiscordAdapter(MessengerAdapter):
         self, channel_id: str, job_id: str, topic: str, channels: list[str]
     ) -> None:
         """채널 선택 버튼 목록을 Discord로 전송한다.
-        custom_id 형식: select_channel:{job_id}:{topic}:{channel_name}"""
+        custom_id 형식: select_channel:{job_id}:{channel_name}"""
         buttons = []
         for name in channels[:25]:  # Discord 최대 25버튼
             buttons.append({
                 "type": 2,
                 "label": name[:80],
                 "style": 2,  # Secondary
-                "custom_id": f"select_channel:{job_id}:{topic}:{name}",
+                "custom_id": f"select_channel:{job_id}:{name}",
             })
 
         rows = []
