@@ -104,7 +104,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ source_url: $json.videoUrl, source_title: $json.title, topic: $json.topic, max_sources: $env.NOTEBOOKLM_MAX_SOURCES ? parseInt($env.NOTEBOOKLM_MAX_SOURCES) : 20 }) }}",
+        "jsonBody": "={{ JSON.stringify({ source_url: $json.videoUrl, source_title: $json.title, channel_id: $json.channelId, max_sources: $env.NOTEBOOKLM_MAX_SOURCES ? parseInt($env.NOTEBOOKLM_MAX_SOURCES) : 20 }) }}",
         "options": {
           "timeout": 360000
         }
@@ -117,7 +117,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// 결과 로깅\nconst result = $input.item.json;\nconst videoUrl = $input.item.json.source_url || '';\nconst topic = $input.item.json.topic || '';\n\nif (result.duplicate) {\n  console.log(`[WF-09] 중복 건너뜀 [${topic}]: ${videoUrl}`);\n} else if (result.added) {\n  console.log(`[WF-09] 소스 추가 완료 [${topic}]: ${videoUrl} (cleaned=${result.cleaned_up})`);\n} else if (result.error) {\n  console.error(`[WF-09] 소스 추가 실패 [${topic}]: ${result.error}`);\n}\n\nreturn [{ json: result }];",
+        "jsCode": "// 결과 로깅\nconst result = $input.item.json;\n\nif (result.duplicate) {\n  console.log(`[WF-09] 중복 건너뜀`);\n} else if (result.added) {\n  console.log(`[WF-09] 소스 추가 완료 (cleaned=${result.cleaned_up})`);\n} else if (result.error) {\n  console.error(`[WF-09] 소스 추가 실패: ${result.error}`);\n}\n\nreturn [{ json: result }];",
         "options": {}
       },
       "id": "wf09-log",
