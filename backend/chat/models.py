@@ -8,7 +8,7 @@ class Message(models.Model):
     message_id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        db_column='user_id', null=True, blank=True,
+        null=True, blank=True,
         related_name='chat_messages'
     )
     # True = User, False = Hari
@@ -35,7 +35,7 @@ class ChatMemory(models.Model):
     memory_id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        db_column='user_id', null=True, blank=True,
+        null=True, blank=True,
         related_name='chat_memories'
     )
     summary = models.TextField(null=True, blank=True)
