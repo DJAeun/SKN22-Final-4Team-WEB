@@ -61,7 +61,7 @@ class ReportMessageRequest(BaseModel):
     messenger_channel_id: str
     prompt: str
     notebook_id: str = ""
-    topic: str = ""       # 토픽명 → notebooklm-service에서 active 노트북 조회
+    channel_id: str = ""  # YouTube 채널 ID → notebooklm-service에서 노트북 조회
     character_id: str = "default-character"
 
 
@@ -100,4 +100,4 @@ class ReportSelectRequest(BaseModel):
 
 class ChannelSelectRequest(BaseModel):
     job_id: str
-    channel_name: str   # "노마드코더" (채널명 = topic 키)
+    channel_id: str     # "UCUpJs89fSBXNolQGOYKn0YQ" (YouTube 채널 ID)

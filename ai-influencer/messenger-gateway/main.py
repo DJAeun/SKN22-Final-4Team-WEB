@@ -215,8 +215,8 @@ async def report_message(_: AuthDep, body: ReportMessageRequest) -> dict:
     return {"job_id": body.job_id, "status": "accepted"}
 
 
-async def _get_all_channels() -> list[str]:
-    """notebooklm-service에서 등록된 모든 채널명 목록을 조회한다."""
+async def _get_all_channels() -> list[dict]:
+    """notebooklm-service에서 등록된 모든 채널 목록을 조회한다."""
     try:
         resp = await _http_client.get(
             f"{settings.notebooklm_service_url}/all-channels",
@@ -233,14 +233,13 @@ async def _get_all_channels() -> list[str]:
 
 
 async def _handle_report_message_bg(body: ReportMessageRequest) -> None:
-    """topic 없이 호출 → 채널 선택 버튼 표시."""
+    """채널 선택 버튼 표시."""
     channels = await _get_all_channels()
     if channels:
         try:
             await _discord_adapter.send_channel_list(
                 channel_id=body.messenger_channel_id,
                 job_id=body.job_id,
-                topic="",
                 channels=channels,
             )
         except Exception as e:
@@ -259,7 +258,7 @@ async def _handle_channel_selected_bg(body: ReportMessageRequest) -> None:
             f"{settings.notebooklm_service_url}/list-reports",
             json={
                 "notebook_id": body.notebook_id or None,
-                "topic": body.topic or None,
+                "channel_id": body.channel_id or None,
             },
             headers={"X-Internal-Secret": settings.gateway_internal_secret},
             timeout=60.0,
@@ -315,11 +314,11 @@ async def channel_select(_: AuthDep, body: ChannelSelectRequest) -> dict:
         messenger_channel_id=job["messenger_channel_id"],
         prompt=job.get("concept_text", ""),
         notebook_id="",
-        topic=body.channel_name,   # 채널명이 곧 topic 키
+        channel_id=body.channel_id,
         character_id=job.get("character_id", "default-character"),
     )
     asyncio.create_task(_handle_channel_selected_bg(report_body))
-    logger.info("[channel-select] job_id=%s channel=%s", body.job_id, body.channel_name)
+    logger.info("[channel-select] job_id=%s channel_id=%s", body.job_id, body.channel_id)
     return {"job_id": body.job_id, "status": "accepted"}
 
 
