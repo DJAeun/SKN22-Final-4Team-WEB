@@ -15,7 +15,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// TOPIC_CHANNELS 파싱: 채널별 (channelId, topic) 쌍 목록으로 펼치기\n// 형식: \"채널이름/채널ID+채널이름/채널ID+...\"\n// 예: \"노마드코더/UCUpJs89fSBXNolQGOYKn0YQ+조코딩/UCQNE2JmbasNYbjGAcuBiRRg\"\nconst raw = $env.TOPIC_CHANNELS || '';\nif (!raw.trim()) return [{ json: { skip: true, reason: 'TOPIC_CHANNELS 미설정' } }];\n\nconst channels = [];\nfor (const ch of raw.split('+')) {\n  const slashIdx = ch.indexOf('/');\n  if (slashIdx < 0) continue;\n  const channelName = ch.slice(0, slashIdx).trim();\n  const channelId   = ch.slice(slashIdx + 1).trim();\n  if (channelName && channelId) channels.push({ channelId, topic: channelName });\n}\n\nif (channels.length === 0) return [{ json: { skip: true, reason: '파싱된 채널 없음' } }];\nreturn channels.map(ch => ({ json: ch }));",
+        "jsCode": "// TOPIC_CHANNELS 파싱: 채널별 (channelId, topic) 쌍 목록으로 펼치기\n// 형식: \"채널이름/채널ID+채널이름/채널ID+...\"\n// 예: \"노마드코더/UCUpJs89fSBXNolQGOYKn0YQ+조코딩/UCQNE2JmbasNYbjGAcuBiRRg\"\nconst raw = $env.TOPIC_CHANNELS || '';\nif (!raw.trim()) return [{ json: { skip: true, reason: 'TOPIC_CHANNELS 미설정' } }];\n\nconst channels = [];\nfor (const ch of raw.split('+')) {\n  const slashIdx = ch.indexOf('/');\n  if (slashIdx < 0) continue;\n  const channelName = ch.slice(0, slashIdx).trim();\n  const channelId   = ch.slice(slashIdx + 1).trim();\n  if (channelName && channelId) channels.push({\n    channelId,\n    topic: channelName,\n    playlistId: 'UULF' + channelId.slice(2),\n  });\n}\n\nif (channels.length === 0) return [{ json: { skip: true, reason: '파싱된 채널 없음' } }];\nreturn channels.map(ch => ({ json: ch }));",
         "options": {}
       },
       "id": "wf09-parse-channels",
@@ -26,7 +26,7 @@
     },
     {
       "parameters": {
-        "url": "=https://www.youtube.com/feeds/videos.xml?playlist_id=UULF{{ $json.channelId.slice(2) }}",
+        "url": "={{ 'https://www.youtube.com/feeds/videos.xml?playlist_id=' + $json.playlistId }}",
         "method": "GET",
         "options": {
           "response": { "response": { "responseFormat": "text" } }
