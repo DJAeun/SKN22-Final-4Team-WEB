@@ -117,11 +117,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_message_count(self):
         """Return the number of messages already saved for this user/session."""
-        if self.user_id:
-            return Message.objects.filter(user_id=self.user_id).count()
-        if self.anonymous_id:
-            return Message.objects.filter(anonymous_id=self.anonymous_id).count()
-        return 0
+        from django.db import connection
+        with connection.cursor() as cursor:
+            if self.user_id:
+                cursor.execute(
+                    "SELECT COUNT(*) FROM chat_messages WHERE user_id = %s",
+                    [self.user_id]
+                )
+            else:
+                return 0
+            return cursor.fetchone()[0]
 
     @database_sync_to_async
     def save_message(self, sender_type, content):
@@ -131,13 +136,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'sender': 'user' if sender_type else 'hari',
             'content': content,
         })
-        Message.objects.create(
-            user_id=self.user_id,
-            sender_type=sender_type,
-            content=content,
-            count=self.message_count,
-            anonymous_id=self.anonymous_id,
-        )
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """INSERT INTO chat_messages
+                   (user_id, sender_type, content, is_read, count, anonymous_id)
+                   VALUES (%s, %s, %s, %s, %s, %s)""",
+                [self.user_id, sender_type, content, False, self.message_count, self.anonymous_id]
+            )
 
     @database_sync_to_async
     def save_chat_memory(self):
@@ -159,16 +165,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
         words = {w.strip('.,!?').lower() for w in user_text.split() if len(w) > 3}
         keywords = ", ".join(list(words)[:20])
 
-        ChatMemory.objects.create(
-            user_id=self.user_id,
-            anonymous_id=self.anonymous_id,
-            summary=summary,
-            keywords=keywords,
-            ended_at=timezone.now(),
-        )
-
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """INSERT INTO chat_memory
+                   (user_id, summary, keywords, ended_at, anonymous_id)
+                   VALUES (%s, %s, %s, NOW(), %s)""",
+                [self.user_id, summary, keywords, self.anonymous_id]
+            )
         if self.user_id:
-            return ChatMemory.objects.filter(user_id=self.user_id).count()
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT COUNT(*) FROM chat_memory WHERE user_id = %s",
+                    [self.user_id]
+                )
+                return cursor.fetchone()[0]
         return None
 
     @database_sync_to_async
