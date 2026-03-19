@@ -231,20 +231,25 @@ async def on_interaction(interaction: discord.Interaction) -> None:
 
     parts = custom_id.split(":")
     action = parts[0]
-    # video_reject_step has format: video_reject_step:{job_id}:{step}
-    # select_report has format: select_report:{job_id}:{index}
+    # video_reject_step: video_reject_step:{job_id}:{step}
+    # select_report:     select_report:{job_id}:{index}
+    # select_channel:    select_channel:{job_id}:{topic}:{channel_name}
+    step = None
+    report_index = None
+    channel_name = None
+    channel_topic = None
     if action == "video_reject_step" and len(parts) >= 3:
         job_id = parts[1]
         step = parts[2]
-        report_index = None
     elif action == "select_report" and len(parts) >= 3:
         job_id = parts[1]
         report_index = int(parts[2])
-        step = None
+    elif action == "select_channel" and len(parts) >= 4:
+        job_id = parts[1]
+        channel_topic = parts[2]
+        channel_name = ":".join(parts[3:])
     else:
         job_id = ":".join(parts[1:])
-        step = None
-        report_index = None
     user_id = str(interaction.user.id)
 
     # 허용 채널 확인
@@ -322,6 +327,15 @@ async def on_interaction(interaction: discord.Interaction) -> None:
             await gateway_call(
                 "/internal/report-select",
                 {"job_id": job_id, "action": "new"},
+            )
+        except Exception as e:
+            await interaction.channel.send(f"오류가 발생했습니다: {e}")
+
+    elif action == "select_channel":
+        try:
+            await gateway_call(
+                "/internal/channel-select",
+                {"job_id": job_id, "channel_name": channel_name, "topic": channel_topic},
             )
         except Exception as e:
             await interaction.channel.send(f"오류가 발생했습니다: {e}")

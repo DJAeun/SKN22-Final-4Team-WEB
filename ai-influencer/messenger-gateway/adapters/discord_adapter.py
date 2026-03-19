@@ -224,6 +224,39 @@ class DiscordAdapter(MessengerAdapter):
         resp.raise_for_status()
         logger.info("[discord] send_report_list job=%s reports=%d", job_id, len(reports))
 
+    async def send_channel_list(
+        self, channel_id: str, job_id: str, topic: str, channels: list[str]
+    ) -> None:
+        """채널 선택 버튼 목록을 Discord로 전송한다.
+        custom_id 형식: select_channel:{job_id}:{topic}:{channel_name}"""
+        buttons = []
+        for name in channels[:25]:  # Discord 최대 25버튼
+            buttons.append({
+                "type": 2,
+                "label": name[:80],
+                "style": 2,  # Secondary
+                "custom_id": f"select_channel:{job_id}:{topic}:{name}",
+            })
+
+        rows = []
+        for chunk_start in range(0, len(buttons), 5):
+            rows.append({
+                "type": 1,
+                "components": buttons[chunk_start:chunk_start + 5],
+            })
+
+        payload = {
+            "content": f"📺 **{topic}** 채널을 선택하세요.",
+            "components": rows,
+        }
+        resp = await self._client.post(
+            f"{BASE_URL}/channels/{channel_id}/messages",
+            json=payload,
+            headers=self._headers,
+        )
+        resp.raise_for_status()
+        logger.info("[discord] send_channel_list job=%s channels=%d", job_id, len(channels))
+
     async def send_file_message(
         self,
         channel_id: str,
