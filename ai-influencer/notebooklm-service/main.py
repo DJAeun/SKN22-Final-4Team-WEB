@@ -116,6 +116,15 @@ class CreateNotebookResponse(BaseModel):
     error: Optional[str] = None
 
 
+class TopicChannelsRequest(BaseModel):
+    topic: str   # 상위 토픽명 (예: "IT Tech")
+
+
+class TopicChannelsResponse(BaseModel):
+    status: str
+    channels: list[str] = []   # ["채널A이름", "채널B이름", ...]
+
+
 # ─────────────────────────────────────────
 # 인증
 # ─────────────────────────────────────────
@@ -585,6 +594,34 @@ async def check_and_add_source(
         body.max_sources,
     )
     return response
+
+
+def _list_topic_channels(topic_prefix: str) -> list[str]:
+    """library.json에서 '{topic_prefix}::' 로 시작하는 topic 키의 채널명 목록을 반환."""
+    if not LIBRARY_JSON.exists():
+        return []
+    try:
+        lib = json.loads(LIBRARY_JSON.read_text(encoding="utf-8"))
+        prefix = f"{topic_prefix}::"
+        return [
+            key[len(prefix):]
+            for key in lib.get("topics", {})
+            if key.startswith(prefix)
+        ]
+    except Exception as e:
+        logger.warning("[topic-channels] library.json 읽기 실패: %s", e)
+        return []
+
+
+@app.post("/topic-channels", response_model=TopicChannelsResponse)
+async def topic_channels_endpoint(
+    body: TopicChannelsRequest,
+    x_internal_secret: Optional[str] = Header(default=None),
+) -> TopicChannelsResponse:
+    """상위 토픽명으로 하위 채널명 목록을 반환한다."""
+    verify_secret(x_internal_secret)
+    channels = _list_topic_channels(body.topic)
+    return TopicChannelsResponse(status="success", channels=channels)
 
 
 @app.get("/health")

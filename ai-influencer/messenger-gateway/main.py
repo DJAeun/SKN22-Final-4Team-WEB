@@ -10,6 +10,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, status
 from adapters.discord_adapter import DiscordAdapter
 from config import settings
 from models.job import (
+    ChannelSelectRequest,
     ConfirmActionRequest,
     IncomingMessageRequest,
     ReportMessageRequest,
@@ -214,7 +215,43 @@ async def report_message(_: AuthDep, body: ReportMessageRequest) -> dict:
     return {"job_id": body.job_id, "status": "accepted"}
 
 
+async def _get_topic_channels(topic: str) -> list[str]:
+    """notebooklm-service에서 상위 토픽의 채널 목록을 조회한다."""
+    try:
+        resp = await _http_client.post(
+            f"{settings.notebooklm_service_url}/topic-channels",
+            json={"topic": topic},
+            headers={"X-Internal-Secret": settings.gateway_internal_secret},
+            timeout=10.0,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            if data.get("status") == "success":
+                return data.get("channels", [])
+    except Exception as e:
+        logger.warning("[report-message] topic-channels 조회 실패: %s", e)
+    return []
+
+
 async def _handle_report_message_bg(body: ReportMessageRequest) -> None:
+    channel_id = body.messenger_channel_id
+
+    # 상위 토픽("::"가 없는 topic)이면 채널 선택 버튼을 먼저 표시
+    if body.topic and "::" not in body.topic:
+        channels = await _get_topic_channels(body.topic)
+        if channels:
+            try:
+                await _discord_adapter.send_channel_list(
+                    channel_id=channel_id,
+                    job_id=body.job_id,
+                    topic=body.topic,
+                    channels=channels,
+                )
+            except Exception as e:
+                logger.error("[report-message] send_channel_list failed job_id=%s: %s", body.job_id, e)
+            return
+
+    # 채널이 지정된 topic("IT Tech::채널A이름")이거나 topic이 없으면 기존 보고서 조회
     reports: list[str] = []
     try:
         resp = await _http_client.post(
@@ -236,7 +273,7 @@ async def _handle_report_message_bg(body: ReportMessageRequest) -> None:
     if reports:
         try:
             await _discord_adapter.send_report_list(
-                channel_id=body.messenger_channel_id,
+                channel_id=channel_id,
                 job_id=body.job_id,
                 reports=reports,
             )
@@ -262,6 +299,29 @@ async def _call_wf06(body: ReportMessageRequest) -> None:
     except Exception as e:
         logger.error("[discord] call_wf06_report failed job_id=%s: %s", body.job_id, e)
         await job_service.update_job(body.job_id, error_message=str(e))
+
+
+@app.post("/internal/channel-select")
+async def channel_select(_: AuthDep, body: ChannelSelectRequest) -> dict:
+    """Discord 채널 선택 버튼 클릭을 처리한다. topic_key로 보고서 선택 흐름을 재실행한다."""
+    job = await job_service.get_job(body.job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    topic_key = f"{body.topic}::{body.channel_name}"
+    report_body = ReportMessageRequest(
+        job_id=body.job_id,
+        messenger_source=job["messenger_source"],
+        messenger_user_id=job["messenger_user_id"],
+        messenger_channel_id=job["messenger_channel_id"],
+        prompt=job.get("concept_text", ""),
+        notebook_id="",
+        topic=topic_key,
+        character_id=job.get("character_id", "default-character"),
+    )
+    asyncio.create_task(_handle_report_message_bg(report_body))
+    logger.info("[channel-select] job_id=%s topic_key=%s", body.job_id, topic_key)
+    return {"job_id": body.job_id, "status": "accepted"}
 
 
 @app.post("/internal/report-select")
