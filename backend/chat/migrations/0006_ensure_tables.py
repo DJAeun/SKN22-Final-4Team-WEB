@@ -2,15 +2,18 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
+    """
+    Ensures chat_messages, chat_memory, and hari_knowledge tables exist.
+    Safe to run on both fresh and existing databases (CREATE TABLE IF NOT EXISTS).
+    """
 
     dependencies = [
-        ('chat', '0003_remove_chatsession_session_key'),
+        ('chat', '0005_add_anonymous_id'),
     ]
 
     operations = [
         migrations.RunSQL(
             sql="""
-                -- Create tables if they don't exist yet (safe on fresh DBs)
                 CREATE TABLE IF NOT EXISTS chat_messages (
                     message_id   BIGSERIAL    PRIMARY KEY,
                     user_id      BIGINT       NULL REFERENCES auth_user(id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
@@ -31,25 +34,15 @@ class Migration(migrations.Migration):
                     anonymous_id VARCHAR(40)  NULL
                 );
 
-                -- Drop session_id from chat_messages (CASCADE removes FK constraint automatically)
-                ALTER TABLE chat_messages DROP COLUMN IF EXISTS session_id CASCADE;
-
-                -- Drop session_id from chat_memory (CASCADE removes FK constraint automatically)
-                ALTER TABLE chat_memory DROP COLUMN IF EXISTS session_id CASCADE;
-
-                -- Add count column (message sequence number per user)
-                ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS count SMALLINT NOT NULL DEFAULT 0;
-
-                -- Drop chat_session table (replaced by chat_memory)
-                DROP TABLE IF EXISTS chat_session CASCADE;
-
-                -- Add anonymous_id for tracking anonymous users via Django session key
-                ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS anonymous_id VARCHAR(40) NULL;
-                ALTER TABLE chat_memory   ADD COLUMN IF NOT EXISTS anonymous_id VARCHAR(40) NULL;
-
-                -- Drop leftover duplicate tables from old Django migrations
-                DROP TABLE IF EXISTS chat_message CASCADE;
-                DROP TABLE IF EXISTS chat_chatsession CASCADE;
+                CREATE TABLE IF NOT EXISTS hari_knowledge (
+                    persona_id   BIGSERIAL    PRIMARY KEY,
+                    category     VARCHAR(255) NULL,
+                    trait_key    VARCHAR(255) NULL,
+                    trait_value  TEXT         NULL,
+                    is_active    BOOLEAN      NOT NULL DEFAULT TRUE,
+                    updated_at   TIMESTAMP    NOT NULL DEFAULT (NOW() AT TIME ZONE 'Asia/Seoul'),
+                    weight       JSONB        NULL
+                );
             """,
             reverse_sql=migrations.RunSQL.noop,
         ),
