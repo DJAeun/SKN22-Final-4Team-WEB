@@ -100,5 +100,4 @@ class ReportSelectRequest(BaseModel):
 
 class ChannelSelectRequest(BaseModel):
     job_id: str
-    channel_name: str   # "채널A이름"
-    topic: str          # "IT Tech" (상위 토픽명)
+    channel_name: str   # "노마드코더" (채널명 = topic 키)

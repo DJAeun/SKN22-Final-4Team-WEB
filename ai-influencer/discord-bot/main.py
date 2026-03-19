@@ -180,9 +180,7 @@ _REPORT_SYSTEM_PROMPT = (
 async def report_command(
     interaction: discord.Interaction,
     prompt: str,
-    topic: Optional[str] = None,
 ) -> None:
-    """topic: 노트북 토픽 (예: 'AI뉴스', '맛집'). 미지정 시 기본 노트북 사용."""
     user_id = str(interaction.user.id)
 
     if ALLOWED_CHANNEL_IDS and str(interaction.channel_id) not in ALLOWED_CHANNEL_IDS:
@@ -206,13 +204,12 @@ async def report_command(
                 "messenger_channel_id": str(interaction.channel_id),
                 "prompt": _REPORT_SYSTEM_PROMPT + prompt,
                 "notebook_id": "",
-                "topic": topic or "",
+                "topic": "",
                 "character_id": "default-character",
             },
         )
-        topic_label = f" `{topic}`" if topic else ""
         await interaction.followup.send(
-            f"📊 요청 접수!{topic_label} 기존 보고서가 있으면 선택지가, 없으면 새 보고서 생성을 시작합니다. ⏳\nJob ID: `{job_id[:8]}`"
+            f"📊 요청 접수! 채널을 선택하면 보고서를 가져옵니다. ⏳\nJob ID: `{job_id[:8]}`"
         )
     except Exception:
         await interaction.followup.send("보고서 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
@@ -237,17 +234,15 @@ async def on_interaction(interaction: discord.Interaction) -> None:
     step = None
     report_index = None
     channel_name = None
-    channel_topic = None
     if action == "video_reject_step" and len(parts) >= 3:
         job_id = parts[1]
         step = parts[2]
     elif action == "select_report" and len(parts) >= 3:
         job_id = parts[1]
         report_index = int(parts[2])
-    elif action == "select_channel" and len(parts) >= 4:
+    elif action == "select_channel" and len(parts) >= 3:
         job_id = parts[1]
-        channel_topic = parts[2]
-        channel_name = ":".join(parts[3:])
+        channel_name = ":".join(parts[2:])
     else:
         job_id = ":".join(parts[1:])
     user_id = str(interaction.user.id)
@@ -335,7 +330,7 @@ async def on_interaction(interaction: discord.Interaction) -> None:
         try:
             await gateway_call(
                 "/internal/channel-select",
-                {"job_id": job_id, "channel_name": channel_name, "topic": channel_topic},
+                {"job_id": job_id, "channel_name": channel_name},
             )
         except Exception as e:
             await interaction.channel.send(f"오류가 발생했습니다: {e}")
