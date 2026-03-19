@@ -19,7 +19,7 @@ class HariAIEngine:
         self.setup_done = False
         try:
             # Initialize the LLM
-            self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
+            self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7, timeout=30)
 
             # Define the Persona Template
             self.system_prompt = """

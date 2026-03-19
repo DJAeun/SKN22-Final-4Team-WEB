@@ -66,43 +66,56 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     async def receive(self, text_data):
+        import asyncio
+        user_message = ''
+        ai_response = "앗, 미안해! 지금 목소리가 잘 안 나와... 잠시 후에 다시 말해줄래? 😢"
         try:
             data = json.loads(text_data)
             user_message = data.get('message', '')
             if not user_message:
                 return
 
-            # Save user message
-            await self.save_message(sender_type=True, content=user_message)
+            # Save user message (non-critical — don't let a DB failure block the reply)
+            try:
+                await self.save_message(sender_type=True, content=user_message)
+            except Exception as e:
+                logger.error(f"Failed to save user message: {e}", exc_info=True)
 
             # Get AI response
             from .engine import engine
-            import asyncio
             try:
-                loop = asyncio.get_event_loop()
-                ai_response = await loop.run_in_executor(
-                    None, engine.get_response, user_message, self.thread_id
+                loop = asyncio.get_running_loop()
+                ai_response = await asyncio.wait_for(
+                    loop.run_in_executor(None, engine.get_response, user_message, self.thread_id),
+                    timeout=60.0
                 )
+            except asyncio.TimeoutError:
+                logger.error(f"AI engine timed out for thread {self.thread_id}")
+                ai_response = "앗, 미안해! 하리가 잠깐 딴 생각 했나봐... 다시 말해줄래? 😅"
             except Exception as e:
                 logger.error(f"AI engine error: {e}", exc_info=True)
                 ai_response = "앗, 미안해! 지금 목소리가 잘 안 나와... 잠시 후에 다시 말해줄래? 😢"
 
-            # Save Hari's response
-            await self.save_message(sender_type=False, content=ai_response)
-
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {'type': 'chat_message', 'message': ai_response, 'sender': 'hari'}
-            )
-
         except Exception as e:
             logger.error(f"WS receive error: {e}", exc_info=True)
 
-    async def chat_message(self, event):
-        await self.send(text_data=json.dumps({
-            'message': event['message'],
-            'sender': event.get('sender', 'system'),
-        }))
+        finally:
+            # Always send a reply so the client never hangs
+            try:
+                await self.send(text_data=json.dumps({
+                    'message': ai_response,
+                    'sender': 'hari',
+                }))
+            except Exception as e:
+                logger.error(f"Failed to send WS response: {e}", exc_info=True)
+                return
+
+            # Save Hari's response after sending (non-critical)
+            if user_message:
+                try:
+                    await self.save_message(sender_type=False, content=ai_response)
+                except Exception as e:
+                    logger.error(f"Failed to save Hari response: {e}", exc_info=True)
 
     # ------------------------------------------------------------------ #
     #  DB helpers (run in thread pool via database_sync_to_async)         #
