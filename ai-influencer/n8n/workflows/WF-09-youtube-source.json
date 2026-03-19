@@ -15,7 +15,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// TOPIC_CHANNELS 파싱: 채널별 (channelId, topic) 쌍 목록으로 펼치기\n// 형식: \"채널이름/채널ID+채널이름/채널ID+...\"\n// 예: \"노마드코더/UCUpJs89fSBXNolQGOYKn0YQ+조코딩/UCQNE2JmbasNYbjGAcuBiRRg\"\nconst raw = $env.TOPIC_CHANNELS || '';\nif (!raw.trim()) return [{ json: { skip: true, reason: 'TOPIC_CHANNELS 미설정' } }];\n\nconst channels = [];\nfor (const ch of raw.split('+')) {\n  const slashIdx = ch.indexOf('/');\n  if (slashIdx < 0) continue;\n  const channelName = ch.slice(0, slashIdx).trim();\n  const channelId   = ch.slice(slashIdx + 1).trim();\n  if (channelName && channelId) channels.push({\n    channelId,\n    topic: channelName,\n    rssUrl: 'https://www.youtube.com/feeds/videos.xml?playlist_id=UULF' + channelId.slice(2),\n  });\n}\n\nif (channels.length === 0) return [{ json: { skip: true, reason: '파싱된 채널 없음' } }];\nreturn channels.map(ch => ({ json: ch }));",
+        "jsCode": "// TOPIC_CHANNELS 파싱: 채널별 (channelId, topic) 쌍 목록으로 펼치기\n// 형식: \"채널이름/채널ID+채널이름/채널ID+...\"\n// 예: \"노마드코더/UCUpJs89fSBXNolQGOYKn0YQ+조코딩/UCQNE2JmbasNYbjGAcuBiRRg\"\nconst raw = $env.TOPIC_CHANNELS || '';\nif (!raw.trim()) return [{ json: { skip: true, reason: 'TOPIC_CHANNELS 미설정' } }];\n\nconst channels = [];\nfor (const ch of raw.split('+')) {\n  const slashIdx = ch.indexOf('/');\n  if (slashIdx < 0) continue;\n  const channelName = ch.slice(0, slashIdx).trim();\n  const channelId   = ch.slice(slashIdx + 1).trim();\n  if (channelName && channelId) channels.push({ channelId, topic: channelName });\n}\n\nif (channels.length === 0) return [{ json: { skip: true, reason: '파싱된 채널 없음' } }];\nreturn channels.map(ch => ({ json: ch }));",
         "options": {}
       },
       "id": "wf09-parse-channels",
@@ -26,7 +26,28 @@
     },
     {
       "parameters": {
-        "url": "={{ $json.rssUrl }}",
+        "conditions": {
+          "options": { "caseSensitive": true },
+          "conditions": [
+            {
+              "id": "skip-check",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "notEquals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "wf09-if-channels",
+      "name": "채널 있는 경우만",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://www.youtube.com/feeds/videos.xml?channel_id={{ $json.channelId }}",
         "method": "GET",
         "options": {
           "response": { "response": { "responseFormat": "text" } }
@@ -36,7 +57,7 @@
       "name": "YouTube RSS 조회",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [640, 300]
+      "position": [840, 220]
     },
     {
       "parameters": {
@@ -47,7 +68,7 @@
       "name": "새 영상 필터링",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [840, 300]
+      "position": [1040, 220]
     },
     {
       "parameters": {
@@ -68,7 +89,7 @@
       "name": "새 영상 있는 경우만",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1040, 300]
+      "position": [1240, 220]
     },
     {
       "parameters": {
@@ -97,7 +118,7 @@
       "name": "NotebookLM 소스 추가",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [1240, 220]
+      "position": [1440, 140]
     },
     {
       "parameters": {
@@ -108,7 +129,7 @@
       "name": "결과 로깅",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1440, 220]
+      "position": [1640, 140]
     }
   ],
   "connections": {
@@ -116,7 +137,13 @@
       "main": [[{ "node": "채널 목록 파싱", "type": "main", "index": 0 }]]
     },
     "채널 목록 파싱": {
-      "main": [[{ "node": "YouTube RSS 조회", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "채널 있는 경우만", "type": "main", "index": 0 }]]
+    },
+    "채널 있는 경우만": {
+      "main": [
+        [{ "node": "YouTube RSS 조회", "type": "main", "index": 0 }],
+        []
+      ]
     },
     "YouTube RSS 조회": {
       "main": [[{ "node": "새 영상 필터링", "type": "main", "index": 0 }]]
