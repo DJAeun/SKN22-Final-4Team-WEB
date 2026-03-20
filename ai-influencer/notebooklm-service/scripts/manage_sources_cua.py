@@ -101,9 +101,52 @@ def _get_oldest_sources(notebook_url: str, keep: int) -> list[dict]:
 # Playwright CUA 함수
 # ─────────────────────────────────────────
 
+def _try_dom_add_youtube(page, source_url: str) -> bool:
+    """Playwright DOM으로 YouTube 소스 추가 시도. 성공 시 True."""
+    try:
+        # ?addSource=true 등 쿼리 파라미터가 붙은 경우 웹 검색 UI가 열릴 수 있음
+        # 먼저 소스 패널의 "+ 소스 추가" 버튼 클릭
+        add_btn = page.locator("button:has-text('소스 추가'), button:has-text('Add source')").first
+        add_btn.wait_for(state="visible", timeout=8000)
+        add_btn.click()
+        time.sleep(1)
+
+        # 소스 타입 선택 다이얼로그에서 "YouTube" 버튼 클릭
+        yt_btn = page.locator(
+            "button:has-text('YouTube'), [aria-label*='YouTube'], [data-source-type='youtube']"
+        ).first
+        yt_btn.wait_for(state="visible", timeout=8000)
+        yt_btn.click()
+        time.sleep(1)
+
+        # URL 입력 필드에 YouTube URL 입력
+        url_input = page.locator("input[type='url'], input[placeholder*='URL'], input[placeholder*='url']").first
+        url_input.wait_for(state="visible", timeout=8000)
+        url_input.fill(source_url)
+        time.sleep(0.5)
+
+        # 삽입/확인 버튼 클릭
+        confirm_btn = page.locator(
+            "button:has-text('삽입'), button:has-text('추가'), button:has-text('Insert'), button:has-text('Add')"
+        ).last
+        confirm_btn.wait_for(state="visible", timeout=5000)
+        confirm_btn.click()
+
+        logger.info("[dom_add_youtube] DOM 방식 성공")
+        return True
+    except Exception as e:
+        logger.warning("[dom_add_youtube] DOM 방식 실패 → CUA 폴백: %s", e)
+        return False
+
+
 def add_source_cua(page, client, notebook_url: str, source_url: str, source_title: str) -> bool:
-    """CUA로 NotebookLM 소스 패널에 URL 추가."""
-    page.goto(notebook_url, wait_until="domcontentloaded", timeout=90000)
+    """NotebookLM 소스 패널에 URL 추가. YouTube는 DOM 먼저, 실패 시 CUA 폴백."""
+    # ?addSource=true 없는 깨끗한 URL로 이동
+    from urllib.parse import urlparse, urlunparse
+    parsed = urlparse(notebook_url)
+    clean_url = urlunparse(parsed._replace(query="", fragment=""))
+
+    page.goto(clean_url, wait_until="domcontentloaded", timeout=90000)
     try:
         page.wait_for_load_state("networkidle", timeout=30000)
     except Exception:
@@ -113,39 +156,41 @@ def add_source_cua(page, client, notebook_url: str, source_url: str, source_titl
 
     is_youtube = "youtube.com/watch" in source_url or "youtu.be/" in source_url
 
-    if is_youtube:
-        TASK = (
-            "Task: Add a YouTube video as a source to this NotebookLM notebook.\n"
-            f"YouTube URL: {source_url}\n"
-            "Steps:\n"
-            "1. Find the Sources panel on the LEFT side of the screen.\n"
-            "2. Click the '+ 소스 추가' (Add source) button.\n"
-            "3. A dialog/menu appears with source type options. "
-            "You MUST click the 'YouTube' option (NOT '웹사이트', NOT '링크', NOT 'URL'). "
-            "Look for a button or icon labeled 'YouTube'.\n"
-            "4. A URL input field appears. Click it and type the YouTube URL using the 'type' action:\n"
-            f"   {source_url}\n"
-            "5. Click '삽입' or '추가' or the arrow/confirm button to submit.\n"
-            "6. Wait for the source title to appear in the sources list on the left.\n"
-            f'Output {{"action": "done"}} when the YouTube source appears in the sources list.\n'
-            "IMPORTANT: You MUST select 'YouTube' in step 3, not any other URL option."
-        )
+    # YouTube는 DOM 방식 먼저 시도
+    if is_youtube and _try_dom_add_youtube(page, source_url):
+        time.sleep(3)
+        success = True
     else:
-        TASK = (
-            "Task: Add a new web source to this NotebookLM notebook.\n"
-            f"Source URL: {source_url}\n"
-            "Steps:\n"
-            "1. Find the Sources panel on the LEFT side of the screen.\n"
-            "2. Click the '+ 소스 추가' (Add source) button.\n"
-            "3. If a menu appears, select '웹사이트' or 'URL' or '링크' option.\n"
-            "4. In the URL input field, type the URL using the 'type' action:\n"
-            f"   {source_url}\n"
-            "5. Click '삽입', '추가', or 'Insert' to confirm.\n"
-            "6. Wait for the source to appear in the sources list.\n"
-            f'Output {{"action": "done"}} when the source has been successfully added.\n'
-            "Use the 'type' action to enter the URL — do not use keyboard shortcut paste."
-        )
-    success = _run_cua_loop(page, client, TASK, max_steps=15, phase="ADD_SRC")
+        # CUA 폴백
+        if is_youtube:
+            TASK = (
+                "Task: Add a YouTube video as a source to this NotebookLM notebook.\n"
+                f"YouTube URL: {source_url}\n"
+                "Steps:\n"
+                "1. Find the Sources panel on the LEFT side of the screen.\n"
+                "2. Click the '+ 소스 추가' (Add source) button.\n"
+                "3. A source type panel appears. Find and click the 'YouTube' button.\n"
+                "   The YouTube button has the YouTube logo/icon and the text 'YouTube'.\n"
+                "   Do NOT click '웹사이트' or any other option.\n"
+                "4. A URL input field appears. Type the URL:\n"
+                f"   {source_url}\n"
+                "5. Click the '삽입' or confirm button.\n"
+                "6. Wait for the source to appear in the sources list.\n"
+                f'Output {{"action": "done"}} when done.\n'
+                "CRITICAL: Step 3 must be 'YouTube', not '웹사이트'."
+            )
+        else:
+            TASK = (
+                "Task: Add a web source to this NotebookLM notebook.\n"
+                f"URL: {source_url}\n"
+                "Steps:\n"
+                "1. Click the '+ 소스 추가' button in the Sources panel.\n"
+                "2. Select '웹사이트' or 'URL' option.\n"
+                "3. Type the URL: {source_url}\n"
+                "4. Click '삽입' or confirm.\n"
+                f'Output {{"action": "done"}} when done.'
+            )
+        success = _run_cua_loop(page, client, TASK, max_steps=15, phase="ADD_SRC")
     if success:
         logger.info("[add_source] 성공: %s", source_url)
     else:
