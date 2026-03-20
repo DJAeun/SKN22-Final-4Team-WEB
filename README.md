@@ -34,15 +34,15 @@
 
 ### AI Modeling
 * **LLM:** LangChain, LangGraph (Multi-turn 대화 및 가드레일 제어)
-* **Voice:** GPT-SoVITS v3/v4 (성우 데이터 기반 고정밀 음색 복제)
-* **Vision:** Stable Diffusion XL, FluxGym (LoRA 학습), Heygen API (영상 합성)
+* **Voice:** GPT-SoVITS v4 (성우 데이터 기반 고정밀 음색 복제)
+* **Vision:** Z-Image-turbo(이미지 생성), AI-toolkit(LoRA 학습), Heygen API (영상 생성)
 * **Preprocessing:** Pandas, Seedvr2 (이미지 업스케일링), Z-image-Turbo
 
 ### Infrastructure & Backend
 * **Servers:** AWS (EC2, Elastic Beanstalk), Runpod (RTX 5090 GPU 인스턴스)
 * **Frameworks:** Django, FastAPI (WebSockets 실시간 통신)
 * **Automation:** n8n, Playwright CUA (SNS 스크래핑), Celery & Redis (작업 큐 관리)
-* **Database:** PostgreSQL (유저 및 페르소나 데이터), Vector DB (RAG 지식 검색)
+* **Database:** PostgreSQL (유저 및 페르소나 데이터, Vector DB, RAG 지식 검색)
 
 ---
 
@@ -95,8 +95,8 @@ python manage.py runserver
 | :---: | :--- | :--- | :--- |
 | <img src="minho.jpg" width="60"> | **최민호** | **PM** | PM, BM 개발, 시장 조사, 데이터 수집 총괄 |
 | <img src="jun.jpg" width="60"> | **박준석** | **Creative** | 세계관 구축, UI/UX 설계, 데이터 수집 |
-| <img src="minje.jpg" width="60"> | **안민제** | **AI Lead** | TTS(GPT-SoVITS) 고도화, LLM 대화 엔진 설계 |
-| <img src="han.jpg" width="60"> | **한승혁** | **Infra** | 클라우드 서버 관리, 이미지/영상 생성 파이프라인 구축 |
+| <img src="minje.jpg" width="60"> | **안민제** | **AI Lead** | TTS(GPT-SoVITS) 학습 및 생성, LLM TTS 스트리밍 설계 |
+| <img src="han.jpg" width="60"> | **한승혁** | **Infra** | 클라우드 서버 관리, 이미지/영상 학습 및 생성 |
 | <img src="eun.png" width="60"> | **엄형은** | **Contents** | 대본 생성 자동화, 콘텐츠 생성-업로드 파이프라인 구축 |
 
 ---
