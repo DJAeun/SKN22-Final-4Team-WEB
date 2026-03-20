@@ -1,144 +1,182 @@
 import json
-import uuid
+import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models import ChatSession, Message
-import logging
+from django.utils import timezone
+from .models import Message, ChatMemory
 
 logger = logging.getLogger(__name__)
 
+# Trigger persona enrichment every N completed conversations per user
+PERSONA_UPDATE_INTERVAL = 100
+
+
 class ChatConsumer(AsyncWebsocketConsumer):
+
     async def connect(self):
-        self.room_group_name = None
         try:
-            self.user = self.scope["user"]
-            session = self.scope.get("session")
-            session_key = session.session_key if session else None
-            
-            # Get session_id from URL if present
-            url_route = self.scope.get('url_route', {})
-            session_id = url_route.get('kwargs', {}).get('session_id')
+            user = self.scope["user"]
 
-            logger.debug(f"WS connecting: user={self.user}, session_key={session_key}, session_id={session_id}")
+            if not user.is_authenticated:
+                await self.close(code=4401)
+                return
 
-            # Get session from DB
-            self.session = await self.get_or_create_session(self.user, session_key, session_id)
-            
-            if self.session:
-                # Group by session ID to allow multiple sessions per user
-                self.room_group_name = f"chat_{self.session.session_id}"
-            else:
-                # Fallback group for users without a valid session
-                self.room_group_name = f"chat_anon_{id(self)}"
-                logger.debug(f"No session found, using fallback group: {self.room_group_name}")
-                
-            await self.channel_layer.group_add(
-                self.room_group_name,
-                self.channel_name
-            )
+            self.session_messages = []
+            self.user_id = user.id
+            self.thread_id = str(user.id)
+            self.anonymous_id = None
+
+            self.room_group_name = f"chat_{self.thread_id}"
+            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
             await self.accept()
-            logger.info(f"WS accepted for group {self.room_group_name}")
+
+            # Get current message count so we continue the sequence correctly
+            self.message_count = await self.get_message_count()
+            logger.info(f"WS connected: thread={self.thread_id}, message_count={self.message_count}")
+
+            # Send welcome message
+            await self.send(text_data=json.dumps({
+                'message': '안녕하세요! 저는 강하리예요 😊 오늘은 어떤 이야기 나눠볼까요?',
+                'sender': 'hari',
+            }))
 
         except Exception as e:
             logger.error(f"WS connect error: {e}", exc_info=True)
-            if hasattr(self, 'room_group_name') and self.room_group_name:
-                await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
             await self.close()
 
-    @database_sync_to_async
-    def get_or_create_session(self, user, session_key, session_id=None):
-        try:
-            if session_id:
-                # If specific session requested, find it and verify ownership
-                if user.is_authenticated:
-                    return ChatSession.objects.filter(session_id=session_id, user=user).first()
-                else:
-                    return ChatSession.objects.filter(session_id=session_id, user=None).first()
-
-            if user.is_authenticated:
-                session = ChatSession.objects.filter(user=user, is_active=True).first()
-                if not session:
-                    new_id = str(uuid.uuid4())
-                    session = ChatSession.objects.create(session_id=new_id, user=user)
-                return session
-            else:
-                if not session_key:
-                    logger.debug("No session_key for anonymous user in get_or_create_session")
-                    return None
-                session = ChatSession.objects.filter(session_id=session_key, user=None).first()
-                if not session:
-                    logger.debug(f"Creating new guest session for key: {session_key}")
-                    session = ChatSession.objects.create(session_id=session_key, user=None)
-                return session
-        except Exception as e:
-            logger.error(f"get_or_create_session error: {e}", exc_info=True)
-            raise e
-
-    @database_sync_to_async
-    def save_message(self, session, sender, text):
-        if session:
-            # sender_type: True for User, False for Hari
-            is_user = (sender == 'user')
-            return Message.objects.create(session=session, sender_type=is_user, content=text)
-        return None
-
     async def disconnect(self, close_code):
-        # Leave room group
-        if self.room_group_name:
-            await self.channel_layer.group_discard(
-                self.room_group_name,
-                self.channel_name
-            )
-
-    # Receive message from WebSocket
-    async def receive(self, text_data):
         try:
-            text_data_json = json.loads(text_data)
-            message = text_data_json.get('message', '')
+            if self.session_messages:
+                conversation_count = await self.save_chat_memory()
 
-            if not message:
+                # Every PERSONA_UPDATE_INTERVAL conversations, trigger persona enrichment
+                if conversation_count and conversation_count % PERSONA_UPDATE_INTERVAL == 0:
+                    await self.trigger_persona_update()
+        except Exception as e:
+            logger.error(f"WS disconnect error: {e}", exc_info=True)
+        finally:
+            if hasattr(self, 'room_group_name'):
+                await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
+    async def receive(self, text_data):
+        import asyncio
+        user_message = ''
+        ai_response = "앗, 미안해! 지금 목소리가 잘 안 나와... 잠시 후에 다시 말해줄래? 😢"
+        try:
+            data = json.loads(text_data)
+            user_message = data.get('message', '')
+            if not user_message:
                 return
 
-            if self.session:
-                await self.save_message(self.session, 'user', message)
-
-            from .engine import engine
-            import asyncio
-            
+            # Save user message (non-critical — don't let a DB failure block the reply)
             try:
-                loop = asyncio.get_event_loop()
-                # Execute LangGraph request, parsing the correct thread ID
-                target_session_id = self.session.session_id if self.session else "anonymous_thread"
-                ai_response = await loop.run_in_executor(None, engine.get_response, message, target_session_id)
+                await self.save_message(sender_type=True, content=user_message)
             except Exception as e:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"WebSocket consumer AI error: {e}")
+                logger.error(f"Failed to save user message: {e}", exc_info=True)
+
+            # Get AI response
+            from .engine import engine
+            try:
+                loop = asyncio.get_running_loop()
+                ai_response = await asyncio.wait_for(
+                    loop.run_in_executor(None, engine.get_response, user_message, self.thread_id),
+                    timeout=60.0
+                )
+            except asyncio.TimeoutError:
+                logger.error(f"AI engine timed out for thread {self.thread_id}")
+                ai_response = "앗, 미안해! 하리가 잠깐 딴 생각 했나봐... 다시 말해줄래? 😅"
+            except Exception as e:
+                logger.error(f"AI engine error: {e}", exc_info=True)
                 ai_response = "앗, 미안해! 지금 목소리가 잘 안 나와... 잠시 후에 다시 말해줄래? 😢"
 
-            if self.session:
-                await self.save_message(self.session, 'hari', ai_response)
-
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'chat_message',
-                    'message': ai_response,
-                    'sender': 'hari'
-                }
-            )
         except Exception as e:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"WebSocket receive error: {e}")
+            logger.error(f"WS receive error: {e}", exc_info=True)
 
-    # Receive message from room group
-    async def chat_message(self, event):
-        message = event['message']
-        sender = event.get('sender', 'system')
+        finally:
+            # Always send a reply so the client never hangs
+            try:
+                await self.send(text_data=json.dumps({
+                    'message': ai_response,
+                    'sender': 'hari',
+                }))
+            except Exception as e:
+                logger.error(f"Failed to send WS response: {e}", exc_info=True)
+                return
 
-        # Send message to WebSocket
-        await self.send(text_data=json.dumps({
-            'message': message,
-            'sender': sender
-        }))
+            # Save Hari's response after sending (non-critical)
+            if user_message:
+                try:
+                    await self.save_message(sender_type=False, content=ai_response)
+                except Exception as e:
+                    logger.error(f"Failed to save Hari response: {e}", exc_info=True)
+
+    # ------------------------------------------------------------------ #
+    #  DB helpers (run in thread pool via database_sync_to_async)         #
+    # ------------------------------------------------------------------ #
+
+    @database_sync_to_async
+    def get_message_count(self):
+        """Return the number of messages already saved for this user/session."""
+        if self.user_id:
+            return Message.objects.filter(user_id=self.user_id).count()
+        if self.anonymous_id:
+            return Message.objects.filter(anonymous_id=self.anonymous_id).count()
+        return 0
+
+    @database_sync_to_async
+    def save_message(self, sender_type, content):
+        self.message_count += 1
+        # Track in session first — even if the DB write fails the memory summary still works
+        self.session_messages.append({
+            'sender': 'user' if sender_type else 'hari',
+            'content': content,
+        })
+        Message.objects.create(
+            user_id=self.user_id,
+            sender_type=sender_type,
+            content=content,
+            count=self.message_count,
+            anonymous_id=self.anonymous_id,
+        )
+
+    @database_sync_to_async
+    def save_chat_memory(self):
+        """
+        Persist a summary of this conversation session to chat_memory.
+        Returns the total number of conversations this user has had.
+        """
+        # Build conversation transcript
+        lines = [
+            f"{'User' if m['sender'] == 'user' else 'Hari'}: {m['content']}"
+            for m in self.session_messages
+        ]
+        summary = "\n".join(lines)
+
+        # Simple keyword extraction from user messages (words longer than 3 chars)
+        user_text = " ".join(
+            m['content'] for m in self.session_messages if m['sender'] == 'user'
+        )
+        words = {w.strip('.,!?').lower() for w in user_text.split() if len(w) > 3}
+        keywords = ", ".join(list(words)[:20])
+
+        ChatMemory.objects.create(
+            user_id=self.user_id,
+            anonymous_id=self.anonymous_id,
+            summary=summary,
+            keywords=keywords,
+            ended_at=timezone.now(),
+        )
+
+        if self.user_id:
+            return ChatMemory.objects.filter(user_id=self.user_id).count()
+        return None
+
+    @database_sync_to_async
+    def trigger_persona_update(self):
+        if not self.user_id:
+            return
+        logger.info(
+            f"[PersonaUpdate] Triggered for user={self.user_id} "
+            f"at {PERSONA_UPDATE_INTERVAL}-conversation milestone"
+        )
+        # ── Insert GPT enrichment logic here ──────────────────────────────

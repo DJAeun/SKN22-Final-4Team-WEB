@@ -61,6 +61,7 @@ class ReportMessageRequest(BaseModel):
     messenger_channel_id: str
     prompt: str
     notebook_id: str = ""
+    channel_id: str = ""  # YouTube 채널 ID → notebooklm-service에서 노트북 조회
     character_id: str = "default-character"
 
 
@@ -89,3 +90,14 @@ class VideoActionRequest(BaseModel):
 
 class ReportToVideoRequest(BaseModel):
     job_id: str
+
+
+class ReportSelectRequest(BaseModel):
+    job_id: str
+    action: str           # "select" | "new"
+    report_index: Optional[int] = None   # action="select" 시 필수
+
+
+class ChannelSelectRequest(BaseModel):
+    job_id: str
+    channel_id: str     # "UCUpJs89fSBXNolQGOYKn0YQ" (YouTube 채널 ID)

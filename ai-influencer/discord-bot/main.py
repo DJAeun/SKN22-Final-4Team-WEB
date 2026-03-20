@@ -177,7 +177,10 @@ _REPORT_SYSTEM_PROMPT = (
 
 
 @bot.tree.command(name="report", description="NotebookLM 보고서를 생성합니다")
-async def report_command(interaction: discord.Interaction, prompt: str) -> None:
+async def report_command(
+    interaction: discord.Interaction,
+    prompt: str,
+) -> None:
     user_id = str(interaction.user.id)
 
     if ALLOWED_CHANNEL_IDS and str(interaction.channel_id) not in ALLOWED_CHANNEL_IDS:
@@ -201,11 +204,12 @@ async def report_command(interaction: discord.Interaction, prompt: str) -> None:
                 "messenger_channel_id": str(interaction.channel_id),
                 "prompt": _REPORT_SYSTEM_PROMPT + prompt,
                 "notebook_id": "",
+                "channel_id": "",
                 "character_id": "default-character",
             },
         )
         await interaction.followup.send(
-            f"📊 보고서 생성 요청이 접수되었습니다!\nJob ID: {job_id[:8]}...\n프롬프트: {prompt[:50]}...\n\nNotebookLM에서 보고서를 생성 중입니다. 최대 5분 소요될 수 있습니다. ⏳"
+            f"📊 요청 접수! 채널을 선택하면 보고서를 가져옵니다. ⏳\nJob ID: `{job_id[:8]}`"
         )
     except Exception:
         await interaction.followup.send("보고서 요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
@@ -224,13 +228,23 @@ async def on_interaction(interaction: discord.Interaction) -> None:
 
     parts = custom_id.split(":")
     action = parts[0]
-    # video_reject_step has format: video_reject_step:{job_id}:{step}
+    # video_reject_step: video_reject_step:{job_id}:{step}
+    # select_report:     select_report:{job_id}:{index}
+    # select_channel:    select_channel:{job_id}:{channel_id}
+    step = None
+    report_index = None
+    channel_id_value = None
     if action == "video_reject_step" and len(parts) >= 3:
         job_id = parts[1]
         step = parts[2]
+    elif action == "select_report" and len(parts) >= 3:
+        job_id = parts[1]
+        report_index = int(parts[2])
+    elif action == "select_channel" and len(parts) >= 3:
+        job_id = parts[1]
+        channel_id_value = ":".join(parts[2:])
     else:
         job_id = ":".join(parts[1:])
-        step = None
     user_id = str(interaction.user.id)
 
     # 허용 채널 확인
@@ -290,6 +304,33 @@ async def on_interaction(interaction: discord.Interaction) -> None:
             await gateway_call(
                 "/internal/report-to-video",
                 {"job_id": job_id},
+            )
+        except Exception as e:
+            await interaction.channel.send(f"오류가 발생했습니다: {e}")
+
+    elif action == "select_report":
+        try:
+            await gateway_call(
+                "/internal/report-select",
+                {"job_id": job_id, "action": "select", "report_index": report_index},
+            )
+        except Exception as e:
+            await interaction.channel.send(f"오류가 발생했습니다: {e}")
+
+    elif action == "new_report":
+        try:
+            await gateway_call(
+                "/internal/report-select",
+                {"job_id": job_id, "action": "new"},
+            )
+        except Exception as e:
+            await interaction.channel.send(f"오류가 발생했습니다: {e}")
+
+    elif action == "select_channel":
+        try:
+            await gateway_call(
+                "/internal/channel-select",
+                {"job_id": job_id, "channel_id": channel_id_value},
             )
         except Exception as e:
             await interaction.channel.send(f"오류가 발생했습니다: {e}")

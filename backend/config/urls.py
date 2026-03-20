@@ -24,6 +24,7 @@ urlpatterns = [
     path('', chat_index, name='home'),
     path('health/', health_check, name='health_check'),
     path('admin/', admin.site.urls),
+    path('accounts/', include('allauth.urls')),
     path('api/auth/', include('dj_rest_auth.urls')),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
     path('api/chat/', include('chat.urls')),

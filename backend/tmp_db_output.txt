@@ -1,0 +1,16 @@
+﻿--- chat_messages Schema ---
+('created_at', 'timestamp without time zone')
+('user_id', 'bigint')
+('sender_type', 'boolean')
+('message_id', 'bigint')
+('is_read', 'boolean')
+('content', 'text')
+('session_id', 'character varying')
+
+--- Recent Messages ---
+
+--- Checkpoints (LangGraph Tables) ---
+('checkpoint_blobs',)
+('checkpoint_migrations',)
+('checkpoint_writes',)
+('checkpoints',)

@@ -600,7 +600,9 @@
             };
 
             chatSocket.onclose = function(e) {
-                console.log('Chat socket closed');
+                if (e.code === 4401) {
+                    window.location.href = loginUrl;
+                }
             };
         }
 
@@ -712,133 +714,70 @@
             messageInputDom.focus();
         };
         
-        async function loadHistory(sessionId = null) {
-            // History works for both authenticated and anonymous users
+        async function loadHistory() {
+            // Only load for authenticated users (anonymous history lives in WS session)
+            if (!isAuthenticated) return;
             try {
-                const url = sessionId ? `/api/chat/api/messages/?session=${sessionId}` : '/api/chat/api/messages/';
-                const response = await fetch(url);
-                if (response.ok) {
-                    const data = await response.json();
-                    const messages = Array.isArray(data) ? data : data.results || [];
-                    
+                const response = await fetch('/api/chat/api/messages/');
+                if (!response.ok) return;
+                const data = await response.json();
+                const messages = Array.isArray(data) ? data : (data.results || []);
+                if (messages.length > 0) {
                     chatLog.innerHTML = '';
-                    if (messages.length > 0) {
-                        messages.forEach(msg => {
-                            if (msg.sender === 'user') {
-                                appendUserMessage(msg.text, msg.created_at);
-                            } else {
-                                appendHariMessage(msg.text, msg.created_at);
-                            }
-                        });
-                        chatLog.scrollTop = chatLog.scrollHeight;
-                    }
+                    messages.forEach(msg => {
+                        // sender_type: true = user, false = hari
+                        if (msg.sender_type) {
+                            appendUserMessage(msg.content);
+                        } else {
+                            appendHariMessage(msg.content);
+                        }
+                    });
+                    chatLog.scrollTop = chatLog.scrollHeight;
                 }
             } catch (error) {
                 console.error('Error loading history:', error);
             }
         }
 
-        async function loadSessions() {
-            // Session list works for both authenticated and anonymous users
+        async function loadMemories() {
+            // Show past conversation summaries in sidebar (authenticated only)
+            if (!isAuthenticated) return;
             const historyList = document.getElementById('history-list');
             try {
-                const response = await fetch('/api/chat/api/sessions/');
-                if (response.ok) {
-                    const data = await response.json();
-                    const sessions = Array.isArray(data) ? data : data.results || [];
-                    
-                    if (sessions.length > 0) {
-                        historyList.innerHTML = '';
-                        sessions.forEach(session => {
-                            const item = document.createElement('div');
-                            item.className = `history-item ${currentSessionId == session.id ? 'active' : ''}`;
-                            item.onclick = () => switchSession(session.id);
-                            
-                            const date = new Date(session.started_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
-                            item.innerHTML = `
-                                <i class="fa-regular fa-message"></i>
-                                <span>${date} 대화 #${session.id}</span>
-                            `;
-                            historyList.appendChild(item);
-                        });
-                    }
+                const response = await fetch('/api/chat/api/memories/');
+                if (!response.ok) return;
+                const data = await response.json();
+                const memories = Array.isArray(data) ? data : (data.results || []);
+                if (memories.length > 0) {
+                    historyList.innerHTML = '';
+                    memories.forEach(mem => {
+                        const item = document.createElement('div');
+                        item.className = 'history-item';
+                        const date = new Date(mem.ended_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+                        const preview = mem.keywords || mem.summary?.slice(0, 30) || '대화';
+                        item.innerHTML = `
+                            <i class="fa-regular fa-message"></i>
+                            <span>${date} — ${preview}</span>
+                        `;
+                        historyList.appendChild(item);
+                    });
                 }
             } catch (error) {
-                console.error('Error loading sessions:', error);
+                console.error('Error loading memories:', error);
             }
         }
 
-        async function switchSession(sessionId) {
-            if (currentSessionId === sessionId) return;
-            
-            currentSessionId = sessionId;
+        function createNewChat() {
             chatLog.style.opacity = '0';
-            
-            // Reconnect WebSocket to specific session
-            connectWebSocket(sessionId);
-            
-            // Load messages for this session
-            await loadHistory(sessionId);
-            
-            // Refresh sessions list to update active state
-            await loadSessions();
-            
+            connectWebSocket();
             setTimeout(() => {
+                chatLog.innerHTML = '';
                 chatLog.style.opacity = '1';
-                chatLog.scrollTop = chatLog.scrollHeight;
             }, 300);
         }
 
-        async function createNewChat() {
-            // New chat works for everyone
-            chatLog.style.opacity = '0';
-            
-            try {
-                const response = await fetch('/api/chat/api/sessions/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken
-                    },
-                    body: JSON.stringify({})
-                });
-
-                if (response.ok) {
-                    const session = await response.json();
-                    currentSessionId = session.id;
-                    
-                    // Reconnect WebSocket to new session
-                    connectWebSocket(currentSessionId);
-                    
-                    setTimeout(() => {
-                        chatLog.innerHTML = '';
-                        chatLog.style.opacity = '1';
-                        // Refresh history list
-                        loadSessions();
-                        // Re-greet
-                        appendHariMessage(`${userName}님, 새로운 대화가 시작되었어! 이번엔 어떤 이야기를 할까? ✨`);
-                    }, 300);
-                } else {
-                    console.error('Failed to create new session');
-                    chatLog.style.opacity = '1';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                chatLog.style.opacity = '1';
-            }
-        }
-
-        // Load sessions and history for everyone
-        loadSessions().then(() => {
-            loadHistory().then(() => {
-                // If history is loaded but empty, show greeting
-                if (chatLog.innerHTML.trim() === '') {
-                    setTimeout(() => {
-                        appendHariMessage(`${userName}님, 반가워! 오늘 하리랑 무슨 이야기할까? ✨`);
-                    }, 500);
-                }
-            });
-        });
+        // On load: show history then load sidebar memories
+        loadHistory().then(() => loadMemories());
 
         chatLog.scrollTop = chatLog.scrollHeight;
     </script>

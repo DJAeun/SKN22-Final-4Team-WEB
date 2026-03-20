@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import base64
 from contextlib import asynccontextmanager
@@ -9,9 +10,11 @@ from fastapi import Depends, FastAPI, Header, HTTPException, status
 from adapters.discord_adapter import DiscordAdapter
 from config import settings
 from models.job import (
+    ChannelSelectRequest,
     ConfirmActionRequest,
     IncomingMessageRequest,
     ReportMessageRequest,
+    ReportSelectRequest,
     ReportToVideoRequest,
     SendConfirmRequest,
     SendReportRequest,
@@ -207,7 +210,81 @@ async def confirm_action(_: AuthDep, body: ConfirmActionRequest) -> dict:
 async def report_message(_: AuthDep, body: ReportMessageRequest) -> dict:
     """봇 서비스가 report: 프리픽스 메시지를 포워딩한다."""
     await job_service.create_job(body)
+    # 즉시 반환 후 background에서 list-reports → 버튼 or WF-06
+    asyncio.create_task(_handle_report_message_bg(body))
+    return {"job_id": body.job_id, "status": "accepted"}
 
+
+async def _get_all_channels() -> list[dict]:
+    """notebooklm-service에서 등록된 모든 채널 목록을 조회한다."""
+    try:
+        resp = await _http_client.get(
+            f"{settings.notebooklm_service_url}/all-channels",
+            headers={"X-Internal-Secret": settings.gateway_internal_secret},
+            timeout=10.0,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            if data.get("status") == "success":
+                return data.get("channels", [])
+    except Exception as e:
+        logger.warning("[report-message] all-channels 조회 실패: %s", e)
+    return []
+
+
+async def _handle_report_message_bg(body: ReportMessageRequest) -> None:
+    """채널 선택 버튼 표시."""
+    channels = await _get_all_channels()
+    if channels:
+        try:
+            await _discord_adapter.send_channel_list(
+                channel_id=body.messenger_channel_id,
+                job_id=body.job_id,
+                channels=channels,
+            )
+        except Exception as e:
+            logger.error("[report-message] send_channel_list failed job_id=%s: %s", body.job_id, e)
+        return
+
+    # 채널 없으면 WF-06 직행
+    await _call_wf06(body)
+
+
+async def _handle_channel_selected_bg(body: ReportMessageRequest) -> None:
+    """채널 선택 후 → 기존 보고서 목록 조회 or WF-06."""
+    reports: list[str] = []
+    try:
+        resp = await _http_client.post(
+            f"{settings.notebooklm_service_url}/list-reports",
+            json={
+                "notebook_id": body.notebook_id or None,
+                "channel_id": body.channel_id or None,
+            },
+            headers={"X-Internal-Secret": settings.gateway_internal_secret},
+            timeout=60.0,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            if data.get("status") == "success":
+                reports = data.get("reports", [])
+    except Exception as e:
+        logger.warning("[report-message] list-reports 조회 실패 (WF-06 fallback): %s", e)
+
+    if reports:
+        try:
+            await _discord_adapter.send_report_list(
+                channel_id=body.messenger_channel_id,
+                job_id=body.job_id,
+                reports=reports,
+            )
+            return
+        except Exception as e:
+            logger.error("[report-message] send_report_list failed job_id=%s: %s", body.job_id, e)
+
+    await _call_wf06(body)
+
+
+async def _call_wf06(body: ReportMessageRequest) -> None:
     try:
         await n8n_service.call_wf06_report(
             job_id=body.job_id,
@@ -222,7 +299,120 @@ async def report_message(_: AuthDep, body: ReportMessageRequest) -> dict:
         logger.error("[discord] call_wf06_report failed job_id=%s: %s", body.job_id, e)
         await job_service.update_job(body.job_id, error_message=str(e))
 
+
+@app.post("/internal/channel-select")
+async def channel_select(_: AuthDep, body: ChannelSelectRequest) -> dict:
+    """Discord 채널 선택 버튼 클릭 → 해당 채널의 보고서 목록 조회."""
+    job = await job_service.get_job(body.job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    report_body = ReportMessageRequest(
+        job_id=body.job_id,
+        messenger_source=job["messenger_source"],
+        messenger_user_id=job["messenger_user_id"],
+        messenger_channel_id=job["messenger_channel_id"],
+        prompt=job.get("concept_text", ""),
+        notebook_id="",
+        channel_id=body.channel_id,
+        character_id=job.get("character_id", "default-character"),
+    )
+    asyncio.create_task(_handle_channel_selected_bg(report_body))
+    logger.info("[channel-select] job_id=%s channel_id=%s", body.job_id, body.channel_id)
     return {"job_id": body.job_id, "status": "accepted"}
+
+
+@app.post("/internal/report-select")
+async def report_select(_: AuthDep, body: ReportSelectRequest) -> dict:
+    """Discord 보고서 선택/새로 생성 버튼 클릭을 처리한다."""
+    job = await job_service.get_job(body.job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    if body.action not in ("select", "new"):
+        raise HTTPException(status_code=400, detail=f"Unknown action: {body.action}")
+    if body.action == "select" and body.report_index is None:
+        raise HTTPException(status_code=400, detail="report_index is required for action=select")
+
+    # 즉시 반환 후 background에서 처리 (get-report는 최대 300s 소요)
+    asyncio.create_task(_handle_report_select_bg(body, job))
+    return {"job_id": body.job_id, "status": "accepted"}
+
+
+async def _handle_report_select_bg(body: ReportSelectRequest, job: dict) -> None:
+    channel_id = job["messenger_channel_id"]
+
+    if body.action == "select":
+        # 진행 중 안내 메시지
+        try:
+            await _discord_adapter.send_text_message(channel_id, "📄 보고서를 가져오는 중입니다... (10~30초 소요)")
+        except Exception:
+            pass
+
+        try:
+            resp = await _http_client.post(
+                f"{settings.notebooklm_service_url}/get-report",
+                json={
+                    "job_id": body.job_id,
+                    "report_index": body.report_index,
+                },
+                headers={"X-Internal-Secret": settings.gateway_internal_secret},
+                timeout=300.0,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+        except Exception as e:
+            logger.error("[report-select] get-report failed job_id=%s: %s", body.job_id, e)
+            await _discord_adapter.send_text_message(channel_id, f"❌ 보고서 가져오기 실패: {e}")
+            return
+
+        if data.get("status") != "success":
+            err = data.get("error", "get-report 실패")
+            logger.error("[report-select] get-report error job_id=%s: %s", body.job_id, err)
+            await _discord_adapter.send_text_message(channel_id, f"❌ 보고서 가져오기 실패: {err}")
+            return
+
+        report_content = data["report_content"]
+        file_bytes = base64.b64decode(data["file_content_b64"])
+        filename = data["filename"]
+
+        text = report_content
+        if len(text) > 1800:
+            text = text[:1800] + "\n\n[전체 내용은 첨부 파일 참조]"
+
+        try:
+            await _discord_adapter.send_file_message(
+                channel_id=channel_id,
+                text=text,
+                file_bytes=file_bytes,
+                filename=filename,
+                include_video_button=True,
+                job_id=body.job_id,
+            )
+        except Exception as e:
+            logger.error("[report-select] send_file_message failed job_id=%s: %s", body.job_id, e)
+            return
+
+        await job_service.transition_status(body.job_id, "PUBLISHED")
+        logger.info("[report-select] action=select done job_id=%s index=%d", body.job_id, body.report_index)
+
+    elif body.action == "new":
+        try:
+            await _discord_adapter.send_text_message(channel_id, "🆕 새 보고서를 생성합니다... (최대 5분 소요)")
+        except Exception:
+            pass
+
+        report_msg = ReportMessageRequest(
+            job_id=job["id"],
+            messenger_source=job["messenger_source"],
+            messenger_user_id=job["messenger_user_id"],
+            messenger_channel_id=channel_id,
+            prompt=job.get("concept_text", ""),
+            notebook_id="",
+            character_id=job.get("character_id", "default-character"),
+        )
+        await _call_wf06(report_msg)
+        logger.info("[report-select] action=new job_id=%s → WF-06 triggered", body.job_id)
 
 
 @app.post("/internal/send-report")
