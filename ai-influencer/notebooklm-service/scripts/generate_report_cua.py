@@ -201,7 +201,11 @@ def execute_action(page, action: dict) -> bool:
         page.keyboard.type(action["text"])
         time.sleep(0.3)
     elif t == "key":
-        page.keyboard.press(action["key"])
+        key = action["key"].replace("Ctrl+", "Control+").replace("Ctrl", "Control")
+        try:
+            page.keyboard.press(key)
+        except Exception as e:
+            logger.warning("[CUA] key press 실패 (무시): key=%r error=%s", key, e)
         time.sleep(0.5)
     elif t == "scroll":
         page.mouse.move(action.get("x", 640), action.get("y", 400))

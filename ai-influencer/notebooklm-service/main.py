@@ -138,15 +138,18 @@ def verify_secret(x_internal_secret: Optional[str] = None) -> None:
 # ─────────────────────────────────────────
 
 def _get_notebook_url(channel_id: str) -> Optional[str]:
-    """channel_id → notebook_url 직접 조회."""
+    """channel_id → notebook_url 직접 조회. 쿼리 파라미터는 제거해서 반환."""
     try:
         if not LIBRARY_JSON.exists():
             return None
         lib = json.loads(LIBRARY_JSON.read_text())
         ch = lib.get("channels", {}).get(channel_id)
         if ch and ch.get("notebook_url"):
-            logger.info("[resolve] channel_id=%s → %s", channel_id, ch["notebook_url"])
-            return ch["notebook_url"]
+            from urllib.parse import urlparse, urlunparse
+            parsed = urlparse(ch["notebook_url"])
+            clean_url = urlunparse(parsed._replace(query="", fragment=""))
+            logger.info("[resolve] channel_id=%s → %s", channel_id, clean_url)
+            return clean_url
         logger.warning("[resolve] channel_id=%r 에 해당하는 노트북 없음", channel_id)
     except Exception as e:
         logger.warning("library.json 읽기 실패: %s", e)
