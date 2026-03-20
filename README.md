@@ -97,7 +97,7 @@ python manage.py runserver
 | <img src="jun.jpg" width="60"> | **박준석** | **Creative** | 세계관 구축, UI/UX 설계, 데이터 수집 |
 | <img src="minje.jpg" width="60"> | **안민제** | **AI Lead** | TTS(GPT-SoVITS) 고도화, LLM 대화 엔진 설계 |
 | <img src="han.jpg" width="60"> | **한승혁** | **Infra** | 클라우드 서버 관리, 이미지/영상 생성 파이프라인 구축 |
-| <img src="eun.png" width="60"> | **엄형은** | **Contents** | 영상 대본 생성 자동화, 숏폼 업로드 파이프라인 안정화 |
+| <img src="eun.png" width="60"> | **엄형은** | **Contents** | 대본 생성 자동화, 콘텐츠 생성-업로드 파이프라인 구축 |
 
 ---
 
