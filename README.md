@@ -6,56 +6,56 @@
 ## 0. Project Overview
 **하리(HARI)**는 단순한 정보 전달용 챗봇을 넘어, 사용자 전용 '페르소나'를 가진 테크 전문 가상 인플루언서 플랫폼입니다. 1:1 대화, 실시간 음성 스트리밍, SNS 콘텐츠 자동 생성을 통해 사용자에게 실존하는 셀럽과의 교감(Parasocial Interaction)을 제공합니다.
 
-*   **진행 기간:** 2026.03.04 ~ 2026.04.24 (SK네트웍스 Family AI 22기)
-*   **핵심 가치:** 단방향 콘텐츠 소비에서 벗어난 일상 속 '과몰입' 상호작용 구현
+* **진행 기간:** 2026.03.04 ~ 2026.04.24 (SK네트웍스 Family AI 22기)
+* **핵심 가치:** 단방향 콘텐츠 소비에서 벗어난 일상 속 '과몰입' 상호작용 구현
 
 ---
 
 ## 1. Key Features
-*   **💬 1:1 Private Chat:** 유저별 맥락을 기억(Memory)하고 실시간 음성(TTS)으로 대답하는 개인화 채팅.
-*   **🎬 Auto-Content Pipeline:** 최신 테크 트렌드를 분석하여 숏폼 영상과 SNS 피드를 자동으로 생성 및 업로드.
-*   **👤 Consistent Persona:** LoRA 학습을 통한 외형 일관성 유지 및 고유의 말투/취향(Preference) 반영.
-*   **🛒 Point Shop:** 활동 점수를 통한 굿즈 구매 및 멤버십 전용 콘텐츠 제공.
+* **💬 1:1 Private Chat:** 유저별 맥락을 기억(Memory)하고 실시간 음성(TTS)으로 대답하는 개인화 채팅.
+* **🎬 Auto-Content Pipeline:** 최신 테크 트렌드를 분석하여 숏폼 영상과 SNS 피드를 자동으로 생성 및 업로드.
+* **👤 Consistent Persona:** LoRA 학습을 통한 외형 일관성 유지 및 고유의 말투/취향(Preference) 반영.
+* **🛒 Point Shop:** 활동 점수를 통한 굿즈 구매 및 멤버십 전용 콘텐츠 제공.
 
 ---
 
 ## 2. Tech Stack
 
 ### AI Modeling
-*   **LLM:** LangChain, LangGraph (Multi-turn 대화 및 가드레일 제어)
-*   **Voice:** GPT-SoVITS v3/v4 (성우 데이터 기반 고정밀 음색 복제)
-*   **Vision:** Stable Diffusion XL, FluxGym (LoRA 학습), Heygen API (영상 합성)
-*   **Preprocessing:** Pandas, Seedvr2 (이미지 업스케일링), Z-image-Turbo
+* **LLM:** LangChain, LangGraph (Multi-turn 대화 및 가드레일 제어)
+* **Voice:** GPT-SoVITS v3/v4 (성우 데이터 기반 고정밀 음색 복제)
+* **Vision:** Stable Diffusion XL, FluxGym (LoRA 학습), Heygen API (영상 합성)
+* **Preprocessing:** Pandas, Seedvr2 (이미지 업스케일링), Z-image-Turbo
 
 ### Infrastructure & Backend
-*   **Servers:** AWS (EC2, Elastic Beanstalk), Runpod (RTX 5090 GPU 인스턴스)
-*   **Frameworks:** Django, FastAPI (WebSockets 실시간 통신)
-*   **Automation:** n8n, Playwright CUA (SNS 스크래핑), Celery & Redis (작업 큐 관리)
-*   **Database:** PostgreSQL (유저 및 페르소나 데이터), Vector DB (RAG 지식 검색)
+* **Servers:** AWS (EC2, Elastic Beanstalk), Runpod (RTX 5090 GPU 인스턴스)
+* **Frameworks:** Django, FastAPI (WebSockets 실시간 통신)
+* **Automation:** n8n, Playwright CUA (SNS 스크래핑), Celery & Redis (작업 큐 관리)
+* **Database:** PostgreSQL (유저 및 페르소나 데이터), Vector DB (RAG 지식 검색)
 
 ---
 
 ## 3. System Architecture
-1.  **Automation Pipeline (AWS Cloud 1):** SNS 트렌드 분석 및 대본 생성, 영상 제작 오케스트레이션.
-2.  **Web Server (AWS Cloud 2):** Django 기반의 서비스 로직 및 LangChain을 활용한 대화 엔진 구동.
-3.  **GPU Instance (Runpod):** 이미지 생성 및 TTS 추론 등 고부하 연산 전담.
-4.  **Database Layer:** 유저별 대화 이력 및 하리의 페르소나 벡터값 저장/조회.
+1. **Automation Pipeline (AWS Cloud 1):** SNS 트렌드 분석 및 대본 생성, 영상 제작 오케스트레이션.
+2. **Web Server (AWS Cloud 2):** Django 기반의 서비스 로직 및 LangChain을 활용한 대화 엔진 구동.
+3. **GPU Instance (Runpod):** 이미지 생성 및 TTS 추론 등 고부하 연산 전담.
+4. **Database Layer:** 유저별 대화 이력 및 하리의 페르소나 벡터값 저장/조회.
 
 ---
 
 ## 4. Data Preprocessing & Training
-*   **TTS Data:** 전문 성우 녹음본 40문장 정제 (**LSD 9.27, Similarity 0.9636** 확보)
-*   **Persona Data:** 놉크릭 버번, 테크 트렌드 등 구체적인 취향 데이터를 수기 구축하여 RAG 시스템에 이식.
-*   **Image Data:** 캐릭터 일관성을 위해 고유 LoRA 가중치 모델(safetensors) 제작.
+* **TTS Data:** 전문 성우 녹음본 40문장 정제 (**LSD 9.27, Similarity 0.9636** 확보)
+* **Persona Data:** 놉크릭 버번, 테크 트렌드 등 구체적인 취향 데이터를 수기 구축하여 RAG 시스템에 이식.
+* **Image Data:** 캐릭터 일관성을 위해 고유 LoRA 가중치 모델(safetensors) 제작.
 
 ---
 
 ## 5. Getting Started
 
 ### Prerequisites
-*   Python 3.10+
-*   NVIDIA GPU (VRAM 16GB+ 권장)
-*   AWS & OpenAI API Keys
+* Python 3.10+
+* NVIDIA GPU (VRAM 16GB+ 권장)
+* AWS & OpenAI API Keys
 
 ### Installation
 ```bash
@@ -68,8 +68,11 @@ pip install -r requirements.txt
 
 # 서버 실행 (Django)
 python manage.py runserver
+```
 
-## 6. Team Members (SKN22-Final-4Team)
+---
+
+# 6. Team Members (SKN22-Final-4Team)
 
 | 이름 | 역할 | 주요 업무 |
 | :--- | :--- | :--- |
@@ -81,6 +84,6 @@ python manage.py runserver
 
 ---
 
-## 7. License
+# 7. License
 
 본 프로젝트는 **SK네트웍스 Family AI 22기** 교육 과정의 일환으로 제작되었으며, 모든 권리는 **SKN22-Final-4Team**에 있습니다.
