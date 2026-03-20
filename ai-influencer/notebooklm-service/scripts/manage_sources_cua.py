@@ -34,6 +34,7 @@ logger = logging.getLogger("manage_sources_cua")
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 SOURCES_LOG_PATH = DATA_DIR / "sources_log.json"
+NOTEBOOKLM_HOME = "https://notebooklm.google.com"
 
 
 # ─────────────────────────────────────────
@@ -195,20 +196,61 @@ def list_sources_from_page(page, notebook_url: str) -> list[str]:
     return sources
 
 
+def find_notebook_url_by_name_cua(page, client, channel_name: str) -> str:
+    """NotebookLM 홈에서 channel_name으로 노트북을 찾아 URL 반환. 실패 시 '' 반환."""
+    page.goto(NOTEBOOKLM_HOME, wait_until="domcontentloaded", timeout=90000)
+    try:
+        page.wait_for_load_state("networkidle", timeout=30000)
+    except Exception:
+        pass
+    _ensure_logged_in(page)
+    time.sleep(2)
+
+    TASK = (
+        "Task: Find and open a specific notebook on the NotebookLM home page.\n"
+        f"Notebook to find: '{channel_name}'\n"
+        "Steps:\n"
+        "1. You are on the NotebookLM home page showing a grid of existing notebooks.\n"
+        f"2. Find a notebook card whose title contains '{channel_name}'.\n"
+        "   If multiple match, click the most recent one (highest date).\n"
+        "3. Click that notebook card to open it.\n"
+        "4. Wait for the URL to change to /notebook/...\n"
+        f'Output {{"action": "done"}} when the notebook is open.\n'
+        "If no matching notebook is found after scrolling, output done anyway."
+    )
+    success = _run_cua_loop(page, client, TASK, max_steps=15, phase="FIND_NB")
+    if not success:
+        logger.warning("[find_notebook] CUA 실패: channel_name=%r", channel_name)
+        return ""
+
+    time.sleep(2)
+    url = page.url
+    if "notebooklm.google.com/notebook/" not in url:
+        logger.warning("[find_notebook] 노트북 URL 획득 실패: %s", url)
+        return ""
+
+    logger.info("[find_notebook] 발견: %r → %s", channel_name, url)
+    return url
+
+
 # ─────────────────────────────────────────
 # 진입점
 # ─────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", required=True, choices=["list", "add", "delete", "cleanup"])
-    parser.add_argument("--notebook-url", required=True)
+    parser.add_argument("--mode", required=True, choices=["list", "add", "delete", "cleanup", "find"])
+    parser.add_argument("--notebook-url", default="")
+    parser.add_argument("--channel-name", default="")
     parser.add_argument("--output", default="")
     parser.add_argument("--source-url", default="")
     parser.add_argument("--source-title", default="")
     parser.add_argument("--max-sources", type=int, default=20)
     parser.add_argument("--headless", action="store_true")
     args = parser.parse_args()
+
+    if args.mode != "find" and not args.notebook_url:
+        parser.error("--notebook-url is required for this mode")
 
     BROWSER_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
     client = OpenAI()
@@ -226,7 +268,24 @@ def main():
         )
         page = context.new_page()
 
-        if args.mode == "list":
+        if args.mode == "find":
+            if not args.channel_name:
+                parser.error("--channel-name is required for --mode find")
+            notebook_url = find_notebook_url_by_name_cua(page, client, args.channel_name)
+            found = bool(notebook_url)
+            result = {"notebook_url": notebook_url, "found": found}
+            if args.output:
+                Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+                Path(args.output).write_text(
+                    json.dumps(result, ensure_ascii=False), encoding="utf-8"
+                )
+            print(json.dumps(result, ensure_ascii=False))
+            context.close()
+            if not found:
+                sys.exit(1)
+            return
+
+        elif args.mode == "list":
             sources = list_sources_from_page(page, args.notebook_url)
             result = {"sources": sources, "count": len(sources)}
             if args.output:

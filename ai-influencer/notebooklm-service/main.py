@@ -92,6 +92,7 @@ class AddSourceRequest(BaseModel):
     notebook_id: Optional[str] = None
     notebook_url: Optional[str] = None
     channel_id: str = ""              # YouTube 채널 ID로 노트북 자동 조회
+    channel_name: str = ""            # CUA 폴백용 채널 표시 이름
     max_sources: int = 20             # 슬라이딩 윈도우 한도
 
 
@@ -407,15 +408,87 @@ async def get_report_endpoint(
     return response
 
 
+def _save_notebook_url_to_library(channel_id: str, channel_name: str, notebook_url: str) -> None:
+    """library.json의 channels[channel_id]에 notebook_url + name을 저장 (history는 건드리지 않음)."""
+    try:
+        lib: dict = {}
+        if LIBRARY_JSON.exists():
+            lib = json.loads(LIBRARY_JSON.read_text(encoding="utf-8"))
+        ch = lib.setdefault("channels", {}).setdefault(channel_id, {})
+        ch["notebook_url"] = notebook_url
+        if channel_name:
+            ch["name"] = channel_name
+        LIBRARY_JSON.parent.mkdir(parents=True, exist_ok=True)
+        LIBRARY_JSON.write_text(json.dumps(lib, ensure_ascii=False, indent=2), encoding="utf-8")
+        logger.info("[library] CUA 폴백 저장: channel_id=%s → %s", channel_id, notebook_url)
+    except Exception as e:
+        logger.warning("[library] 저장 실패: %s", e)
+
+
+def _get_notebook_url_via_cua(channel_name: str, channel_id: str) -> Optional[str]:
+    """manage_sources_cua.py --mode find로 NotebookLM 홈에서 노트북 URL을 찾는다."""
+    import tempfile
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
+        output_path = tmp.name
+
+    cmd = [
+        "python3",
+        str(SCRIPTS_DIR / "manage_sources_cua.py"),
+        "--mode", "find",
+        "--channel-name", channel_name,
+        "--output", output_path,
+        "--headless",
+    ]
+    logger.info("[cua-fallback] FIND_NB 시작: channel_name=%r", channel_name)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+    except subprocess.TimeoutExpired:
+        logger.error("[cua-fallback] FIND_NB timeout (180s)")
+        return None
+    except Exception as e:
+        logger.error("[cua-fallback] FIND_NB error: %s", e)
+        return None
+
+    for line in (result.stdout or "").strip().splitlines():
+        logger.info("[script] %s", line)
+    for line in (result.stderr or "").strip().splitlines():
+        logger.warning("[script:err] %s", line)
+
+    try:
+        data = json.loads(Path(output_path).read_text(encoding="utf-8"))
+        url = data.get("notebook_url", "")
+        if url:
+            _save_notebook_url_to_library(channel_id, channel_name, url)
+        return url or None
+    except Exception as e:
+        logger.warning("[cua-fallback] 결과 파싱 실패: %s", e)
+        return None
+    finally:
+        Path(output_path).unlink(missing_ok=True)
+
+
 def _run_check_and_add_source(
     source_url: str,
     source_title: str,
     notebook_url: str,
     max_sources: int,
+    channel_id: str = "",
+    channel_name: str = "",
 ) -> AddSourceResponse:
     """소스 추가 + 슬라이딩 윈도우 정리를 subprocess로 실행."""
     scripts_dir = SCRIPTS_DIR
     manage_script = scripts_dir / "manage_sources_cua.py"
+
+    # Step 0: notebook_url 미결정 시 CUA 폴백
+    if not notebook_url:
+        if not channel_name:
+            return AddSourceResponse(status="error", error="notebook_url도 channel_name도 없음")
+        notebook_url = _get_notebook_url_via_cua(channel_name, channel_id) or ""
+        if not notebook_url:
+            return AddSourceResponse(
+                status="error",
+                error=f"CUA fallback 실패: channel_name={channel_name!r}",
+            )
 
     # Step 1: 중복 확인 (sources_log.json 직접 읽기)
     sources_log_path = DATA_DIR / "sources_log.json"
@@ -557,9 +630,7 @@ async def check_and_add_source(
 
     notebook_url = body.notebook_url or (
         _get_notebook_url(body.channel_id) if body.channel_id else None
-    )
-    if not notebook_url:
-        return AddSourceResponse(status="error", error="notebook_url을 결정할 수 없습니다.")
+    ) or ""
 
     import asyncio
     loop = asyncio.get_event_loop()
@@ -570,6 +641,8 @@ async def check_and_add_source(
         body.source_title,
         notebook_url,
         body.max_sources,
+        body.channel_id,
+        body.channel_name,
     )
     return response
 

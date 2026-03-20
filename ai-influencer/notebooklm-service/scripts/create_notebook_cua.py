@@ -86,6 +86,29 @@ def _register_notebook(
 # CUA 노트북 생성
 # ─────────────────────────────────────────
 
+def rename_notebook(page, client, notebook_name: str) -> bool:
+    """CUA로 현재 열린 노트북 제목을 notebook_name으로 변경."""
+    TASK = (
+        "Task: Rename this NotebookLM notebook.\n"
+        f"Target name: '{notebook_name}'\n"
+        "Steps:\n"
+        "1. Find the notebook title at the top of the page "
+        "(currently 'Untitled notebook' or similar).\n"
+        "2. Click on the title text to make it editable.\n"
+        "3. Select all existing text (Ctrl+A) and delete it.\n"
+        f"4. Type the new name: {notebook_name}\n"
+        "5. Press Enter to confirm.\n"
+        f'Output {{"action": "done"}} when the new title is visible.\n'
+        "Do NOT navigate away from this page."
+    )
+    success = _run_cua_loop(page, client, TASK, max_steps=15, phase="RENAME_NB")
+    if success:
+        logger.info("[rename_notebook] 성공: %r", notebook_name)
+    else:
+        logger.warning("[rename_notebook] 실패 (15 스텝 초과) — 이름 미설정, URL은 유효")
+    return success
+
+
 def create_notebook(page, client, notebook_name: str) -> str:
     """CUA로 NotebookLM 홈에서 새 노트북을 생성하고 URL을 반환."""
     logger.info("[create_notebook] 홈 이동: %s", NOTEBOOKLM_HOME)
@@ -154,6 +177,8 @@ def main():
         page = context.new_page()
 
         notebook_url = create_notebook(page, client, args.name)
+        # 이름 변경 (실패해도 notebook_url은 유효하므로 계속 진행)
+        rename_notebook(page, client, args.name)
         context.close()
 
     _register_notebook(
