@@ -2,7 +2,13 @@
 > **"AI 에이전트 시대, 팬 경험을 스케일링하는 새로운 테크 크리에이터"**
 
 <p align="center">
-  <img src="하리 벚꽃.png" alt="HARI Cherry Blossom" width="350"/>
+  <a href="https://linktr.ee/chatting_hari">
+    <img src="https://img.shields.io/badge/Linktree-하리_공식_링크-39E09B?style=for-the-badge&logo=linktree&logoColor=white" alt="HARI Linktree"/>
+  </a>
+</p>
+
+<p align="center">
+  <img src="./하리%20벚꽃.png" alt="HARI Cherry Blossom" width="350"/>
 </p>
 
 ---
@@ -11,6 +17,7 @@
 **하리(HARI)**는 단순한 정보 전달용 챗봇을 넘어, 사용자 전용 '페르소나'를 가진 테크 전문 가상 인플루언서 플랫폼입니다. AI 에이전트 시대를 맞아, 1:1 대화, 실시간 음성 스트리밍, SNS 콘텐츠 자동 생성을 통해 사용자에게 실존하는 셀럽과의 교감(Parasocial Interaction)을 제공합니다.
 
 * **진행 기간:** 2026.03.04 ~ 2026.04.24 (SK네트웍스 Family AI 22기)
+* **공식 링크:** [하리 링크트리 바로가기](https://linktr.ee/chatting_hari)
 * **핵심 가치:** 단방향 콘텐츠 소비에서 벗어난 일상 속 '과몰입' 상호작용 구현
 
 ---
@@ -42,7 +49,7 @@
 ## 3. System Architecture
 
 <p align="center">
-  <img src="hari_architecture_horizontal_final.png" alt="HARI System Architecture" width="100%"/>
+  <img src="./hari_architecture_horizontal_final.png" alt="HARI System Architecture" width="100%"/>
 </p>
 
 위 아키텍처 다이어그램은 하리 플랫폼의 전체적인 데이터 흐름과 컴포넌트 간 상호작용을 시각화합니다.
@@ -76,7 +83,7 @@ git clone [https://github.com/skn-ai22-251029/SKN22-Final-4Team-Web.git](https:/
 cd SKN22-Final-4Team-Web/backend
 pip install -r requirements.txt
 
-# 서버 실행
+# 서버 실행 (Django)
 python manage.py runserver
 ```
 
