@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="./하리%20벚꽃.png" alt="HARI Cherry Blossom" width="350"/>
+  <img width="1024" height="1024" alt="Image" src="https://github.com/user-attachments/assets/19d961a5-22cc-4c22-84a7-677388c86e5f" />
 </p>
 
 ---
@@ -49,7 +49,7 @@
 ## 3. System Architecture
 
 <p align="center">
-  <img src="./hari_architecture_horizontal_final.png" alt="HARI System Architecture" width="100%"/>
+  <img width="3840" height="1680" alt="Image" src="https://github.com/user-attachments/assets/0e7b97a3-f3d0-487d-9157-e485a5109137" />
 </p>
 
 위 아키텍처 다이어그램은 하리 플랫폼의 전체적인 데이터 흐름과 컴포넌트 간 상호작용을 시각화합니다.
@@ -93,11 +93,11 @@ python manage.py runserver
 
 | 사진 | 이름 | 역할 | 주요 업무 |
 | :---: | :--- | :--- | :--- |
-| <img src="minho.jpg" width="60"> | **최민호** | **PM** | PM, BM 개발, 시장 조사, 데이터 수집 총괄 |
-| <img src="jun.jpg" width="60"> | **박준석** | **Creative** | 세계관 구축, UI/UX 설계, 데이터 수집 |
-| <img src="minje.jpg" width="60"> | **안민제** | **AI Lead** | TTS(GPT-SoVITS) 학습 및 생성, LLM TTS 스트리밍 설계 |
-| <img src="han.jpg" width="60"> | **한승혁** | **Infra** | 클라우드 서버 관리, 이미지/영상 학습 및 생성 |
-| <img src="eun.png" width="60"> | **엄형은** | **Contents** | 대본 생성 자동화, 콘텐츠 생성-업로드 파이프라인 구축 |
+| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/17c43ef6-fbc6-484e-9fe2-09b365c283d1" /> | **최민호** | **PM** | PM, BM 개발, 시장 조사, 데이터 수집 총괄 |
+| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/28447344-fbb5-4f26-90bb-11ad3a8fd477" /> | **박준석** | **Creative** | 세계관 구축, UI/UX 설계, 데이터 수집 |
+| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/71c56c29-1306-4cd4-9fe3-78c1b7942096" /> | **안민제** | **AI Lead** | TTS(GPT-SoVITS) 학습 및 생성, LLM TTS 스트리밍 설계 |
+| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/c9470eb1-95db-43b0-b8f0-0d953a559891" /> | **한승혁** | **Infra** | 클라우드 서버 관리, 이미지/영상 학습 및 생성 |
+| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/05847c89-5f59-4184-81b3-355e85a85fa5" /> | **엄형은** | **Contents** | 대본 생성 자동화, 콘텐츠 생성-업로드 파이프라인 구축 |
 
 ---
 
