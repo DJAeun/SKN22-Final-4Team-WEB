@@ -27,6 +27,7 @@
     {
       "parameters": {
         "conditions": {
+          "options": { "caseSensitive": true },
           "conditions": [
             {
               "id": "skip-check",
@@ -65,7 +66,7 @@
       "id": "wf10-create-notebook",
       "name": "노트북 생성",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
+      "typeVersion": 4.2,
       "position": [840, 220]
     },
     {
