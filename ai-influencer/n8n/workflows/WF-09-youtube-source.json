@@ -4,22 +4,14 @@
     {
       "parameters": {
         "rule": {
-          "interval": [
-            {
-              "field": "hours",
-              "hoursInterval": 1
-            }
-          ]
+          "interval": [{ "field": "hours", "hoursInterval": 1 }]
         }
       },
       "id": "wf09-schedule",
       "name": "매시간 실행",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
-      "position": [
-        240,
-        300
-      ]
+      "position": [240, 300]
     },
     {
       "parameters": {
@@ -30,26 +22,18 @@
       "name": "채널 목록 파싱",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        440,
-        300
-      ]
+      "position": [440, 300]
     },
     {
       "parameters": {
         "conditions": {
-          "options": {
-            "caseSensitive": true
-          },
+          "options": { "caseSensitive": true },
           "conditions": [
             {
               "id": "skip-check",
               "leftValue": "={{ $json.skip }}",
               "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "notEquals"
-              }
+              "operator": { "type": "boolean", "operation": "notEquals" }
             }
           ],
           "combinator": "and"
@@ -59,64 +43,29 @@
       "name": "채널 있는 경우만",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [
-        640,
-        300
-      ]
+      "position": [640, 300]
     },
     {
       "parameters": {
-        "url": "=https://www.youtube.com/feeds/videos.xml?channel_id={{ $json.channelId }}",
-        "method": "GET",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          }
-        }
-      },
-      "id": "wf09-fetch-rss",
-      "name": "YouTube RSS 조회",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [
-        840,
-        220
-      ],
-      "retryOnFail": true,
-      "maxTries": 800,
-      "waitBetweenTries": 100
-    },
-    {
-      "parameters": {
-        "jsCode": "// RSS XML 파싱: 최근 1.5시간 이내 업로드 영상만 추출 (Shorts 제외)\nconst xml = $input.item.json.data || '';\nconst channelId = $('채널 있는 경우만').item.json.channelId || '';\nconst topic = $('채널 있는 경우만').item.json.topic || '';\n\nconst entries = [];\nconst entryRegex = /<entry>([\\s\\S]*?)<\\/entry>/g;\nlet match;\n\nwhile ((match = entryRegex.exec(xml)) !== null) {\n  const block = match[1];\n  const videoId = (block.match(/<yt:videoId>([^<]+)<\\/yt:videoId>/) || [])[1];\n  const title = (block.match(/<title>([^<]+)<\\/title>/) || [])[1] || '';\n  const published = (block.match(/<published>([^<]+)<\\/published>/) || [])[1] || '';\n  const linkMatch = block.match(/<link rel=\"alternate\" href=\"([^\"]+)\"/);\n  const videoLink = linkMatch ? linkMatch[1] : '';\n\n  if (!videoId) continue;\n\n  // YouTube Shorts 제외 (NotebookLM이 Shorts 트랜스크립트를 지원하지 않음)\n  if (videoLink.includes('/shorts/')) continue;\n\n  const publishedMs = new Date(published).getTime();\n  const cutoffMs = Date.now() - 90 * 60 * 1000; // 1.5시간 이내\n\n  if (publishedMs >= cutoffMs) {\n    entries.push({\n      videoUrl: `https://www.youtube.com/watch?v=${videoId}`,\n      title: title.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>'),\n      publishedAt: published,\n      channelId,\n      topic,\n    });\n  }\n}\n\nif (entries.length === 0) {\n  return [{ json: { skip: true, channelId, topic, reason: '새 영상 없음 (Shorts 포함 필터링)' } }];\n}\n\nreturn entries.map(e => ({ json: e }));",
+        "jsCode": "// YouTube RSS 조회 (최대 10회 재시도, 3초 간격) + 새 영상 필터링 (Shorts 제외)\nconst channelId = $json.channelId || '';\nconst topic = $json.topic || '';\nconst RSS_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;\nconst MAX_RETRIES = 10;\nconst WAIT_MS = 3000;\n\nlet xml = '';\nfor (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {\n  try {\n    const body = await $helpers.httpRequest({\n      method: 'GET',\n      url: RSS_URL,\n    });\n    if (typeof body === 'string' && body.includes('<feed')) {\n      xml = body;\n      break;\n    }\n    // 응답은 왔지만 유효한 XML이 아님 (404 HTML 등)\n    if (attempt < MAX_RETRIES) {\n      await new Promise(r => setTimeout(r, WAIT_MS));\n    }\n  } catch (e) {\n    // HTTP 에러 (404, 500 등)\n    if (attempt < MAX_RETRIES) {\n      await new Promise(r => setTimeout(r, WAIT_MS));\n    }\n  }\n}\n\nif (!xml) {\n  return [{ json: { skip: true, channelId, topic, reason: `RSS 조회 실패 (${MAX_RETRIES}회 재시도)` } }];\n}\n\n// RSS 파싱: Shorts 제외, 1.5시간 이내\nconst entries = [];\nconst entryRegex = /<entry>([\\s\\S]*?)<\\/entry>/g;\nlet match;\n\nwhile ((match = entryRegex.exec(xml)) !== null) {\n  const block = match[1];\n  const videoId = (block.match(/<yt:videoId>([^<]+)<\\/yt:videoId>/) || [])[1];\n  const title = (block.match(/<title>([^<]+)<\\/title>/) || [])[1] || '';\n  const published = (block.match(/<published>([^<]+)<\\/published>/) || [])[1] || '';\n  const linkMatch = block.match(/<link rel=\"alternate\" href=\"([^\"]+)\"/);\n  const videoLink = linkMatch ? linkMatch[1] : '';\n\n  if (!videoId) continue;\n\n  // YouTube Shorts 제외 (NotebookLM이 Shorts 트랜스크립트를 지원하지 않음)\n  if (videoLink.includes('/shorts/')) continue;\n\n  const publishedMs = new Date(published).getTime();\n  const cutoffMs = Date.now() - 90 * 60 * 1000; // 1.5시간 이내\n\n  if (publishedMs >= cutoffMs) {\n    entries.push({\n      videoUrl: `https://www.youtube.com/watch?v=${videoId}`,\n      title: title.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>'),\n      publishedAt: published,\n      channelId,\n      topic,\n    });\n  }\n}\n\nif (entries.length === 0) {\n  return [{ json: { skip: true, channelId, topic, reason: '새 영상 없음 (Shorts 포함 필터링)' } }];\n}\n\nreturn entries.map(e => ({ json: e }));",
         "options": {}
       },
-      "id": "wf09-parse-rss",
-      "name": "새 영상 필터링",
+      "id": "wf09-fetch-and-filter",
+      "name": "RSS 조회 + 새 영상 필터링",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1040,
-        220
-      ]
+      "position": [840, 220]
     },
     {
       "parameters": {
         "conditions": {
-          "options": {
-            "caseSensitive": true
-          },
+          "options": { "caseSensitive": true },
           "conditions": [
             {
               "id": "skip-check",
               "leftValue": "={{ $json.skip }}",
               "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "notEquals"
-              }
+              "operator": { "type": "boolean", "operation": "notEquals" }
             }
           ],
           "combinator": "and"
@@ -126,10 +75,7 @@
       "name": "새 영상 있는 경우만",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [
-        1240,
-        220
-      ]
+      "position": [1040, 220]
     },
     {
       "parameters": {
@@ -138,14 +84,8 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "X-Internal-Secret",
-              "value": "={{ $env.GATEWAY_INTERNAL_SECRET }}"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
+            { "name": "X-Internal-Secret", "value": "={{ $env.GATEWAY_INTERNAL_SECRET }}" },
+            { "name": "Content-Type", "value": "application/json" }
           ]
         },
         "sendBody": true,
@@ -159,10 +99,7 @@
       "name": "NotebookLM 소스 추가",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        1440,
-        140
-      ]
+      "position": [1240, 140]
     },
     {
       "parameters": {
@@ -173,91 +110,33 @@
       "name": "결과 로깅",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1640,
-        140
-      ]
+      "position": [1440, 140]
     }
   ],
   "connections": {
     "매시간 실행": {
-      "main": [
-        [
-          {
-            "node": "채널 목록 파싱",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "채널 목록 파싱", "type": "main", "index": 0 }]]
     },
     "채널 목록 파싱": {
-      "main": [
-        [
-          {
-            "node": "채널 있는 경우만",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "채널 있는 경우만", "type": "main", "index": 0 }]]
     },
     "채널 있는 경우만": {
       "main": [
-        [
-          {
-            "node": "YouTube RSS 조회",
-            "type": "main",
-            "index": 0
-          }
-        ],
+        [{ "node": "RSS 조회 + 새 영상 필터링", "type": "main", "index": 0 }],
         []
       ]
     },
-    "YouTube RSS 조회": {
-      "main": [
-        [
-          {
-            "node": "새 영상 필터링",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "새 영상 필터링": {
-      "main": [
-        [
-          {
-            "node": "새 영상 있는 경우만",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "RSS 조회 + 새 영상 필터링": {
+      "main": [[{ "node": "새 영상 있는 경우만", "type": "main", "index": 0 }]]
     },
     "새 영상 있는 경우만": {
       "main": [
-        [
-          {
-            "node": "NotebookLM 소스 추가",
-            "type": "main",
-            "index": 0
-          }
-        ],
+        [{ "node": "NotebookLM 소스 추가", "type": "main", "index": 0 }],
         []
       ]
     },
     "NotebookLM 소스 추가": {
-      "main": [
-        [
-          {
-            "node": "결과 로깅",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "결과 로깅", "type": "main", "index": 0 }]]
     }
   },
   "settings": {
