@@ -111,20 +111,40 @@ def add_source_cua(page, client, notebook_url: str, source_url: str, source_titl
     _ensure_logged_in(page)
     time.sleep(2)
 
-    TASK = (
-        "Task: Add a new source to this NotebookLM notebook.\n"
-        f"Source URL: {source_url}\n"
-        "Steps:\n"
-        "1. Find the Sources panel on the LEFT side of the screen\n"
-        "2. Click the '+' button or '소스 추가' (Add source) button\n"
-        "3. If a menu appears, select 'URL' or '링크' or 'YouTube' option\n"
-        "4. In the URL input field, type the URL using the 'type' action:\n"
-        f"   {source_url}\n"
-        "5. Click '삽입', '추가', or 'Insert' to confirm\n"
-        "6. Wait for the source to appear in the sources list\n"
-        f'Output {{"action": "done"}} when the source has been successfully added.\n'
-        "Use the 'type' action to enter the URL — do not use keyboard shortcut paste."
-    )
+    is_youtube = "youtube.com/watch" in source_url or "youtu.be/" in source_url
+
+    if is_youtube:
+        TASK = (
+            "Task: Add a YouTube video as a source to this NotebookLM notebook.\n"
+            f"YouTube URL: {source_url}\n"
+            "Steps:\n"
+            "1. Find the Sources panel on the LEFT side of the screen.\n"
+            "2. Click the '+ 소스 추가' (Add source) button.\n"
+            "3. A dialog/menu appears with source type options. "
+            "You MUST click the 'YouTube' option (NOT '웹사이트', NOT '링크', NOT 'URL'). "
+            "Look for a button or icon labeled 'YouTube'.\n"
+            "4. A URL input field appears. Click it and type the YouTube URL using the 'type' action:\n"
+            f"   {source_url}\n"
+            "5. Click '삽입' or '추가' or the arrow/confirm button to submit.\n"
+            "6. Wait for the source title to appear in the sources list on the left.\n"
+            f'Output {{"action": "done"}} when the YouTube source appears in the sources list.\n'
+            "IMPORTANT: You MUST select 'YouTube' in step 3, not any other URL option."
+        )
+    else:
+        TASK = (
+            "Task: Add a new web source to this NotebookLM notebook.\n"
+            f"Source URL: {source_url}\n"
+            "Steps:\n"
+            "1. Find the Sources panel on the LEFT side of the screen.\n"
+            "2. Click the '+ 소스 추가' (Add source) button.\n"
+            "3. If a menu appears, select '웹사이트' or 'URL' or '링크' option.\n"
+            "4. In the URL input field, type the URL using the 'type' action:\n"
+            f"   {source_url}\n"
+            "5. Click '삽입', '추가', or 'Insert' to confirm.\n"
+            "6. Wait for the source to appear in the sources list.\n"
+            f'Output {{"action": "done"}} when the source has been successfully added.\n'
+            "Use the 'type' action to enter the URL — do not use keyboard shortcut paste."
+        )
     success = _run_cua_loop(page, client, TASK, max_steps=15, phase="ADD_SRC")
     if success:
         logger.info("[add_source] 성공: %s", source_url)
