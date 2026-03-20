@@ -1,12 +1,23 @@
 # 🎥 HARI: The AI Virtual Influencer
 > **"AI 에이전트 시대, 팬 경험을 스케일링하는 새로운 테크 크리에이터"**
 
+<p align="center">
+  <a href="https://linktr.ee/chatting_hari">
+    <img src="https://img.shields.io/badge/Linktree-하리_공식_링크-39E09B?style=for-the-badge&logo=linktree&logoColor=white" alt="HARI Linktree"/>
+  </a>
+</p>
+
+<p align="center">
+  <img src="./하리%20벚꽃.png" alt="HARI Cherry Blossom" width="350"/>
+</p>
+
 ---
 
 ## 0. Project Overview
-**하리(HARI)**는 단순한 정보 전달용 챗봇을 넘어, 사용자 전용 '페르소나'를 가진 테크 전문 가상 인플루언서 플랫폼입니다. 1:1 대화, 실시간 음성 스트리밍, SNS 콘텐츠 자동 생성을 통해 사용자에게 실존하는 셀럽과의 교감(Parasocial Interaction)을 제공합니다.
+**하리(HARI)**는 단순한 정보 전달용 챗봇을 넘어, 사용자 전용 '페르소나'를 가진 테크 전문 가상 인플루언서 플랫폼입니다. AI 에이전트 시대를 맞아, 1:1 대화, 실시간 음성 스트리밍, SNS 콘텐츠 자동 생성을 통해 사용자에게 실존하는 셀럽과의 교감(Parasocial Interaction)을 제공합니다.
 
 * **진행 기간:** 2026.03.04 ~ 2026.04.24 (SK네트웍스 Family AI 22기)
+* **공식 링크:** [하리 링크트리 바로가기](https://linktr.ee/chatting_hari)
 * **핵심 가치:** 단방향 콘텐츠 소비에서 벗어난 일상 속 '과몰입' 상호작용 구현
 
 ---
@@ -36,6 +47,12 @@
 ---
 
 ## 3. System Architecture
+
+<p align="center">
+  <img src="./hari_architecture_horizontal_final.png" alt="HARI System Architecture" width="100%"/>
+</p>
+
+위 아키텍처 다이어그램은 하리 플랫폼의 전체적인 데이터 흐름과 컴포넌트 간 상호작용을 시각화합니다.
 1. **Automation Pipeline (AWS Cloud 1):** SNS 트렌드 분석 및 대본 생성, 영상 제작 오케스트레이션.
 2. **Web Server (AWS Cloud 2):** Django 기반의 서비스 로직 및 LangChain을 활용한 대화 엔진 구동.
 3. **GPU Instance (Runpod):** 이미지 생성 및 TTS 추론 등 고부하 연산 전담.
@@ -46,7 +63,7 @@
 ## 4. Data Preprocessing & Training
 * **TTS Data:** 전문 성우 녹음본 40문장 정제 (**LSD 9.27, Similarity 0.9636** 확보)
 * **Persona Data:** 놉크릭 버번, 테크 트렌드 등 구체적인 취향 데이터를 수기 구축하여 RAG 시스템에 이식.
-* **Image Data:** 캐릭터 일관성을 위해 고유 LoRA 가중치 모델(safetensors) 제작.
+* **Image Data:** 캐릭터 일관성을 위해 고유 LoRA 가중치 모델(`safetensors`) 제작.
 
 ---
 
@@ -62,8 +79,8 @@
 # Repository 클론
 git clone [https://github.com/skn-ai22-251029/SKN22-Final-4Team-Web.git](https://github.com/skn-ai22-251029/SKN22-Final-4Team-Web.git)
 
-# 가상환경 설정 및 패키지 설치
-cd SKN22-Final-4Team-Web
+# 백엔드 디렉토리 이동 및 패키지 설치
+cd SKN22-Final-4Team-Web/backend
 pip install -r requirements.txt
 
 # 서버 실행 (Django)
@@ -72,18 +89,18 @@ python manage.py runserver
 
 ---
 
-# 6. Team Members (SKN22-Final-4Team)
+## 6. Team Members (SKN22-Final-4Team)
 
-| 이름 | 역할 | 주요 업무 |
-| :--- | :--- | :--- |
-| **최민호** | **PM** | PM, BM 개발, 시장 조사, 데이터 수집 총괄 |
-| **박준석** | **Creative** | 세계관 구축, UI/UX 설계, 데이터 수집 |
-| **안민제** | **AI Lead** | TTS(GPT-SoVITS) 고도화, LLM 대화 엔진 설계 |
-| **한승혁** | **Infra** | 클라우드 서버 관리, 이미지/영상 생성 파이프라인 구축 |
-| **엄형은** | **Contents** | 영상 대본 생성 자동화, 숏폼 업로드 파이프라인 안정화 |
+| 사진 | 이름 | 역할 | 주요 업무 |
+| :---: | :--- | :--- | :--- |
+| <img src="minho.jpg" width="60"> | **최민호** | **PM** | PM, BM 개발, 시장 조사, 데이터 수집 총괄 |
+| <img src="jun.jpg" width="60"> | **박준석** | **Creative** | 세계관 구축, UI/UX 설계, 데이터 수집 |
+| <img src="minje.jpg" width="60"> | **안민제** | **AI Lead** | TTS(GPT-SoVITS) 고도화, LLM 대화 엔진 설계 |
+| <img src="han.jpg" width="60"> | **한승혁** | **Infra** | 클라우드 서버 관리, 이미지/영상 생성 파이프라인 구축 |
+| <img src="eun.png" width="60"> | **엄형은** | **Contents** | 영상 대본 생성 자동화, 숏폼 업로드 파이프라인 안정화 |
 
 ---
 
-# 7. License
+## 7. License
 
 본 프로젝트는 **SK네트웍스 Family AI 22기** 교육 과정의 일환으로 제작되었으며, 모든 권리는 **SKN22-Final-4Team**에 있습니다.
