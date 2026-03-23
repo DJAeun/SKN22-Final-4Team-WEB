@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(aws elasticbeanstalk:*)",
-      "Bash(aws logs:*)"
-    ]
-  }
-}
