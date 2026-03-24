@@ -70,18 +70,53 @@ class HariAIEngine:
 
             config = {"configurable": {"thread_id": str(session_id)}}
 
-            # Retrieve relevant past conversations for this user
+            # Retrieve Hari persona, user facts, and relevant past conversations
             memory_context = ""
             try:
-                from .memory_vector import retrieve_relevant_memories
+                from .memory_vector import (
+                    retrieve_hari_knowledge,
+                    retrieve_relevant_memories,
+                    retrieve_user_persona,
+                )
                 user_id = int(session_id)
+
+                # 1. Hari's persona — relevant Q&A from hari_knowledge
+                hari_facts = retrieve_hari_knowledge(user_input, top_k=5)
+                if hari_facts:
+                    qa_lines = [
+                        f"- Q: {f['question']}? → A: {f['answer']}"
+                        for f in hari_facts
+                    ]
+                    memory_context += (
+                        "\n\n[하리 페르소나]\n"
+                        "다음은 너(하리)에 대한 설정이야. "
+                        "이 정보를 바탕으로 일관되게 대답해. "
+                        "설정에 없는 내용은 자연스럽게 만들어도 되지만, 설정과 모순되면 안 돼:\n"
+                        + "\n".join(qa_lines)
+                    )
+
+                # 2. User persona — stable facts about this user
+                persona_facts = retrieve_user_persona(user_id)
+                if persona_facts:
+                    fact_lines = [
+                        f"- {f['trait_key']}: {f['trait_value']}"
+                        for f in persona_facts
+                    ]
+                    memory_context += (
+                        "\n\n[유저 정보]\n"
+                        "다음은 이 유저에 대해 알고 있는 정보야. "
+                        "자연스럽게 참고하되, 일일이 언급하지는 마:\n"
+                        + "\n".join(fact_lines)
+                    )
+
+                # 3. Past conversations — semantically relevant transcripts
                 memories = retrieve_relevant_memories(user_id, user_input, top_k=3)
                 if memories:
-                    memory_lines = []
-                    for m in memories:
-                        snippet = m["summary"][:500]
-                        memory_lines.append(f"- ({m['ended_at']}): {snippet}")
-                    memory_context = (
+                    memory_lines = [
+                        f"- ({m['ended_at']}): {m['summary'][:500]}"
+                        for m in memories
+                    ]
+                    memory_context += (
                         "\n\n[이전 대화 기억]\n"
                         "다음은 이 유저와 나눴던 과거 대화 중 지금 대화와 관련이 있는 내용이야. "
                         "자연스럽게 참고해서 대화해:\n"
