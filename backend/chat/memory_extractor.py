@@ -1,0 +1,366 @@
+"""
+memory_extractor.py
+───────────────────
+Background memory-extraction pipeline.
+
+On each session end it:
+  1. Calls GPT-4o-mini (structured output) to extract memorable facts.
+  2. Classifies each fact as "user" or "hari".
+  3. Scores importance 1-10.
+  4. Embeds each fact and does a contradiction check via cosine similarity.
+  5. Routes to the correct table:
+       • user facts  (importance >= IMPORTANCE_MIN_USER) → user_memory
+       • hari facts  (importance >= IMPORTANCE_MIN_HARI, update_hari=True) → hari_knowledge
+
+Invoked via asyncio.create_task() — NEVER awaited from the hot path.
+"""
+import logging
+from typing import Literal
+
+from asgiref.sync import sync_to_async
+from django.db import connection
+from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
+
+# ── Thresholds ────────────────────────────────────────────────────────────────
+IMPORTANCE_MIN_USER = 5       # facts below this score are noise
+IMPORTANCE_MIN_HARI = 7       # facts below this score don't touch hari_knowledge
+CONTRADICTION_SIM   = 0.88    # cosine similarity above which we resolve a conflict
+
+
+# ── Pydantic schemas for structured LLM output ───────────────────────────────
+
+class ExtractedFact(BaseModel):
+    subject: Literal["user", "hari"] = Field(
+        description=(
+            "'user' for facts about the user. "
+            "'hari' for explicit updates to Hari's own persona, opinions, or worldview."
+        )
+    )
+    category: str = Field(
+        description=(
+            "Snake_case label, e.g. food_preferences, hobbies, occupation, "
+            "personality_trait, worldview, travel_preferences, dislikes."
+        )
+    )
+    trait_key: str = Field(
+        description="Short key describing the aspect, e.g. 'favorite_food' or 'attitude_toward_travel'."
+    )
+    trait_value: str = Field(
+        description="The concrete fact, stated concisely and objectively."
+    )
+    importance: int = Field(
+        ge=1, le=10,
+        description=(
+            "Importance score 1-10. "
+            "1-3: trivial. 4-5: mild/general. 6: specific preference. "
+            "7-8: stable life fact or strong preference. 9-10: core identity or major event."
+        )
+    )
+
+
+class ExtractionResult(BaseModel):
+    extractions: list[ExtractedFact] = Field(
+        description="Extracted facts. Return an EMPTY list if nothing worth remembering was found."
+    )
+
+
+# ── System prompt ─────────────────────────────────────────────────────────────
+
+_SYSTEM_PROMPT = """\
+You are a precise, objective memory extraction engine for an AI persona named Hari.
+Your job is to read a conversation transcript and extract facts worth remembering long-term.
+
+━━━ ABSOLUTE RULES ━━━
+1. Extract ONLY what is EXPLICITLY stated. Never infer, guess, or extrapolate.
+2. Ignore hypotheticals ("what if…"), sarcasm, jokes, and passing situational comments.
+3. Ignore greetings, farewells, filler words, and purely one-time remarks.
+4. If a statement is ambiguous or unclear, SKIP it entirely.
+5. Each distinct fact must be a separate entry — do not bundle multiple facts.
+6. Return an EMPTY extractions list if there is truly nothing worth remembering.
+
+━━━ SUBJECT CLASSIFICATION ━━━
+• "user"  → Facts about the USER: preferences, opinions, life circumstances, personality,
+            relationships, occupation, experiences, or strong feelings.
+• "hari"  → Use ONLY for explicit new information that updates HARI'S OWN persona, opinions,
+            stated worldview, expressed experiences, or preferences. This is rare.
+
+━━━ IMPORTANCE SCORING — be conservative, lean lower ━━━
+• 1–2 : Trivial / universally common (said hello, mentioned today's weather)
+• 3   : Casual passing mention with no lasting relevance
+• 4–5 : Mild or general preference (likes cats, prefers evenings somewhat)
+• 6   : Clear preference with specificity (wakes at 6am to run, dislikes crowds)
+• 7–8 : Stable specific life fact or strong preference (is a nurse, hates flying)
+• 9–10: Core identity, deeply-held belief, or major life event (chronic illness, recent divorce)
+
+━━━ CONTRADICTION HANDLING ━━━
+If the user explicitly contradicts something stated before (e.g., now dislikes X after previously
+liking X), extract the NEW fact at its earned importance score. Do not suppress contradictions.
+
+━━━ CATEGORY LABELS (use these or similar snake_case) ━━━
+food_preferences, beverage_preferences, hobbies, sports_interests, music_preferences,
+movie_preferences, occupation, family_situation, relationship_status, personality_trait,
+travel_preferences, health_conditions, pet_ownership, technology_preferences,
+worldview, attitude_toward_X, life_events, dislikes, communication_style\
+"""
+
+
+# ── LLM extraction ────────────────────────────────────────────────────────────
+
+async def _extract_facts(transcript: str) -> list[ExtractedFact]:
+    """Call GPT-4o-mini with structured output. Returns [] on any failure."""
+    try:
+        from langchain_openai import ChatOpenAI
+        from langchain_core.messages import SystemMessage, HumanMessage
+
+        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+        structured_llm = llm.with_structured_output(ExtractionResult)
+
+        result: ExtractionResult = await structured_llm.ainvoke([
+            SystemMessage(content=_SYSTEM_PROMPT),
+            HumanMessage(content=(
+                "Extract memorable facts from the following conversation transcript.\n\n"
+                f"{transcript}"
+            )),
+        ])
+        logger.info("Extraction LLM returned %d facts.", len(result.extractions))
+        return result.extractions
+
+    except Exception as e:
+        logger.error("Extraction LLM call failed: %s", e, exc_info=True)
+        return []
+
+
+# ── Embedding helper ──────────────────────────────────────────────────────────
+
+def _embed_fact_sync(fact: ExtractedFact) -> str | None:
+    """
+    Embed a fact as '[category] trait_key: trait_value'.
+    Returns pgvector literal string or None on failure.
+    Runs synchronously — call via sync_to_async.
+    """
+    from .memory_vector import embed_text, _vector_to_str
+    text = f"[{fact.category}] {fact.trait_key}: {fact.trait_value}"
+    vector = embed_text(text)
+    return _vector_to_str(vector) if vector else None
+
+
+# ── user_memory persistence ───────────────────────────────────────────────────
+
+def _upsert_user_memory_sync(user_id: int, fact: ExtractedFact, vector_str: str | None) -> None:
+    """
+    Contradiction-aware upsert into user_memory.
+
+    Logic:
+      • If a highly similar (>= CONTRADICTION_SIM) active record exists in the same category:
+          - New importance >= existing: deactivate old, insert new.
+          - New importance <  existing: skip (older, higher-confidence memory wins).
+      • Otherwise: insert new record.
+
+    Runs synchronously — call via sync_to_async.
+    """
+    with connection.cursor() as cur:
+        # ── Contradiction check (only possible when we have a vector) ──────
+        if vector_str:
+            cur.execute(
+                """
+                SELECT id, trait_value, importance,
+                       1 - (content_vector <=> %s::vector) AS similarity
+                FROM user_memory
+                WHERE user_id = %s
+                  AND category = %s
+                  AND is_active = TRUE
+                  AND content_vector IS NOT NULL
+                ORDER BY content_vector <=> %s::vector
+                LIMIT 1
+                """,
+                [vector_str, user_id, fact.category, vector_str],
+            )
+            row = cur.fetchone()
+            if row:
+                existing_id, existing_val, existing_imp, similarity = row
+                if similarity >= CONTRADICTION_SIM:
+                    if fact.importance >= existing_imp:
+                        cur.execute(
+                            "UPDATE user_memory SET is_active = FALSE, updated_at = NOW()"
+                            " WHERE id = %s",
+                            [existing_id],
+                        )
+                        logger.info(
+                            "Contradiction resolved: deactivated user_memory id=%s "
+                            "(old='%.50s' → new='%.50s', sim=%.2f)",
+                            existing_id, existing_val, fact.trait_value, similarity,
+                        )
+                    else:
+                        logger.info(
+                            "Skipping lower-importance fact for user=%s "
+                            "(score=%d < existing=%d, key='%s')",
+                            user_id, fact.importance, existing_imp, fact.trait_key,
+                        )
+                        return  # existing memory is more reliable
+
+        # ── Insert ────────────────────────────────────────────────────────
+        if vector_str:
+            cur.execute(
+                """
+                INSERT INTO user_memory
+                    (user_id, category, trait_key, trait_value, importance, content_vector)
+                VALUES (%s, %s, %s, %s, %s, %s::vector)
+                """,
+                [user_id, fact.category, fact.trait_key, fact.trait_value,
+                 fact.importance, vector_str],
+            )
+        else:
+            cur.execute(
+                """
+                INSERT INTO user_memory
+                    (user_id, category, trait_key, trait_value, importance)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                [user_id, fact.category, fact.trait_key, fact.trait_value, fact.importance],
+            )
+
+    logger.info(
+        "Saved user_memory: user=%s category=%s key='%s' importance=%d",
+        user_id, fact.category, fact.trait_key, fact.importance,
+    )
+
+
+# ── hari_knowledge persistence ────────────────────────────────────────────────
+
+def _upsert_hari_knowledge_sync(fact: ExtractedFact, vector_str: str | None) -> None:
+    """
+    Contradiction-aware upsert into hari_knowledge.
+
+    Uses the ingest-script schema: (category, question, answer, content_vector, is_active).
+    trait_key → question column, trait_value → answer column.
+
+    If a highly similar active record exists: deactivate it and insert the new one
+    (Hari's persona evolves — new information always wins at this stage because the
+    caller already filtered for importance >= IMPORTANCE_MIN_HARI).
+
+    Runs synchronously — call via sync_to_async.
+    """
+    with connection.cursor() as cur:
+        # ── Contradiction check ───────────────────────────────────────────
+        if vector_str:
+            cur.execute(
+                """
+                SELECT id, answer,
+                       1 - (content_vector <=> %s::vector) AS similarity
+                FROM hari_knowledge
+                WHERE is_active = TRUE
+                  AND content_vector IS NOT NULL
+                ORDER BY content_vector <=> %s::vector
+                LIMIT 1
+                """,
+                [vector_str, vector_str],
+            )
+            row = cur.fetchone()
+            if row:
+                existing_id, existing_answer, similarity = row
+                if similarity >= CONTRADICTION_SIM:
+                    cur.execute(
+                        "UPDATE hari_knowledge"
+                        " SET is_active = FALSE, updated_at = NOW()"
+                        " WHERE id = %s",
+                        [existing_id],
+                    )
+                    logger.info(
+                        "Hari contradiction resolved: deactivated hari_knowledge id=%s "
+                        "(old='%.50s', sim=%.2f)",
+                        existing_id, existing_answer, similarity,
+                    )
+
+        # ── Insert ────────────────────────────────────────────────────────
+        if vector_str:
+            cur.execute(
+                """
+                INSERT INTO hari_knowledge (category, question, answer, content_vector, is_active)
+                VALUES (%s, %s, %s, %s::vector, TRUE)
+                """,
+                [fact.category, fact.trait_key, fact.trait_value, vector_str],
+            )
+        else:
+            cur.execute(
+                """
+                INSERT INTO hari_knowledge (category, question, answer, is_active)
+                VALUES (%s, %s, %s, TRUE)
+                """,
+                [fact.category, fact.trait_key, fact.trait_value],
+            )
+
+    logger.info(
+        "Updated hari_knowledge: category=%s key='%s' importance=%d",
+        fact.category, fact.trait_key, fact.importance,
+    )
+
+
+# ── Async wrappers ────────────────────────────────────────────────────────────
+
+_async_embed       = sync_to_async(_embed_fact_sync,       thread_sensitive=False)
+_async_save_user   = sync_to_async(_upsert_user_memory_sync,  thread_sensitive=False)
+_async_save_hari   = sync_to_async(_upsert_hari_knowledge_sync, thread_sensitive=False)
+
+
+# ── Main pipeline ─────────────────────────────────────────────────────────────
+
+async def run_extraction_pipeline(
+    user_id: int,
+    session_messages: list[dict],
+    update_hari: bool = False,
+) -> None:
+    """
+    Full extraction pipeline. Designed to run as a fire-and-forget asyncio.Task.
+
+    Args:
+        user_id:          Authenticated user's ID.
+        session_messages: Snapshot of the session (list of {"sender", "content"}).
+        update_hari:      Whether high-importance Hari facts should update hari_knowledge.
+                          Typically True only at persona-update milestones.
+    """
+    if not session_messages:
+        return
+
+    # Build plain transcript
+    transcript = "\n".join(
+        f"{'User' if m['sender'] == 'user' else 'Hari'}: {m['content']}"
+        for m in session_messages
+    )
+
+    # ── 1. Extract facts ────────────────────────────────────────────────────
+    facts = await _extract_facts(transcript)
+    if not facts:
+        logger.info("Extraction pipeline: no facts found for user=%s.", user_id)
+        return
+
+    # ── 2. Embed + persist each fact ───────────────────────────────────────
+    for fact in facts:
+        try:
+            # Route by subject + importance threshold
+            if fact.subject == "user" and fact.importance < IMPORTANCE_MIN_USER:
+                logger.debug("Skipping low-importance user fact (score=%d): %s", fact.importance, fact.trait_key)
+                continue
+
+            if fact.subject == "hari" and (not update_hari or fact.importance < IMPORTANCE_MIN_HARI):
+                logger.debug(
+                    "Skipping hari fact (update_hari=%s, score=%d): %s",
+                    update_hari, fact.importance, fact.trait_key,
+                )
+                continue
+
+            # Embed the fact (non-blocking)
+            vector_str = await _async_embed(fact)
+
+            if fact.subject == "user":
+                await _async_save_user(user_id, fact, vector_str)
+            else:
+                await _async_save_hari(fact, vector_str)
+
+        except Exception as e:
+            # One bad fact must not abort the rest
+            logger.error(
+                "Failed to persist fact (subject=%s, key='%s'): %s",
+                fact.subject, fact.trait_key, e, exc_info=True,
+            )

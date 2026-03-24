@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -7,8 +8,14 @@ from .models import Message, ChatMemory
 
 logger = logging.getLogger(__name__)
 
-# Trigger persona enrichment every N completed conversations per user
+# Trigger Hari persona enrichment every N completed conversations per user
 PERSONA_UPDATE_INTERVAL = 100
+
+
+def _log_task_error(task: asyncio.Task) -> None:
+    """Done-callback: surface unhandled exceptions from fire-and-forget tasks."""
+    if not task.cancelled() and (exc := task.exception()):
+        logger.error("Background extraction task failed: %s", exc, exc_info=exc)
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -49,9 +56,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
             if self.session_messages:
                 conversation_count = await self.save_chat_memory()
 
-                # Every PERSONA_UPDATE_INTERVAL conversations, trigger persona enrichment
-                if conversation_count and conversation_count % PERSONA_UPDATE_INTERVAL == 0:
-                    await self.trigger_persona_update()
+                if self.user_id:
+                    # Determine whether this session hits the Hari-update milestone
+                    update_hari = bool(
+                        conversation_count and
+                        conversation_count % PERSONA_UPDATE_INTERVAL == 0
+                    )
+                    # Fire extraction pipeline as a background task — never awaited
+                    from .memory_extractor import run_extraction_pipeline
+                    task = asyncio.create_task(
+                        run_extraction_pipeline(
+                            user_id=self.user_id,
+                            session_messages=list(self.session_messages),
+                            update_hari=update_hari,
+                        )
+                    )
+                    task.add_done_callback(_log_task_error)
         except Exception as e:
             logger.error(f"WS disconnect error: {e}", exc_info=True)
         finally:
@@ -159,7 +179,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         words = {w.strip('.,!?').lower() for w in user_text.split() if len(w) > 3}
         keywords = ", ".join(list(words)[:20])
 
-        ChatMemory.objects.create(
+        record = ChatMemory.objects.create(
             user_id=self.user_id,
             anonymous_id=self.anonymous_id,
             summary=summary,
@@ -167,16 +187,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
             ended_at=timezone.now(),
         )
 
+        # Generate and store summary embedding (non-critical)
+        try:
+            from .memory_vector import embed_text, save_summary_vector
+            vector = embed_text(summary)
+            if vector:
+                save_summary_vector(record.memory_id, vector)
+        except Exception as e:
+            logger.error(f"Failed to save summary vector for memory {record.memory_id}: {e}", exc_info=True)
+
         if self.user_id:
             return ChatMemory.objects.filter(user_id=self.user_id).count()
         return None
 
-    @database_sync_to_async
-    def trigger_persona_update(self):
-        if not self.user_id:
-            return
-        logger.info(
-            f"[PersonaUpdate] Triggered for user={self.user_id} "
-            f"at {PERSONA_UPDATE_INTERVAL}-conversation milestone"
-        )
-        # ── Insert GPT enrichment logic here ──────────────────────────────
+    # trigger_persona_update is now handled inside disconnect() via
+    # run_extraction_pipeline(update_hari=True) at the PERSONA_UPDATE_INTERVAL milestone.
