@@ -172,18 +172,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         ]
         summary = "\n".join(lines)
 
-        # Simple keyword extraction from user messages (words longer than 3 chars)
-        user_text = " ".join(
-            m['content'] for m in self.session_messages if m['sender'] == 'user'
-        )
-        words = {w.strip('.,!?').lower() for w in user_text.split() if len(w) > 3}
-        keywords = ", ".join(list(words)[:20])
-
         record = ChatMemory.objects.create(
             user_id=self.user_id,
             anonymous_id=self.anonymous_id,
             summary=summary,
-            keywords=keywords,
             ended_at=timezone.now(),
         )
 
