@@ -106,3 +106,10 @@ generated_videos/
 # Project specific
 z_structure.md
 lambda.md
+
+# Audio files
+*.wav
+*.mp3
+
+# img_gen wildcard files
+img_gen/wildcard/*

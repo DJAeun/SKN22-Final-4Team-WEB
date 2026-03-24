@@ -67,3 +67,44 @@ class HariKnowledge(models.Model):
 
     def __str__(self):
         return f"{self.category}: {self.trait_key}"
+
+
+class UserMemory(models.Model):
+    """Per-user facts extracted by the memory pipeline (pgvector-backed)."""
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='user_memories'
+    )
+    category = models.CharField(max_length=100)
+    trait_key = models.CharField(max_length=255)
+    trait_value = models.TextField()
+    importance = models.SmallIntegerField(default=5)
+    # content_vector is written via raw SQL — pgvector has no Django field type here
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'user_memory'
+
+    def __str__(self):
+        return f"[{self.category}] {self.trait_key}: {self.trait_value[:40]}"
+
+
+class VisitLog(models.Model):
+    log_id = models.BigAutoField(primary_key=True)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        db_column='user_id', null=True, blank=True,
+        related_name='visit_logs'
+    )
+    visit_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'visit_logs'
+        ordering = ['-visit_time']
+
+    def __str__(self):
+        return f"Visit({self.log_id}) user={self.user_id} at {self.visit_time}"

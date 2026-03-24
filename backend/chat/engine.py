@@ -33,13 +33,6 @@ class HariAIEngine:
             
             def call_model(state: MessagesState):
                 messages = state["messages"]
-                # Ensure the system prompt is always injected as the first context
-                if not messages or not getattr(messages[0], "type", "") == "system":
-                    messages = [SystemMessage(content=self.system_prompt)] + messages
-                else:
-                    # Overwrite if exists to ensure persona consistency
-                    messages[0] = SystemMessage(content=self.system_prompt)
-                
                 response = self.llm.invoke(messages)
                 return {"messages": [response]}
                 
@@ -74,8 +67,30 @@ class HariAIEngine:
 
         try:
             logger.info(f"Invoking LLM graph for thread: {session_id}, input: {user_input[:50]}...")
-            
+
             config = {"configurable": {"thread_id": str(session_id)}}
+
+            # Retrieve relevant past conversations for this user
+            memory_context = ""
+            try:
+                from .memory_vector import retrieve_relevant_memories
+                user_id = int(session_id)
+                memories = retrieve_relevant_memories(user_id, user_input, top_k=3)
+                if memories:
+                    memory_lines = []
+                    for m in memories:
+                        snippet = m["summary"][:500]
+                        memory_lines.append(f"- ({m['ended_at']}): {snippet}")
+                    memory_context = (
+                        "\n\n[이전 대화 기억]\n"
+                        "다음은 이 유저와 나눴던 과거 대화 중 지금 대화와 관련이 있는 내용이야. "
+                        "자연스럽게 참고해서 대화해:\n"
+                        + "\n".join(memory_lines)
+                    )
+            except Exception as e:
+                logger.error(f"Memory retrieval failed: {e}", exc_info=True)
+
+            system_msg = SystemMessage(content=self.system_prompt + memory_context)
             input_message = HumanMessage(content=user_input)
             
             # Open the psycopg connection purely inside the worker thread
@@ -90,7 +105,7 @@ class HariAIEngine:
                 app = self.workflow.compile(checkpointer=checkpointer)
                 
                 # 1. StateGraph execution
-                final_state = app.invoke({"messages": [input_message]}, config=config)
+                final_state = app.invoke({"messages": [system_msg, input_message]}, config=config)
                 
                 # 2. Extract Response
                 ai_message = final_state["messages"][-1]
