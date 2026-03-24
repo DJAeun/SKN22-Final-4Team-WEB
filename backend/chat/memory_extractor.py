@@ -9,7 +9,7 @@ On each session end it:
   3. Scores importance 1-10.
   4. Embeds each fact and does a contradiction check via cosine similarity.
   5. Routes to the correct table:
-       • user facts  (importance >= IMPORTANCE_MIN_USER) → user_memory
+       • user facts  (importance >= IMPORTANCE_MIN_USER) → user_persona
        • hari facts  (importance >= IMPORTANCE_MIN_HARI, update_hari=True) → hari_knowledge
 
 Invoked via asyncio.create_task() — NEVER awaited from the hot path.
@@ -146,11 +146,11 @@ def _embed_fact_sync(fact: ExtractedFact) -> str | None:
     return _vector_to_str(vector) if vector else None
 
 
-# ── user_memory persistence ───────────────────────────────────────────────────
+# ── user_persona persistence ───────────────────────────────────────────────────
 
-def _upsert_user_memory_sync(user_id: int, fact: ExtractedFact, vector_str: str | None) -> None:
+def _upsert_user_persona_sync(user_id: int, fact: ExtractedFact, vector_str: str | None) -> None:
     """
-    Contradiction-aware upsert into user_memory.
+    Contradiction-aware upsert into user_persona.
 
     Logic:
       • If a highly similar (>= CONTRADICTION_SIM) active record exists in the same category:
@@ -167,7 +167,7 @@ def _upsert_user_memory_sync(user_id: int, fact: ExtractedFact, vector_str: str 
                 """
                 SELECT id, trait_value, importance,
                        1 - (content_vector <=> %s::vector) AS similarity
-                FROM user_memory
+                FROM user_persona
                 WHERE user_id = %s
                   AND category = %s
                   AND is_active = TRUE
@@ -183,12 +183,12 @@ def _upsert_user_memory_sync(user_id: int, fact: ExtractedFact, vector_str: str 
                 if similarity >= CONTRADICTION_SIM:
                     if fact.importance >= existing_imp:
                         cur.execute(
-                            "UPDATE user_memory SET is_active = FALSE, updated_at = NOW()"
+                            "UPDATE user_persona SET is_active = FALSE, updated_at = NOW()"
                             " WHERE id = %s",
                             [existing_id],
                         )
                         logger.info(
-                            "Contradiction resolved: deactivated user_memory id=%s "
+                            "Contradiction resolved: deactivated user_persona id=%s "
                             "(old='%.50s' → new='%.50s', sim=%.2f)",
                             existing_id, existing_val, fact.trait_value, similarity,
                         )
@@ -204,7 +204,7 @@ def _upsert_user_memory_sync(user_id: int, fact: ExtractedFact, vector_str: str 
         if vector_str:
             cur.execute(
                 """
-                INSERT INTO user_memory
+                INSERT INTO user_persona
                     (user_id, category, trait_key, trait_value, importance, content_vector)
                 VALUES (%s, %s, %s, %s, %s, %s::vector)
                 """,
@@ -214,7 +214,7 @@ def _upsert_user_memory_sync(user_id: int, fact: ExtractedFact, vector_str: str 
         else:
             cur.execute(
                 """
-                INSERT INTO user_memory
+                INSERT INTO user_persona
                     (user_id, category, trait_key, trait_value, importance)
                 VALUES (%s, %s, %s, %s, %s)
                 """,
@@ -222,7 +222,7 @@ def _upsert_user_memory_sync(user_id: int, fact: ExtractedFact, vector_str: str 
             )
 
     logger.info(
-        "Saved user_memory: user=%s category=%s key='%s' importance=%d",
+        "Saved user_persona: user=%s category=%s key='%s' importance=%d",
         user_id, fact.category, fact.trait_key, fact.importance,
     )
 
@@ -300,7 +300,7 @@ def _upsert_hari_knowledge_sync(fact: ExtractedFact, vector_str: str | None) -> 
 # ── Async wrappers ────────────────────────────────────────────────────────────
 
 _async_embed       = sync_to_async(_embed_fact_sync,       thread_sensitive=False)
-_async_save_user   = sync_to_async(_upsert_user_memory_sync,  thread_sensitive=False)
+_async_save_user   = sync_to_async(_upsert_user_persona_sync,  thread_sensitive=False)
 _async_save_hari   = sync_to_async(_upsert_hari_knowledge_sync, thread_sensitive=False)
 
 

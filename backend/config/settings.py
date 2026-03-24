@@ -159,25 +159,14 @@ CORS_ALLOW_ALL_ORIGINS = True # For development only
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Database Configuration
+# Database Configuration — PostgreSQL only (RDS)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-# Use PostgreSQL only if DB_HOST/RDS_HOSTNAME is set
-db_host = os.environ.get('DB_HOST') or os.environ.get('RDS_HOSTNAME')
-db_name = os.environ.get('DB_NAME') or os.environ.get('RDS_DB_NAME')
-
-if db_name and db_host and db_host not in ['db', 'localhost', '127.0.0.1', '']:
-    DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': db_name,
+        'NAME': os.environ.get('DB_NAME') or os.environ.get('RDS_DB_NAME', 'hari_persona'),
         'USER': os.environ.get('DB_USER') or os.environ.get('RDS_USERNAME'),
         'PASSWORD': os.environ.get('DB_PASSWORD') or os.environ.get('RDS_PASSWORD'),
-        'HOST': db_host,
+        'HOST': os.environ.get('DB_HOST') or os.environ.get('RDS_HOSTNAME'),
         'PORT': os.environ.get('DB_PORT') or os.environ.get('RDS_PORT', '5432'),
         'CONN_MAX_AGE': 600,
         'OPTIONS': {
@@ -185,6 +174,7 @@ if db_name and db_host and db_host not in ['db', 'localhost', '127.0.0.1', '']:
             'connect_timeout': 10,
         },
     }
+}
 
 
 # Password validation
