@@ -20,12 +20,18 @@ import sys
 import subprocess
 import glob
 from datetime import datetime
+from dotenv import load_dotenv
+
+# .env 파일 로드
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 
 # ============================================================
 # 설정
 # ============================================================
-API_KEY = "sk_V2_hgu_kXf2VFgX4hI_M4YZKY7V8EZ9SeIng3FJP58yVOkpC04K"
+API_KEY = os.environ.get("HEYGEN_API_KEY")
+if not API_KEY:
+    raise ValueError(".env 파일에서 HEYGEN_API_KEY를 찾을 수 없습니다.")
 BASE_URL = "https://api.heygen.com"
 UPLOAD_URL = "https://upload.heygen.com/v1/asset"
 HEADERS = {
