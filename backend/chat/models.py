@@ -69,15 +69,17 @@ class HariKnowledge(models.Model):
         return f"{self.category}: {self.trait_key}"
 
 
-class UserMemory(models.Model):
+class UserPersona(models.Model):
     """Per-user facts extracted by the memory pipeline (pgvector-backed)."""
+    persona_id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        related_name='user_memories'
+        null=True, blank=True,
+        related_name='user_personas'
     )
-    category = models.CharField(max_length=100)
-    trait_key = models.CharField(max_length=255)
-    trait_value = models.TextField()
+    category = models.TextField(default='')
+    trait_key = models.TextField(null=True, blank=True)
+    trait_value = models.TextField(default='')
     importance = models.SmallIntegerField(default=5)
     # content_vector is written via raw SQL — pgvector has no Django field type here
     is_active = models.BooleanField(default=True)
@@ -86,7 +88,7 @@ class UserMemory(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'user_memory'
+        db_table = 'user_persona'
 
     def __str__(self):
         return f"[{self.category}] {self.trait_key}: {self.trait_value[:40]}"
