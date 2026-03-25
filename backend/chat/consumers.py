@@ -9,7 +9,7 @@ from .models import Message, ChatMemory
 logger = logging.getLogger(__name__)
 
 # Trigger Hari persona enrichment every N completed conversations per user
-PERSONA_UPDATE_INTERVAL = 100
+PERSONA_UPDATE_INTERVAL = 20
 
 
 
