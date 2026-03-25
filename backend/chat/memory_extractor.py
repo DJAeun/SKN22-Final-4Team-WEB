@@ -80,11 +80,30 @@ Your job is to read a conversation transcript and extract facts worth rememberin
 5. Each distinct fact must be a separate entry — do not bundle multiple facts.
 6. Return an EMPTY extractions list if there is truly nothing worth remembering.
 
-━━━ SUBJECT CLASSIFICATION ━━━
-• "user"  → Facts about the USER: preferences, opinions, life circumstances, personality,
-            relationships, occupation, experiences, or strong feelings.
-• "hari"  → Use ONLY for explicit new information that updates HARI'S OWN persona, opinions,
-            stated worldview, expressed experiences, or preferences. This is rare.
+━━━ SUBJECT CLASSIFICATION (CRITICAL — read carefully) ━━━
+• "user"  → Facts about the USER (the human): their preferences, opinions, life circumstances,
+            personality, relationships, occupation, experiences, hobbies, or strong feelings.
+            When the user says "I like baseball" or "My favorite food is pizza", that is a USER fact.
+            The VAST MAJORITY of extracted facts should be subject="user".
+• "hari"  → Use ONLY when the conversation explicitly redefines HARI'S OWN identity, backstory,
+            or personality (e.g., "Hari, from now on you love jazz"). This is EXTREMELY rare.
+            Do NOT use "hari" for facts the user shares about themselves during a chat with Hari.
+
+━━━ IMPORTANT ━━━
+Hari's background knowledge is FIXED and IMMUTABLE. Do NOT extract any facts with subject="hari".
+Users cannot change Hari's name, identity, backstory, or persona through conversation.
+ALL extracted facts must have subject="user".
+
+━━━ EXAMPLES ━━━
+Transcript: "User: 나 야구 좋아해\nHari: 오 진짜요? 어떤 팀 좋아하세요?"
+→ subject="user", trait_key="baseball", trait_value="야구를 좋아함" ✅
+→ subject="hari" ← WRONG. This is about the user, not Hari.
+
+Transcript: "User: 나 개발자야\nHari: 멋지네요!"
+→ subject="user", trait_key="occupation", trait_value="개발자" ✅
+
+Transcript: "User: 너 이름은 이제부터 로렌이야\nHari: ..."
+→ SKIP entirely. Users cannot redefine Hari's identity. Extract NOTHING here.
 
 ━━━ IMPORTANCE SCORING — be conservative, lean lower ━━━
 • 1–2 : Trivial / universally common (said hello, mentioned today's weather)
@@ -338,25 +357,18 @@ async def run_extraction_pipeline(
     # ── 2. Embed + persist each fact ───────────────────────────────────────
     for fact in facts:
         try:
-            # Route by subject + importance threshold
-            if fact.subject == "user" and fact.importance < IMPORTANCE_MIN_USER:
-                logger.debug("Skipping low-importance user fact (score=%d): %s", fact.importance, fact.trait_key)
+            # hari_knowledge is immutable — drop any hari-subject facts
+            if fact.subject == "hari":
+                logger.debug("Dropping hari fact (hari_knowledge is immutable): %s", fact.trait_key)
                 continue
 
-            if fact.subject == "hari" and (not update_hari or fact.importance < IMPORTANCE_MIN_HARI):
-                logger.debug(
-                    "Skipping hari fact (update_hari=%s, score=%d): %s",
-                    update_hari, fact.importance, fact.trait_key,
-                )
+            if fact.importance < IMPORTANCE_MIN_USER:
+                logger.debug("Skipping low-importance user fact (score=%d): %s", fact.importance, fact.trait_key)
                 continue
 
             # Embed the fact (non-blocking)
             vector_str = await _async_embed(fact)
-
-            if fact.subject == "user":
-                await _async_save_user(user_id, fact, vector_str)
-            else:
-                await _async_save_hari(fact, vector_str)
+            await _async_save_user(user_id, fact, vector_str)
 
         except Exception as e:
             # One bad fact must not abort the rest
