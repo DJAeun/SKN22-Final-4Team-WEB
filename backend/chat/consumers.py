@@ -170,7 +170,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
             f"{'User' if m['sender'] == 'user' else 'Hari'}: {m['content']}"
             for m in self.session_messages
         ]
-        summary = "\n".join(lines)
+        transcript = "\n".join(lines)
+
+        # Summarize transcript via LLM (fall back to raw transcript on failure)
+        summary = transcript
+        try:
+            from langchain_openai import ChatOpenAI
+            from langchain_core.messages import SystemMessage, HumanMessage
+
+            llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, timeout=15)
+            result = llm.invoke([
+                SystemMessage(content=(
+                    "You are a concise conversation summarizer. "
+                    "Summarize the following conversation in 2-4 sentences in Korean. "
+                    "Focus on: key topics discussed, any personal information shared, "
+                    "important decisions or preferences expressed. "
+                    "Do NOT include greetings or filler. Write in plain descriptive style."
+                )),
+                HumanMessage(content=transcript),
+            ])
+            if result.content.strip():
+                summary = result.content.strip()
+                logger.info("Conversation summarized successfully (%d chars → %d chars)", len(transcript), len(summary))
+        except Exception as e:
+            logger.error(f"Conversation summarization failed, using raw transcript: {e}", exc_info=True)
 
         record = ChatMemory.objects.create(
             user_id=self.user_id,
