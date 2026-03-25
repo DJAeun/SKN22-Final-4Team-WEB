@@ -232,7 +232,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             from langchain_openai import ChatOpenAI
             from langchain_core.messages import SystemMessage, HumanMessage
 
-            llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, timeout=15)
+            llm = ChatOpenAI(model="gpt-5.4-mini", temperature=0, timeout=15)
             result = llm.invoke([
                 SystemMessage(content=(
                     "You are a concise conversation summarizer. "

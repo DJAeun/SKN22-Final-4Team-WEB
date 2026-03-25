@@ -133,7 +133,7 @@ async def _extract_facts(transcript: str) -> list[ExtractedFact]:
         from langchain_openai import ChatOpenAI
         from langchain_core.messages import SystemMessage, HumanMessage
 
-        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+        llm = ChatOpenAI(model="gpt-5.4-mini", temperature=0)
         structured_llm = llm.with_structured_output(ExtractionResult)
 
         result: ExtractionResult = await structured_llm.ainvoke([
