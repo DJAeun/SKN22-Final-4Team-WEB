@@ -117,8 +117,18 @@ Transcript: "User: 너 이름은 이제부터 로렌이야\nHari: ..."
 If the user explicitly contradicts something stated before (e.g., now dislikes X after previously
 liking X), extract the NEW fact at its earned importance score. Do not suppress contradictions.
 
+━━━ NAME EXTRACTION (CRITICAL) ━━━
+When the user shares their name or nickname, you MUST extract it as:
+  - category: "identity"
+  - trait_key: "name" (for real/full name) or "nickname" (for nicknames/aliases)
+  - importance: 9 (names are core identity facts)
+Examples:
+  "내 이름은 민지야" → trait_key="name", trait_value="민지", importance=9
+  "나 보통 쭈니라고 불려" → trait_key="nickname", trait_value="쭈니", importance=9
+  "민수라고 해" → trait_key="name", trait_value="민수", importance=9
+
 ━━━ CATEGORY LABELS (use these or similar snake_case) ━━━
-food_preferences, beverage_preferences, hobbies, sports_interests, music_preferences,
+identity, food_preferences, beverage_preferences, hobbies, sports_interests, music_preferences,
 movie_preferences, occupation, family_situation, relationship_status, personality_trait,
 travel_preferences, health_conditions, pet_ownership, technology_preferences,
 worldview, attitude_toward_X, life_events, dislikes, communication_style\
@@ -355,24 +365,37 @@ async def run_extraction_pipeline(
         return
 
     # ── 2. Embed + persist each fact ───────────────────────────────────────
-    for fact in facts:
+    saved_count = 0
+    for i, fact in enumerate(facts):
         try:
+            logger.info(
+                "Processing fact %d/%d for user=%s: subject=%s, key='%s', importance=%d",
+                i + 1, len(facts), user_id, fact.subject, fact.trait_key, fact.importance,
+            )
+
             # hari_knowledge is immutable — drop any hari-subject facts
             if fact.subject == "hari":
-                logger.debug("Dropping hari fact (hari_knowledge is immutable): %s", fact.trait_key)
+                logger.info("Dropping hari fact (hari_knowledge is immutable): %s", fact.trait_key)
                 continue
 
             if fact.importance < IMPORTANCE_MIN_USER:
-                logger.debug("Skipping low-importance user fact (score=%d): %s", fact.importance, fact.trait_key)
+                logger.info("Skipping low-importance user fact (score=%d < %d): %s", fact.importance, IMPORTANCE_MIN_USER, fact.trait_key)
                 continue
 
             # Embed the fact (non-blocking)
             vector_str = await _async_embed(fact)
+            logger.info("Embedded fact '%s': vector=%s", fact.trait_key, "OK" if vector_str else "NONE")
             await _async_save_user(user_id, fact, vector_str)
+            saved_count += 1
 
-        except Exception as e:
-            # One bad fact must not abort the rest
+        except BaseException as e:
+            # Catch BaseException to also log CancelledError / KeyboardInterrupt
             logger.error(
                 "Failed to persist fact (subject=%s, key='%s'): %s",
                 fact.subject, fact.trait_key, e, exc_info=True,
             )
+            if not isinstance(e, Exception):
+                # Re-raise non-Exception errors (CancelledError, etc.) after logging
+                raise
+
+    logger.info("Extraction pipeline done for user=%s: %d/%d facts saved.", user_id, saved_count, len(facts))
