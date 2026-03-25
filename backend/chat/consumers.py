@@ -12,11 +12,6 @@ logger = logging.getLogger(__name__)
 PERSONA_UPDATE_INTERVAL = 100
 
 
-def _log_task_error(task: asyncio.Task) -> None:
-    """Done-callback: surface unhandled exceptions from fire-and-forget tasks."""
-    if not task.cancelled() and (exc := task.exception()):
-        logger.error("Background extraction task failed: %s", exc, exc_info=exc)
-
 
 class ChatConsumer(AsyncWebsocketConsumer):
 
@@ -62,16 +57,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         conversation_count and
                         conversation_count % PERSONA_UPDATE_INTERVAL == 0
                     )
-                    # Fire extraction pipeline as a background task — never awaited
+                    # Await the extraction pipeline directly — fire-and-forget
+                    # via create_task can get GC'd before completion on Daphne
                     from .memory_extractor import run_extraction_pipeline
-                    task = asyncio.create_task(
-                        run_extraction_pipeline(
+                    try:
+                        await run_extraction_pipeline(
                             user_id=self.user_id,
                             session_messages=list(self.session_messages),
                             update_hari=update_hari,
                         )
-                    )
-                    task.add_done_callback(_log_task_error)
+                    except Exception as e:
+                        logger.error(f"Extraction pipeline failed: {e}", exc_info=True)
         except Exception as e:
             logger.error(f"WS disconnect error: {e}", exc_info=True)
         finally:
