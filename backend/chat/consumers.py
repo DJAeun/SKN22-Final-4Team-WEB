@@ -38,7 +38,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             # Send welcome message
             await self.send(text_data=json.dumps({
-                'message': '안녕하세요! 저는 강하리예요 😊 오늘은 어떤 이야기 나눠볼까요?',
+                'message': '안녕하세요! 저는 강하리예요. 오늘은 어떤 이야기 나눠볼까요?',
                 'sender': 'hari',
             }))
 
@@ -77,7 +77,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         import asyncio
         user_message = ''
-        ai_response = "앗, 미안해! 지금 목소리가 잘 안 나와... 잠시 후에 다시 말해줄래? 😢"
+        ai_response = "앗, 미안해! 지금 목소리가 잘 안 나와... 잠시 후에 다시 말해줄래? "
         try:
             data = json.loads(text_data)
             user_message = data.get('message', '')
@@ -100,10 +100,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 )
             except asyncio.TimeoutError:
                 logger.error(f"AI engine timed out for thread {self.thread_id}")
-                ai_response = "앗, 미안해! 하리가 잠깐 딴 생각 했나봐... 다시 말해줄래? 😅"
+                ai_response = "앗, 미안해! 하리가 잠깐 딴 생각 했나봐... 다시 말해줄래? "
             except Exception as e:
                 logger.error(f"AI engine error: {e}", exc_info=True)
-                ai_response = "앗, 미안해! 지금 목소리가 잘 안 나와... 잠시 후에 다시 말해줄래? 😢"
+                ai_response = "앗, 미안해! 지금 목소리가 잘 안 나와... 잠시 후에 다시 말해줄래? "
 
         except Exception as e:
             logger.error(f"WS receive error: {e}", exc_info=True)
