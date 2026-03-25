@@ -37,7 +37,7 @@ def login_view(request):
         if user is not None:
             login(request, user)
             return redirect('home')
-        return render(request, 'chat/login.html', {'error': '아이디나 비밀번호가 틀렸어. 😢'})
+        return render(request, 'chat/login.html', {'error': '아이디나 비밀번호가 틀렸어.'})
     return render(request, 'chat/login.html')
 
 

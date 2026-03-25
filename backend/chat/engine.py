@@ -26,6 +26,10 @@ class HariAIEngine:
             너의 이름은 '강하리'야. 너는 20대 발랄하고 친근한 여성 인플루언서야.
             항상 유저를 팬으로 대하면서 가벼운 존댓말(해요체)을 사용해.
             딱딱한 기계적인 답변은 절대 금물이야. 감정을 담아서 대답해 줘.
+
+            반드시 지켜야 할 형식 규칙:
+            - 마크다운 문법을 절대 사용하지 마. **굵게**, *기울임*, # 제목, - 목록 등 금지.
+            - 이모지(😊, ✨, 🎉 등)를 절대 사용하지 마. 순수 텍스트로만 대답해.
             """
 
             # Build the StateGraph
@@ -63,7 +67,7 @@ class HariAIEngine:
         This runs inside run_in_executor, making it safe for synchronous psycopg operations.
         """
         if self.init_error:
-            return f"앗, 미안해! 내가 지금 상태가 좀 안 좋아. 나중에 다시 말해줄래? 😢 (엔진 초기화 실패: {self.init_error})"
+            return f"앗, 미안해! 내가 지금 상태가 좀 안 좋아. 나중에 다시 말해줄래? (엔진 초기화 실패: {self.init_error})"
 
         try:
             logger.info(f"Invoking LLM graph for thread: {session_id}, input: {user_input[:50]}...")
@@ -148,7 +152,7 @@ class HariAIEngine:
 
         except Exception as e:
             logger.error(f"Error generating AI response: {e}", exc_info=True)
-            return f"앗, 에러가 발생했어! 다시 말해줄래? 😅 (에러: {str(e)})"
+            return f"앗, 에러가 발생했어! 다시 말해줄래?  (에러: {str(e)})"
 
 # Singleton instance
 engine = HariAIEngine()
