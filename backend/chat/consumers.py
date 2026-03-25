@@ -1,12 +1,36 @@
 import asyncio
 import json
 import logging
+import random
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from django.db import connection
 from django.utils import timezone
 from .models import Message, ChatMemory
 
 logger = logging.getLogger(__name__)
+
+# First-time greeting (no name known yet)
+_FIRST_GREETING = '안녕!! 난 하리야. 넌 이름이 뭐야?'
+
+# Returning user greetings — {name} will be replaced with the user's name
+_RETURNING_GREETINGS = [
+    '오 {name} 왔어!! 오늘 뭐 했어?',
+    '{name}!! 보고 싶었어ㅋㅋ 무슨 일이야?',
+    '어 {name}! 오늘 기분 어때?',
+    '{name} 왔네~ 오늘은 무슨 얘기 할까?',
+    '오 {name}~ 요즘 어떻게 지내?',
+    '{name}! 심심했는데 잘 왔어ㅋㅋ',
+    '어 왔어 {name}! 나 진짜 심심했거든',
+]
+
+# Returning user but name unknown
+_RETURNING_NO_NAME_GREETINGS = [
+    '어 왔어!! 오늘 뭐 했어?',
+    '오 또 왔네ㅋㅋ 반가워! 오늘은 무슨 얘기 할까?',
+    '왔어?? 나 심심했는데 잘 왔어',
+    '어 반가워~ 오늘 기분 어때?',
+]
 
 # Trigger Hari persona enrichment every N completed conversations per user
 PERSONA_UPDATE_INTERVAL = 20
@@ -36,9 +60,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.message_count = await self.get_message_count()
             logger.info(f"WS connected: thread={self.thread_id}, message_count={self.message_count}")
 
-            # Send welcome message
+            # Pick greeting based on whether we know the user
+            greeting = await self._pick_greeting()
             await self.send(text_data=json.dumps({
-                'message': '안녕하세요! 저는 강하리예요. 오늘은 어떤 이야기 나눠볼까요?',
+                'message': greeting,
                 'sender': 'hari',
             }))
 
@@ -77,7 +102,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         import asyncio
         user_message = ''
-        ai_response = "앗, 미안해! 지금 목소리가 잘 안 나와... 잠시 후에 다시 말해줄래? "
+        ai_response = "아 미안 나 지금 좀 상태가 안 좋아... 잠만 기다려줘"
         try:
             data = json.loads(text_data)
             user_message = data.get('message', '')
@@ -100,10 +125,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 )
             except asyncio.TimeoutError:
                 logger.error(f"AI engine timed out for thread {self.thread_id}")
-                ai_response = "앗, 미안해! 하리가 잠깐 딴 생각 했나봐... 다시 말해줄래? "
+                ai_response = "아 미안 나 잠깐 딴 생각 했어ㅋㅋ 다시 말해줘"
             except Exception as e:
                 logger.error(f"AI engine error: {e}", exc_info=True)
-                ai_response = "앗, 미안해! 지금 목소리가 잘 안 나와... 잠시 후에 다시 말해줄래? "
+                ai_response = "아 미안 나 지금 좀 상태가 안 좋아... 잠만 기다려줘"
 
         except Exception as e:
             logger.error(f"WS receive error: {e}", exc_info=True)
@@ -125,6 +150,39 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     await self.save_message(sender_type=False, content=ai_response)
                 except Exception as e:
                     logger.error(f"Failed to save Hari response: {e}", exc_info=True)
+
+    # ------------------------------------------------------------------ #
+    #  Greeting logic                                                    #
+    # ------------------------------------------------------------------ #
+
+    async def _pick_greeting(self) -> str:
+        """Choose a greeting based on whether this is a new or returning user."""
+        is_new = self.message_count == 0
+        if is_new:
+            return _FIRST_GREETING
+
+        name = await self._get_user_name()
+        if name:
+            return random.choice(_RETURNING_GREETINGS).format(name=name)
+        return random.choice(_RETURNING_NO_NAME_GREETINGS)
+
+    @database_sync_to_async
+    def _get_user_name(self):
+        """Look up the user's name/nickname from user_persona."""
+        with connection.cursor() as cur:
+            cur.execute(
+                """
+                SELECT trait_value FROM user_persona
+                WHERE user_id = %s
+                  AND trait_key IN ('name', 'nickname', 'real_name')
+                  AND is_active = TRUE
+                ORDER BY importance DESC
+                LIMIT 1
+                """,
+                [self.user_id],
+            )
+            row = cur.fetchone()
+            return row[0] if row else None
 
     # ------------------------------------------------------------------ #
     #  DB helpers (run in thread pool via database_sync_to_async)         #
