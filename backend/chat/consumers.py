@@ -16,18 +16,18 @@ _FIRST_GREETING = '안녕!! 난 하리야. 넌 이름이 뭐야?'
 # Returning user greetings — {name} will be replaced with the user's name
 _RETURNING_GREETINGS = [
     '오 {name} 왔어!! 오늘 뭐 했어?',
-    '{name}!! 보고 싶었어ㅋㅋ 무슨 일이야?',
+    '{name}!! 보고 싶었어~ 무슨 일이야?',
     '어 {name}! 오늘 기분 어때?',
     '{name} 왔네~ 오늘은 무슨 얘기 할까?',
     '오 {name}~ 요즘 어떻게 지내?',
-    '{name}! 심심했는데 잘 왔어ㅋㅋ',
+    '{name}! 심심했는데 잘 왔어~',
     '어 왔어 {name}! 나 진짜 심심했거든',
 ]
 
 # Returning user but name unknown
 _RETURNING_NO_NAME_GREETINGS = [
     '어 왔어!! 오늘 뭐 했어?',
-    '오 또 왔네ㅋㅋ 반가워! 오늘은 무슨 얘기 할까?',
+    '오 또 왔네~ 반가워! 오늘은 무슨 얘기 할까?',
     '왔어?? 나 심심했는데 잘 왔어',
     '어 반가워~ 오늘 기분 어때?',
 ]
@@ -174,7 +174,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 """
                 SELECT trait_value FROM user_persona
                 WHERE user_id = %s
-                  AND trait_key IN ('name', 'nickname', 'real_name')
+                  AND (
+                      trait_key IN ('name', 'nickname', 'real_name', 'user_name')
+                      OR category = 'identity'
+                  )
                   AND is_active = TRUE
                 ORDER BY importance DESC
                 LIMIT 1
