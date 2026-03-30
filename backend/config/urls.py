@@ -18,10 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from chat.views import chat_index, health_check
+from chat.views import chat_index, health_check, homepage, fanpage, frontend_chat
 
 urlpatterns = [
     path('', chat_index, name='home'),
+    path('homepage/', homepage, name='homepage'),
+    path('fanpage/', fanpage, name='fanpage'),
+    path('hari-chat/', frontend_chat, name='frontend_chat'),
     path('health/', health_check, name='health_check'),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
