@@ -1,33 +1,17 @@
 {% load static %}
-<section id="s1">
-  <div class="hero-grid"></div>
+<section id="s1" style="background-image: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url('{% static 'images/hari_image5.png' %}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+  <div class="hero-grid" style="opacity: 0.1;"></div>
   <div class="hero-inner">
-    <div class="hero-left">
-      <div class="hero-eyebrow">Virtual Human — 가상 인간 · Seoul</div>
-      <h1 class="hero-title" style="display:flex; align-items:center;">
-        <img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI" style="height:clamp(7rem, 17vw, 17rem); width:auto; object-fit:contain; mix-blend-mode:multiply;">
+    <div class="hero-left" style="max-width: 900px; margin: 0 auto; text-align: center; padding: 2rem;">
+      <div class="hero-eyebrow" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8); font-size: 1.1rem; letter-spacing: 0.15em; color: #fff;">Artist & Creative · Seoul</div>
+      <h1 class="hero-title" style="display:flex; align-items:center; justify-content: center; margin: 1.5rem 0;">
+        <img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI" style="height:clamp(8rem, 20vw, 20rem); width:auto; object-fit:contain; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));">
       </h1>
-      <p class="hero-desc">하리는 새로운 세대의 가상 인간입니다.<br>패션, 음악, 문화를 통해 자신만의 세계를 탐험하며<br>보리 팬클럽을 통해 진정성 있는 관계를 만들어갑니다.</p>
-    </div>
-    <div class="hero-right">
-      <div class="hero-stat">
-        <div class="hero-stat-num" id="cnt-followers">0</div>
-        <div class="hero-stat-label">Global Followers</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hero-stat-num">12+</div>
-        <div class="hero-stat-label">Brand Collabs</div>
-      </div>
-      <div class="hero-chips">
-        <span class="hero-chip">Vogue Korea</span>
-        <span class="hero-chip">Forbes</span>
-        <span class="hero-chip">Seoul FW</span>
-        <span class="hero-chip">Weverse</span>
-      </div>
+      <p class="hero-desc" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.9); font-size: 1.4rem; line-height: 1.8; color: #fff; font-weight: 400;">하리는 음악과 패션, 그리고 소중한 일상을 공유하는 아티스트입니다.<br>보리 팬클럽을 통해 여러분과 더 깊은 영감을 나누고<br>진심 어린 유대감을 쌓아가고 싶어요.</p>
     </div>
   </div>
-  <div class="hero-bottom">
-    <div class="hero-bottom-text">01 — Company Overview</div>
+  <div class="hero-bottom" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">
+    <div class="hero-bottom-text">Welcome to Hari's World</div>
     <div class="hero-scroll-hint"><div class="scroll-line"></div>Scroll</div>
   </div>
 </section>
