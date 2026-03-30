@@ -16,6 +16,8 @@ def fanpage(request):
 
 
 def frontend_chat(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
     return render(request, 'frontend/chat.html')
 
 
