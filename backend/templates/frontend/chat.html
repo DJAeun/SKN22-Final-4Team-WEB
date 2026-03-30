@@ -1110,7 +1110,19 @@ html, body {
 }
 </style>
 
+<script id="django-data" type="application/json">
+  {
+    "isAuthenticated": {% if user.is_authenticated %}true{% else %}false{% endif %},
+    "userName": "{{ user.username|default:'' }}",
+    "loginUrl": "{% url 'login' %}",
+    "csrfToken": "{{ csrf_token }}"
+  }
+</script>
+
 <script>
+// Django 데이터 파싱
+const djangoData = JSON.parse(document.getElementById('django-data').textContent);
+
 // ═══════════════════════════════════════
 // 검색 기능 활성화
 // ═══════════════════════════════════════
@@ -1141,6 +1153,13 @@ function sendMessage() {
   const text = input.value.trim();
   
   if (!text) return;
+  
+  // 로그인 체크
+  if (!djangoData.isAuthenticated) {
+    alert('로그인이 필요해! 🌸');
+    window.location.href = djangoData.loginUrl;
+    return;
+  }
   
   // 내 메시지 추가
   addMessage('me', text);
