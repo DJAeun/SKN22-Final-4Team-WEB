@@ -113,3 +113,11 @@ lambda.md
 
 # img_gen wildcard files
 img_gen/wildcard/*
+
+# Local development and temporary scripts
+local_settings.py
+backend/config/local_settings.py
+tmp_script.py
+dino_test.py
+generate_images.py
+update_img.py

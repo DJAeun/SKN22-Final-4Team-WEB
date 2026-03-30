@@ -1,9 +1,12 @@
+{% load static %}
 <section id="s1">
   <div class="hero-grid"></div>
   <div class="hero-inner">
     <div class="hero-left">
       <div class="hero-eyebrow">Virtual Human — 가상 인간 · Seoul</div>
-      <h1 class="hero-title">HA<em>RI</em></h1>
+      <h1 class="hero-title" style="display:flex; align-items:center;">
+        <img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI" style="height:clamp(7rem, 17vw, 17rem); width:auto; object-fit:contain; mix-blend-mode:multiply;">
+      </h1>
       <p class="hero-desc">하리는 새로운 세대의 가상 인간입니다.<br>패션, 음악, 문화를 통해 자신만의 세계를 탐험하며<br>보리 팬클럽을 통해 진정성 있는 관계를 만들어갑니다.</p>
     </div>
     <div class="hero-right">
