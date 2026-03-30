@@ -7,14 +7,12 @@
 <title>하리와의 대화</title>
 <link rel="icon" type="image/png" href="{% static 'images/hari_logo_none.png' %}?v=2">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/NeoDunggeunmo.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSSaemmul.css">
 <style>
-*, *::before, *::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
+  --f-pixel: 'DOSSaemmul', sans-serif;
+  --f-neo: 'NeoDunggeunmo', sans-serif;
   /* 하리 브랜드 컬러 */
   --hari-pink: #ff7b8a;
   --hari-mint: #06d6a0;
@@ -47,7 +45,7 @@ html, body {
   height: 100vh;
   margin: 0;
   overflow: hidden;
-  font-family: 'NeoDunggeunmo', sans-serif;
+  font-family: var(--f-pixel);
   font-size: 1.15rem;
   background: var(--bg-main);
 }
@@ -694,7 +692,8 @@ html, body {
 .msg-bubble {
   padding: 12px 18px;
   border-radius: 20px;
-  font-size: 15px;
+  font-size: 1.15rem;
+  font-family: var(--f-pixel);
   line-height: 1.6;
   position: relative;
   box-shadow: var(--bubble-shadow);
