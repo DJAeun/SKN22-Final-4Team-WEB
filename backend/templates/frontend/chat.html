@@ -1128,8 +1128,22 @@ function connectWebSocket(sessionId = null) {
         clearTimeout(debounceTimer);
         flushMessageBuffer();
       }
-      if (isBubbleAnimating) flushBubbleQueue();
-      appendHariMessage(data.message);
+
+      if (isBubbleAnimating) {
+        // Append new segments to the existing queue instead of flushing
+        const newSegments = splitMessage(data.message);
+        if (newSegments.length > 0) {
+          // Un-mark the current last item in the queue
+          if (bubbleQueue.length > 0) {
+            bubbleQueue[bubbleQueue.length - 1].isLast = false;
+          }
+          newSegments.forEach((seg, i) => {
+            bubbleQueue.push({ text: seg, isLast: i === newSegments.length - 1 });
+          });
+        }
+      } else {
+        appendHariMessage(data.message);
+      }
     }
   };
 
@@ -1148,9 +1162,7 @@ function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
 
-  if (isBubbleAnimating) flushBubbleQueue();
-
-  // 1) Render the bubble immediately
+  // 1) Render the bubble immediately (don't interrupt Hari's animation)
   appendUserMessage(text);
 
   // 2) Buffer the message text
@@ -1195,7 +1207,7 @@ function appendUserMessage(text) {
     </div>
   `;
   messages.insertAdjacentHTML('beforeend', html);
-  scrollToBottom();
+  scrollToBottom(true); // always scroll for user's own message
 }
 
 // ═══════════════════════════════════════
@@ -1371,7 +1383,7 @@ async function loadHistory() {
         };
       });
 
-      scrollToBottom();
+      scrollToBottom(true);
     }
   } catch (error) {
     console.error('Error loading history:', error);
@@ -1395,11 +1407,14 @@ function escapeHtml(text) {
   return div.innerHTML.replace(/\n/g, '<br>');
 }
 
-function scrollToBottom() {
+function scrollToBottom(force = false) {
   const container = document.getElementById('chatContainer');
-  setTimeout(() => {
-    container.scrollTop = container.scrollHeight;
-  }, 50);
+  const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+  if (force || isNearBottom) {
+    setTimeout(() => {
+      container.scrollTop = container.scrollHeight;
+    }, 50);
+  }
 }
 
 function handleKeyPress(event) {
@@ -1571,7 +1586,7 @@ document.addEventListener('keydown', (e) => {
 // Initialize
 // ═══════════════════════════════════════
 connectWebSocket();
-loadHistory().then(() => scrollToBottom());
+loadHistory().then(() => scrollToBottom(true));
 </script>
 
 </body>
