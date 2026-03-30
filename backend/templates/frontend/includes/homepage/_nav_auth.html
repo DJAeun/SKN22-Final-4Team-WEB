@@ -1,9 +1,7 @@
+{% load static %}
 <nav id="nav">
-  <!-- 로고 — 하리 서명 스타일 SVG -->
   <a class="nav-logo" href="#s1" aria-label="HARI">
-    <svg viewBox="0 0 120 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <text x="0" y="34" font-family="'Bebas Neue', sans-serif" font-size="38" letter-spacing="2" fill="currentColor" style="fill:var(--s2-bg)">HARI</text>
-    </svg>
+    <img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI Logo" style="height:36px; width:auto; object-fit:contain; mix-blend-mode:multiply;">
   </a>
 
   <!-- 중앙 오른쪽: 언어 + 시간 + 메뉴 -->
