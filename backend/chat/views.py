@@ -7,6 +7,18 @@ from .models import Message, ChatMemory
 from .serializers import MessageSerializer, ChatMemorySerializer
 
 
+def homepage(request):
+    return render(request, 'frontend/homepage.html')
+
+
+def fanpage(request):
+    return render(request, 'frontend/fanpage.html')
+
+
+def frontend_chat(request):
+    return render(request, 'frontend/chat.html')
+
+
 def chat_index(request):
     if not request.user.is_authenticated:
         return redirect('login')

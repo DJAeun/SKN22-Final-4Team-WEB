@@ -89,7 +89,143 @@ python manage.py runserver
 
 ---
 
-## 6. Team Members (SKN22-Final-4Team)
+## 6. Project Structure
+
+현재 레포지토리의 상세 디렉토리 구조입니다.
+
+```
+SKN22-Final-4Team-WEB/
+│
+├── .github/
+│   └── workflows/
+│       └── deploy-eb.yml          # GitHub Actions: develop 브랜치 push 시 EB 자동 배포
+│
+├── backend/                       # 🔑 배포 대상 루트 (EB에 이 폴더 전체를 zip으로 패키징)
+│   │
+│   ├── config/                    # Django 프로젝트 설정
+│   │   ├── settings.py            # 환경 변수, DB, 인증, static 경로 등 전체 설정
+│   │   ├── urls.py                # 루트 URL 라우터
+│   │   ├── asgi.py                # ASGI 엔트리포인트 (WebSocket + HTTP)
+│   │   └── wsgi.py                # WSGI 엔트리포인트
+│   │
+│   ├── chat/                      # 핵심 Django 앱 (채팅 기능 + 프론트엔드 뷰 통합)
+│   │   ├── views.py               # 모든 페이지 뷰 함수 (homepage, fanpage, chat 포함)
+│   │   ├── models.py              # Message, ChatMemory DB 모델
+│   │   ├── consumers.py           # WebSocket Consumer (Django Channels)
+│   │   ├── engine.py              # LangChain 기반 대화 엔진 (하리 페르소나 + 메모리)
+│   │   ├── serializers.py         # DRF 직렬화기
+│   │   ├── urls.py                # /api/chat/ 하위 API URL
+│   │   ├── routing.py             # WebSocket URL 라우팅
+│   │   └── static/chat/           # 채팅 전용 정적 파일
+│   │
+│   ├── accounts/                  # 유저 계정 앱 (allauth·dj-rest-auth 확장용)
+│   │
+│   ├── templates/                 # Django 템플릿 루트
+│   │   └── frontend/              # 하리 프론트엔드 HTML 템플릿
+│   │       ├── homepage.html      # 홈페이지 (랜딩 · 갤러리 · 뉴스 · 멤버십)
+│   │       ├── fanpage.html       # 팬클럽 대시보드 (랭킹 · 샵 · 프로필)
+│   │       ├── chat.html          # 하리 채팅 UI (단독 페이지)
+│   │       └── includes/          # 페이지별 분리된 섹션 컴포넌트
+│   │           ├── homepage/
+│   │           │   ├── _nav_auth.html       # 내비게이션 + 인증 모달
+│   │           │   ├── _s1_hero.html        # Hero 섹션
+│   │           │   ├── _s2_profile.html     # 프로필 섹션
+│   │           │   ├── _s3_gallery.html     # 갤러리 섹션
+│   │           │   ├── _s4_chat.html        # 채팅 미리보기 섹션
+│   │           │   ├── _s5_news.html        # 뉴스·유튜브 쇼츠 섹션
+│   │           │   ├── _s6_membership.html  # 멤버십 CTA 섹션
+│   │           │   ├── _s7_contact.html     # 문의 섹션
+│   │           │   └── _s8_footer.html      # 푸터
+│   │           ├── fanpage/
+│   │           │   ├── _topbar.html         # 상단 바
+│   │           │   ├── _sidebar.html        # 사이드 내비게이션
+│   │           │   ├── _profile.html        # 유저 프로필 카드
+│   │           │   ├── _ranking.html        # 팬 랭킹 테이블
+│   │           │   ├── _shop.html           # 포인트 샵
+│   │           │   ├── _myinfo.html         # 내 정보 · 설정
+│   │           │   └── _buymodal.html       # 구매 확인 모달
+│   │           └── chat/
+│   │               ├── _header.html         # 채팅 헤더
+│   │               ├── _messages.html       # 메시지 목록
+│   │               ├── _input.html          # 메시지 입력창
+│   │               ├── _quickreply.html     # 빠른 답장 버튼
+│   │               ├── _search.html         # 대화 검색 모달
+│   │               └── _emoji.html          # 이모지 패널
+│   │
+│   ├── static/                    # 공유 정적 파일 (collectstatic 소스)
+│   │   ├── css/                   # 전역 CSS
+│   │   ├── js/                    # 전역 JavaScript
+│   │   ├── images/                # 하리 이미지 (hari_image1.png ~ hari_logo.png)
+│   │   └── video/                 # 하리 쇼츠 영상 (video_20260313.mp4 등)
+│   │
+│   ├── staticfiles/               # collectstatic 결과물 (자동 생성·배포 시 사용)
+│   ├── media/                     # 유저 업로드 파일
+│   ├── manage.py                  # Django 관리 CLI
+│   ├── requirements.txt           # Python 패키지 목록
+│   ├── Procfile                   # EB 프로세스 정의 (migrate → collectstatic → daphne)
+│   ├── Dockerfile                 # Docker 이미지 정의
+│   └── docker-compose.yml         # 로컬 Docker 환경
+│
+├── ai-influencer/                 # AI 콘텐츠 자동화 파이프라인 (n8n, 대본 생성 등)
+├── heygen_pipeline/               # HeyGen API 영상 생성 파이프라인
+├── img_gen/                       # 이미지 생성 (Z-Image-turbo, LoRA)
+├── langchain-skills/              # LangChain 실험·스킬 모듈
+├── langsmith-skills/              # LangSmith 트레이싱·평가
+└── notebooklm/                    # NotebookLM 연동 실험
+```
+
+---
+
+## 7. URL Routing
+
+| URL 경로 | 뷰 함수 | 설명 |
+|---|---|---|
+| `/` | `chat_index` | 채팅 메인 (로그인 필요) |
+| `/homepage/` | `homepage` | 하리 랜딩 홈페이지 |
+| `/fanpage/` | `fanpage` | 팬클럽 대시보드 |
+| `/hari-chat/` | `frontend_chat` | 하리 채팅 전용 UI |
+| `/health/` | `health_check` | 서버 헬스체크 (EB 모니터링) |
+| `/admin/` | Django Admin | 관리자 페이지 |
+| `/accounts/` | allauth | 소셜 로그인 (Google, Naver) |
+| `/api/auth/` | dj-rest-auth | JWT 인증 API |
+| `/api/chat/` | chat.urls | 채팅 메시지 REST API |
+| `ws://.../ws/chat/` | WebSocket | 실시간 채팅 (Django Channels) |
+
+---
+
+## 8. Deployment (AWS Elastic Beanstalk)
+
+```
+develop 브랜치 push
+    ↓
+GitHub Actions (.github/workflows/deploy-eb.yml)
+    ↓
+backend/ 폴더 → deploy.zip 패키징
+    ↓
+AWS Elastic Beanstalk 배포
+    ↓
+Procfile 실행:
+  python manage.py migrate --noinput
+  python manage.py collectstatic --noinput   ← static/ → staticfiles/ 복사
+  daphne -b 0.0.0.0 -p 8000 config.asgi:application
+```
+
+### 환경 변수 (`.env` / EB 환경 설정)
+| 변수명 | 설명 |
+|---|---|
+| `SECRET_KEY` | Django 시크릿 키 |
+| `OPENAI_API_KEY` | OpenAI API 키 |
+| `GOOGLE_CLIENT_ID` | 구글 소셜 로그인 |
+| `GOOGLE_CLIENT_SECRET` | 구글 소셜 로그인 시크릿 |
+| `NAVER_CLIENT_ID` | 네이버 소셜 로그인 |
+| `NAVER_CLIENT_SECRET` | 네이버 소셜 로그인 시크릿 |
+| `DB_HOST` / `RDS_HOSTNAME` | PostgreSQL 호스트 |
+| `DB_NAME` / `RDS_DB_NAME` | DB 이름 |
+| `REDIS_HOST` | Redis 호스트 (WebSocket Channel Layer) |
+
+---
+
+## 9. Team Members (SKN22-Final-4Team)
 
 | 사진 | 이름 | 역할 | 주요 업무 |
 | :---: | :--- | :--- | :--- |
@@ -101,6 +237,6 @@ python manage.py runserver
 
 ---
 
-## 7. License
+## 10. License
 
 본 프로젝트는 **SK네트웍스 Family AI 22기** 교육 과정의 일환으로 제작되었으며, 모든 권리는 **SKN22-Final-4Team**에 있습니다.
