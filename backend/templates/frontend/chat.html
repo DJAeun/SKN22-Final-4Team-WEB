@@ -615,10 +615,20 @@ html, body {
   gap: 12px;
   margin-bottom: 8px;
   align-items: flex-end;
+  animation: msgFadeIn 0.3s ease-out;
+}
+
+@keyframes msgFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .message-group.me {
   flex-direction: row-reverse;
+}
+
+.message-group.no-animate {
+  animation: none;
 }
 
 /* 프로필 이미지 */
@@ -1146,12 +1156,77 @@ document.addEventListener('keydown', (e) => {
 
 
 // ═══════════════════════════════════════
+// Django context & state
+// ═══════════════════════════════════════
+const chatData = JSON.parse(document.getElementById('django-data').textContent);
+const { isAuthenticated, userName, loginUrl, csrfToken } = chatData;
+
+const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+let chatSocket = null;
+let currentSessionId = null;
+
+// Multi-bubble queue state
+let bubbleQueue = [];
+let bubbleTimer = null;
+let isBubbleAnimating = false;
+
+// Message batching (debounce) state
+let userMessageBuffer = [];
+let debounceTimer = null;
+const DEBOUNCE_DELAY = 2500; // ms
+
+// Search history (populated from API)
+let chatHistory = [];
+
+// ═══════════════════════════════════════
+// WebSocket connection
+// ═══════════════════════════════════════
+function connectWebSocket(sessionId = null) {
+  if (chatSocket) chatSocket.close();
+
+  const wsPath = sessionId ? `/ws/chat/${sessionId}/` : '/ws/chat/';
+  chatSocket = new WebSocket(protocol + window.location.host + wsPath);
+
+  chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    if (data.sender === 'hari') {
+      // If user has buffered messages pending, flush them first
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+        flushMessageBuffer();
+      }
+
+      if (isBubbleAnimating) {
+        // Append new segments to the existing queue instead of flushing
+        const newSegments = splitMessage(data.message);
+        if (newSegments.length > 0) {
+          // Un-mark the current last item in the queue
+          if (bubbleQueue.length > 0) {
+            bubbleQueue[bubbleQueue.length - 1].isLast = false;
+          }
+          newSegments.forEach((seg, i) => {
+            bubbleQueue.push({ text: seg, isLast: i === newSegments.length - 1 });
+          });
+        }
+      } else {
+        appendHariMessage(data.message);
+      }
+    }
+  };
+
+  chatSocket.onclose = function(e) {
+    if (e.code === 4401) {
+      window.location.href = loginUrl;
+    }
+  };
+}
+
+// ═══════════════════════════════════════
 // 메시지 전송
 // ═══════════════════════════════════════
 function sendMessage() {
   const input = document.getElementById('messageInput');
   const text = input.value.trim();
-  
   if (!text) return;
   
   // 로그인 체크
@@ -1166,14 +1241,19 @@ function sendMessage() {
   
   input.value = '';
   input.style.height = 'auto';
-  
-  // 하리 응답 (타이핑 후)
+}
+
+function flushMessageBuffer() {
+  if (userMessageBuffer.length === 0) return;
+
+  // Join all buffered messages and send as one payload
+  const combined = userMessageBuffer.join('\n');
+  userMessageBuffer = [];
+  debounceTimer = null;
+
+  // Show typing indicator only when actually sending
   showTyping();
-  setTimeout(() => {
-    hideTyping();
-    const reply = getHariReply(text);
-    addMessage('hari', reply);
-  }, 1000 + Math.random() * 1000);
+  chatSocket.send(JSON.stringify({ 'message': combined }));
 }
 
 // 전역 변수로 마지막 메시지 날짜 추적
@@ -1273,13 +1353,94 @@ function addMessage(sender, content, type = 'text') {
         </div>
       </div>
     </div>
-    `;
-  
-  messages.insertAdjacentHTML('beforeend', messageHTML);
+  `;
+  messages.insertAdjacentHTML('beforeend', html);
   scrollToBottom();
 }
 
+function scheduleNextBubble() {
+  if (bubbleQueue.length === 0) {
+    isBubbleAnimating = false;
+    return;
+  }
+
+  showTyping();
+
+  const delay = 1500 + Math.random() * 1000; // 1.5–2.5s between bubbles
+  bubbleTimer = setTimeout(() => {
+    hideTyping();
+    const item = bubbleQueue.shift();
+    renderSingleHariBubble(item.text, {
+      isFirst: false,
+      isLast: item.isLast,
+      animate: true
+    });
+    scheduleNextBubble();
+  }, delay);
+}
+
+function flushBubbleQueue() {
+  if (bubbleTimer) {
+    clearTimeout(bubbleTimer);
+    bubbleTimer = null;
+  }
+  hideTyping();
+
+  bubbleQueue.forEach(item => {
+    renderSingleHariBubble(item.text, {
+      isFirst: false,
+      isLast: item.isLast,
+      animate: false
+    });
+  });
+  bubbleQueue = [];
+  isBubbleAnimating = false;
+}
+
+function appendHariMessage(text, isHistory = false) {
+  const segments = splitMessage(text);
+  if (segments.length === 0) return;
+
+  if (isHistory) {
+    hideTyping();
+    segments.forEach((seg, i) => {
+      renderSingleHariBubble(seg, {
+        isFirst: i === 0,
+        isLast: i === segments.length - 1,
+        animate: false
+      });
+    });
+    return;
+  }
+
+  // Keep the typing indicator visible for a natural pause before the first bubble
+  isBubbleAnimating = true;
+  const firstDelay = 1200 + Math.random() * 800; // 1.2–2.0s
+  bubbleTimer = setTimeout(() => {
+    hideTyping();
+    renderSingleHariBubble(segments[0], {
+      isFirst: true,
+      isLast: segments.length === 1,
+      animate: true
+    });
+
+    if (segments.length > 1) {
+      bubbleQueue = segments.slice(1).map((seg, i) => ({
+        text: seg,
+        isLast: i === segments.length - 2
+      }));
+      scheduleNextBubble();
+    } else {
+      isBubbleAnimating = false;
+    }
+  }, firstDelay);
+}
+
+// ═══════════════════════════════════════
+// Typing indicator
+// ═══════════════════════════════════════
 function showTyping() {
+  if (document.getElementById('typingIndicator')) return;
   const messages = document.getElementById('messages');
   const typingHTML = `
     <div class="typing-indicator" id="typingIndicator">
@@ -1328,10 +1489,9 @@ function getHariReply(userText) {
     if (text.includes(keyword)) {
       return responses[Math.floor(Math.random() * responses.length)];
     }
+  } catch (error) {
+    console.error('Error loading history:', error);
   }
-  
-  const defaultResponses = HARI_RESPONSES.default;
-  return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
 }
 
 // ═══════════════════════════════════════
@@ -1351,11 +1511,14 @@ function escapeHtml(text) {
   return div.innerHTML.replace(/\n/g, '<br>');
 }
 
-function scrollToBottom() {
+function scrollToBottom(force = false) {
   const container = document.getElementById('chatContainer');
-  setTimeout(() => {
-    container.scrollTop = container.scrollHeight;
-  }, 100);
+  const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+  if (force || isNearBottom) {
+    setTimeout(() => {
+      container.scrollTop = container.scrollHeight;
+    }, 50);
+  }
 }
 
 function handleKeyPress(event) {
@@ -1395,11 +1558,6 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// 페이지 로드 시 스크롤
-window.addEventListener('load', () => {
-  scrollToBottom();
-});
-
 // ═══════════════════════════════════════
 // 검색 기능 (사이드바 버전)
 // ═══════════════════════════════════════
@@ -1427,7 +1585,7 @@ function switchSearchTab(event, tab) {
 function performSearch() {
   const query = document.getElementById('searchInput').value.trim().toLowerCase();
   const resultsContainer = document.getElementById('searchResults');
-  
+
   if (!query) {
     resultsContainer.innerHTML = '<div style="text-align: center; padding: 40px 10px; color: var(--text-dim);">검색어를 입력해줘!</div>';
     return;
@@ -1440,7 +1598,7 @@ function performSearch() {
 function searchByDate() {
   const dateFrom = document.getElementById('dateFrom').value;
   const dateTo = document.getElementById('dateTo').value;
-  
+
   if (!dateFrom || !dateTo) {
     alert('시작이랑 종료 날짜 다 골라줘!');
     return;
@@ -1452,12 +1610,12 @@ function searchByDate() {
 
 function displaySearchResults(results, keyword = null) {
   const resultsContainer = document.getElementById('searchResults');
-  
+
   if (results.length === 0) {
     resultsContainer.innerHTML = '<div style="text-align: center; padding: 40px 10px; color: var(--text-dim);">검색 결과가 없어 😥</div>';
     return;
   }
-  
+
   let html = '';
   results.forEach(msg => {
     let preview = msg.text;
@@ -1465,7 +1623,6 @@ function displaySearchResults(results, keyword = null) {
       const regex = new RegExp(`(${keyword})`, 'gi');
       preview = preview.replace(regex, '<mark style="background:rgba(255,123,138,0.2); color:var(--hari-pink); padding:2px 4px; border-radius:4px;">$1</mark>');
     }
-    
     html += `
       <div style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; background: white;" onclick="alert('메시지 이동 기능은 준비 중이야!')">
         <div style="font-size: 11px; color: var(--text-time); margin-bottom: 4px;">${msg.date} ${msg.time}</div>
@@ -1474,7 +1631,6 @@ function displaySearchResults(results, keyword = null) {
       </div>
     `;
   });
-  
   resultsContainer.innerHTML = html;
 }
 </script>

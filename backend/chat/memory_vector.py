@@ -122,6 +122,69 @@ def retrieve_hari_knowledge(query_text: str, top_k: int = 5):
     ]
 
 
+def retrieve_generated_contents(query_text: str, top_k: int = 3, min_similarity: float = 0.3):
+    """
+    Find the top-k most relevant Hari-generated content (scripts/videos) for a query.
+
+    Returns list of dicts with title, script_text, summary, tags, platform,
+    uploaded_at, content_url, and similarity. Returns [] on any failure.
+    """
+    query_vector = embed_text(query_text)
+    if query_vector is None:
+        return []
+
+    vector_str = _vector_to_str(query_vector)
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                """
+                SELECT title, script_text, summary, tags, platform,
+                       uploaded_at, content_url,
+                       1 - (content_vector <=> %s::vector) AS similarity
+                FROM generated_contents
+                WHERE is_published = TRUE
+                  AND content_vector IS NOT NULL
+                  AND 1 - (content_vector <=> %s::vector) >= %s
+                ORDER BY content_vector <=> %s::vector
+                LIMIT %s
+                """,
+                [vector_str, vector_str, min_similarity, vector_str, top_k],
+            )
+            rows = cur.fetchall()
+    except Exception as e:
+        logger.error("Generated contents retrieval failed: %s", e, exc_info=True)
+        return []
+
+    return [
+        {
+            "title": row[0],
+            "script_text": row[1],
+            "summary": row[2],
+            "tags": row[3],
+            "platform": row[4],
+            "uploaded_at": row[5],
+            "content_url": row[6],
+            "similarity": row[7],
+        }
+        for row in rows
+    ]
+
+
+def embed_and_save_content_vector(content_id: int, script_text: str, summary: str = "") -> None:
+    """Embed script+summary and store the vector in generated_contents."""
+    text_to_embed = f"{summary}\n{script_text}" if summary else script_text
+    vector = embed_text(text_to_embed)
+    if vector is None:
+        logger.error("Failed to embed content %d", content_id)
+        return
+    vector_str = _vector_to_str(vector)
+    with connection.cursor() as cur:
+        cur.execute(
+            "UPDATE generated_contents SET content_vector = %s::vector WHERE content_id = %s",
+            [vector_str, content_id],
+        )
+
+
 def retrieve_user_persona(user_id: int):
     """
     Fetch all active facts about a user from user_persona.

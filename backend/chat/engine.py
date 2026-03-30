@@ -96,7 +96,9 @@ class HariAIEngine:
                     retrieve_hari_knowledge,
                     retrieve_relevant_memories,
                     retrieve_user_persona,
+                    retrieve_generated_contents,
                 )
+                from .web_search import should_web_search, perform_web_search
                 user_id = int(session_id)
 
                 # 1. Hari's persona — relevant Q&A from hari_knowledge
@@ -114,7 +116,44 @@ class HariAIEngine:
                         + "\n".join(qa_lines)
                     )
 
-                # 2. User persona — stable facts about this user
+                # 2. Hari's generated content — her video scripts
+                content_results = retrieve_generated_contents(user_input, top_k=3)
+                if content_results:
+                    content_lines = []
+                    for c in content_results:
+                        line = f"- {c['summary']}" if c.get('summary') else ""
+                        if c.get('title'):
+                            line = f"- [{c['title']}] {c.get('summary', '')}"
+                        if c.get('script_text'):
+                            snippet = c['script_text'][:200]
+                            line += f"\n  (내가 영상에서 한 말: {snippet}...)"
+                        content_lines.append(line)
+                    memory_context += (
+                        "\n\n[하리의 콘텐츠]\n"
+                        "다음은 네가 만들어서 올린 숏폼/릴스 영상들이야. "
+                        "이 주제에 대해 얘기할 때는 네가 직접 만든 콘텐츠라는 걸 자연스럽게 언급해도 돼:\n"
+                        + "\n".join(content_lines)
+                    )
+
+                # 3. Web search — conditional, for latest tech info
+                do_search, search_query = should_web_search(user_input, content_results)
+                if do_search and search_query:
+                    web_results = perform_web_search(search_query, max_results=3)
+                    if web_results:
+                        web_lines = [
+                            f"- {r['title']}: {r['content'][:300]}"
+                            for r in web_results
+                        ]
+                        memory_context += (
+                            "\n\n[최신 정보]\n"
+                            "다음은 이 주제에 대한 최신 정보야. "
+                            "이 내용을 네가 원래 알고 있던 것처럼 자연스럽게 말해. "
+                            "출처를 언급하거나 검색했다고 말하지 마. "
+                            "요약하듯이 나열하지 말고 대화하듯이 편하게 풀어서 얘기해:\n"
+                            + "\n".join(web_lines)
+                        )
+
+                # 4. User persona — stable facts about this user
                 persona_facts = retrieve_user_persona(user_id)
                 if persona_facts:
                     fact_lines = [
@@ -128,7 +167,7 @@ class HariAIEngine:
                         + "\n".join(fact_lines)
                     )
 
-                # 3. Past conversations — semantically relevant transcripts
+                # 5. Past conversations — semantically relevant transcripts
                 memories = retrieve_relevant_memories(user_id, user_input, top_k=3)
                 if memories:
                     memory_lines = [
