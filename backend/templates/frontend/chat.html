@@ -1106,7 +1106,7 @@ let isBubbleAnimating = false;
 // Message batching (debounce) state
 let userMessageBuffer = [];
 let debounceTimer = null;
-const DEBOUNCE_DELAY = 2500; // ms
+const DEBOUNCE_DELAY = 3000; // ms — wait for user to finish typing
 
 // Search history (populated from API)
 let chatHistory = [];
@@ -1178,6 +1178,12 @@ function sendMessage() {
 
 function flushMessageBuffer() {
   if (userMessageBuffer.length === 0) return;
+
+  // If Hari is still animating, wait and retry after animation finishes
+  if (isBubbleAnimating) {
+    debounceTimer = setTimeout(flushMessageBuffer, 500);
+    return;
+  }
 
   // Join all buffered messages and send as one payload
   const combined = userMessageBuffer.join('\n');
@@ -1587,6 +1593,11 @@ document.addEventListener('keydown', (e) => {
 // ═══════════════════════════════════════
 connectWebSocket();
 loadHistory().then(() => scrollToBottom(true));
+
+// Cleanly close WebSocket on page exit so disconnect() fires on the server
+window.addEventListener('beforeunload', () => {
+  if (chatSocket) chatSocket.close();
+});
 </script>
 
 </body>
