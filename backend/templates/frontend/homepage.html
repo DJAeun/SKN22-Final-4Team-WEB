@@ -1365,7 +1365,7 @@ function ckKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doSend();
 function aRz(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
 
 /* 하리 대화 페이지 링크 — URL 연결 시 아래 href를 교체하세요 */
-const CHAT_URL = '/chat/';
+const CHAT_URL = '/hari-chat/';
 document.getElementById('chat-page-link').href = CHAT_URL;
 document.getElementById('chat-page-link').addEventListener('click', function(e){
   if(this.getAttribute('href') === '#'){ e.preventDefault(); alert('하리 대화 페이지를 준비 중이에요.\n곧 오픈 예정입니다! 🙏'); }
