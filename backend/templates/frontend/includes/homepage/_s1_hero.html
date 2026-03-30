@@ -1,16 +1,14 @@
 {% load static %}
-<section id="s1" style="background-image: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url('{% static 'images/hari_image5.png' %}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
-  <div class="hero-grid" style="opacity: 0.1;"></div>
-  <div class="hero-inner">
-    <div class="hero-left" style="max-width: 900px; margin: 0 auto; text-align: center; padding: 2rem;">
-      <div class="hero-eyebrow" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8); font-size: 1.1rem; letter-spacing: 0.15em; color: #fff;">Artist & Creative · Seoul</div>
-      <h1 class="hero-title" style="display:flex; align-items:center; justify-content: center; margin: 1.5rem 0;">
-        <img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI" style="height:clamp(8rem, 20vw, 20rem); width:auto; object-fit:contain; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));">
-      </h1>
-      <p class="hero-desc" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.9); font-size: 1.4rem; line-height: 1.8; color: #fff; font-weight: 400;">하리는 음악과 패션, 그리고 소중한 일상을 공유하는 아티스트입니다.<br>보리 팬클럽을 통해 여러분과 더 깊은 영감을 나누고<br>진심 어린 유대감을 쌓아가고 싶어요.</p>
-    </div>
+<section id="s1" style="position: relative; height: 100vh; overflow: hidden; background-image: linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.4)), url('{% static 'images/hari_image5.png' %}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+  <div class="hero-logo-box" style="position: absolute; top: 100px; left: 50px; z-index: 10;">
+    <img src="{% static 'images/hari_logo_none.png' %}?v=3" alt="HARI" style="height: 140px; width: auto; filter: brightness(0) drop-shadow(0 0 20px rgba(255,255,255,0.3));">
   </div>
-  <div class="hero-bottom" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">
+  
+  <div class="hero-inner" style="height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; padding: 100px 50px;">
+    <!-- Removed Artist & Creative Box -->
+  </div>
+
+  <div class="hero-bottom" style="font-family: var(--f-pixel);">
     <div class="hero-bottom-text">Welcome to Hari's World</div>
     <div class="hero-scroll-hint"><div class="scroll-line"></div>Scroll</div>
   </div>
