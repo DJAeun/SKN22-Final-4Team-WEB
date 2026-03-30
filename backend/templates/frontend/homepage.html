@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HARI — 보리 팬클럽</title>
 <link rel="icon" type="image/png" href="{% static 'images/hari_logo_none.png' %}?v=2">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/NeoDunggeunmo.css">
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 :root {
@@ -43,7 +43,7 @@
   --bdr-dk: rgba(255,245,246,0.12);
 }
 html { scroll-behavior:smooth; }
-body { background:var(--bg); color:var(--ink); font-family:'DM Sans',sans-serif; font-weight:300; overflow-x:hidden; }
+body { background:var(--bg); color:var(--ink); font-family:'NeoDunggeunmo',sans-serif; font-size: 1.25rem; line-height: 1.5; font-weight:400; overflow-x:hidden; }
 ::-webkit-scrollbar { width:2px; }
 ::-webkit-scrollbar-thumb { background:var(--acc); }
 
@@ -63,7 +63,7 @@ body { background:var(--bg); color:var(--ink); font-family:'DM Sans',sans-serif;
 .nav-logo {
   text-decoration:none; flex-shrink:0; display:flex; align-items:center;
 }
-.nav-logo svg { width:80px; height:36px; overflow:visible; }
+.nav-logo img { height:50px !important; width:auto; }
 
 /* 중앙 그룹 — 언어 + 시간 */
 .nav-center {
@@ -72,13 +72,13 @@ body { background:var(--bg); color:var(--ink); font-family:'DM Sans',sans-serif;
 }
 .nav-lang-group { display:flex; flex-direction:column; align-items:flex-start; gap:3px; }
 .nav-lang-label {
-  font-family:'DM Mono',monospace; font-size:.48rem;
+  font-family:'NeoDunggeunmo',monospace; font-size:.65rem;
   letter-spacing:.2em; text-transform:uppercase; color:var(--dim);
   line-height:1;
 }
 .nav-lang-btns { display:flex; gap:0; }
 .lang-btn {
-  font-family:'DM Sans',sans-serif; font-size:.85rem;
+  font-family:'NeoDunggeunmo',sans-serif; font-size:.95rem;
   font-weight:400; letter-spacing:.02em;
   padding:0 .6rem 2px; border:none; border-bottom:1.5px solid transparent;
   background:transparent; color:var(--dim); cursor:pointer;
@@ -91,12 +91,12 @@ body { background:var(--bg); color:var(--ink); font-family:'DM Sans',sans-serif;
 
 .nav-time-group { display:flex; flex-direction:column; align-items:flex-start; gap:3px; }
 .nav-time-tz {
-  font-family:'DM Mono',monospace; font-size:.48rem;
+  font-family:'NeoDunggeunmo',monospace; font-size:.48rem;
   letter-spacing:.2em; text-transform:uppercase; color:var(--dim);
   line-height:1;
 }
 .nav-time-clock {
-  font-family:'DM Mono',monospace; font-size:.85rem;
+  font-family:'NeoDunggeunmo',monospace; font-size:.95rem;
   letter-spacing:.06em; color:var(--ink);
   line-height:1.2;
 }
@@ -1216,8 +1216,6 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 
 {% include "frontend/includes/homepage/_s3_gallery.html" %}
 
-{% include "frontend/includes/homepage/_s4_chat.html" %}
-
 {% include "frontend/includes/homepage/_s5_news.html" %}
 
 {% include "frontend/includes/homepage/_s6_membership.html" %}
@@ -1393,11 +1391,11 @@ function ytModalOpen(vid, title, isShorts){
   if(isShorts){
     box.style.maxWidth  = '380px';
     wrap.style.aspectRatio = '9/16';
-    iframe.src = `https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&loop=1&playlist=${vid}`;
+    iframe.src = `https://www.youtube.com/embed/${vid}?rel=0&loop=1&playlist=${vid}`;
   } else {
     box.style.maxWidth  = '900px';
     wrap.style.aspectRatio = '16/9';
-    iframe.src = `https://www.youtube.com/embed/${vid}?autoplay=1&rel=0`;
+    iframe.src = `https://www.youtube.com/embed/${vid}?rel=0`;
   }
 
   titleEl.textContent = title || '';
