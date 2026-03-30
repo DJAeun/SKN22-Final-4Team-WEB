@@ -1104,6 +1104,11 @@ let bubbleQueue = [];
 let bubbleTimer = null;
 let isBubbleAnimating = false;
 
+// Message batching (debounce) state
+let userMessageBuffer = [];
+let debounceTimer = null;
+const DEBOUNCE_DELAY = 2500; // ms
+
 // Search history (populated from API)
 let chatHistory = [];
 
@@ -1119,6 +1124,11 @@ function connectWebSocket(sessionId = null) {
   chatSocket.onmessage = function(e) {
     const data = JSON.parse(e.data);
     if (data.sender === 'hari') {
+      // If user has buffered messages pending, flush them first
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+        flushMessageBuffer();
+      }
       if (isBubbleAnimating) flushBubbleQueue();
       appendHariMessage(data.message);
     }
@@ -1141,13 +1151,31 @@ function sendMessage() {
 
   if (isBubbleAnimating) flushBubbleQueue();
 
+  // 1) Render the bubble immediately
   appendUserMessage(text);
-  showTyping();
 
-  chatSocket.send(JSON.stringify({ 'message': text }));
+  // 2) Buffer the message text
+  userMessageBuffer.push(text);
+
+  // 3) Reset debounce timer
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(flushMessageBuffer, DEBOUNCE_DELAY);
 
   input.value = '';
   input.style.height = 'auto';
+}
+
+function flushMessageBuffer() {
+  if (userMessageBuffer.length === 0) return;
+
+  // Join all buffered messages and send as one payload
+  const combined = userMessageBuffer.join('\n');
+  userMessageBuffer = [];
+  debounceTimer = null;
+
+  // Show typing indicator only when actually sending
+  showTyping();
+  chatSocket.send(JSON.stringify({ 'message': combined }));
 }
 
 function appendUserMessage(text) {
@@ -1217,7 +1245,7 @@ function scheduleNextBubble() {
 
   showTyping();
 
-  const delay = 800 + Math.random() * 700;
+  const delay = 1500 + Math.random() * 1000; // 1.5–2.5s between bubbles
   bubbleTimer = setTimeout(() => {
     hideTyping();
     const item = bubbleQueue.shift();
@@ -1249,11 +1277,11 @@ function flushBubbleQueue() {
 }
 
 function appendHariMessage(text, isHistory = false) {
-  hideTyping();
   const segments = splitMessage(text);
   if (segments.length === 0) return;
 
   if (isHistory) {
+    hideTyping();
     segments.forEach((seg, i) => {
       renderSingleHariBubble(seg, {
         isFirst: i === 0,
@@ -1264,20 +1292,27 @@ function appendHariMessage(text, isHistory = false) {
     return;
   }
 
-  renderSingleHariBubble(segments[0], {
-    isFirst: true,
-    isLast: segments.length === 1,
-    animate: true
-  });
+  // Keep the typing indicator visible for a natural pause before the first bubble
+  isBubbleAnimating = true;
+  const firstDelay = 1200 + Math.random() * 800; // 1.2–2.0s
+  bubbleTimer = setTimeout(() => {
+    hideTyping();
+    renderSingleHariBubble(segments[0], {
+      isFirst: true,
+      isLast: segments.length === 1,
+      animate: true
+    });
 
-  if (segments.length > 1) {
-    bubbleQueue = segments.slice(1).map((seg, i) => ({
-      text: seg,
-      isLast: i === segments.length - 2
-    }));
-    isBubbleAnimating = true;
-    scheduleNextBubble();
-  }
+    if (segments.length > 1) {
+      bubbleQueue = segments.slice(1).map((seg, i) => ({
+        text: seg,
+        isLast: i === segments.length - 2
+      }));
+      scheduleNextBubble();
+    } else {
+      isBubbleAnimating = false;
+    }
+  }, firstDelay);
 }
 
 // ═══════════════════════════════════════
