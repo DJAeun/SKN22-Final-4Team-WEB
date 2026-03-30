@@ -1,45 +1,45 @@
-<!-- SEARCH MODAL -->
-<div class="search-modal" id="searchModal" onclick="closeSearchOnOutside(event)">
-  <div class="search-container">
-    <!-- 검색 헤더 -->
-    <div class="search-header">
-      <div class="search-input-wrapper">
-        <span class="search-icon">🔍</span>
-        <input 
-          type="text" 
-          class="search-input" 
-          id="searchInput"
-          placeholder="메시지 검색..."
-          oninput="performSearch()"
-        >
+<!-- SEARCH SIDEBAR (Right) -->
+<div class="search-sidebar-container" style="display: flex; flex-direction: column; gap: 16px;">
+  <!-- 검색 입력창 -->
+  <div class="search-input-wrapper" style="display: flex; align-items: center; gap: 10px; background: #f0f2f5; border-radius: 12px; padding: 10px 16px; border: 1px solid var(--border);">
+    <span class="search-icon" style="color: var(--text-dim); font-size: 16px;">🔍</span>
+    <input 
+      type="text" 
+      class="search-input" 
+      id="searchInput"
+      placeholder="메시지 검색..."
+      oninput="performSearch()"
+      style="flex: 1; border: none; background: transparent; outline: none; font-size: 14px; color: var(--text-main);"
+    >
+  </div>
+
+  <!-- 검색 탭 (키워드/날짜) -->
+  <div class="search-tabs" style="display: flex; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+    <button class="search-tab active" onclick="switchSearchTab(event, 'keyword')" style="background: none; border: none; padding: 6px 12px; font-size: 13px; font-weight: 500; color: var(--hari-pink); cursor: pointer; border-bottom: 2px solid var(--hari-pink); flex: 1;">키워드</button>
+    <button class="search-tab" onclick="switchSearchTab(event, 'date')" style="background: none; border: none; padding: 6px 12px; font-size: 13px; font-weight: 500; color: var(--text-dim); cursor: pointer; flex: 1;">날짜</button>
+  </div>
+
+  <!-- 날짜 필터 (Hidden by default) -->
+  <div class="date-filter" id="dateFilter" style="display: none; flex-direction: column; gap: 10px; padding: 12px; background: #fef9fa; border-radius: 12px; border: 1px solid var(--border);">
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 12px; color: var(--text-dim);">From</span>
+        <input type="date" class="date-input" id="dateFrom" style="border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 13px;">
       </div>
-      <button class="search-close" onclick="closeSearch()">×</button>
-    </div>
-
-    <!-- 검색 탭 -->
-    <div class="search-tabs">
-      <button class="search-tab active" onclick="switchSearchTab('keyword')">키워드</button>
-      <button class="search-tab" onclick="switchSearchTab('date')">날짜</button>
-    </div>
-
-    <!-- 날짜 필터 -->
-    <div class="date-filter" id="dateFilter">
-      <div class="date-filter-row">
-        <span class="date-filter-label">From</span>
-        <input type="date" class="date-input" id="dateFrom">
-        <span class="date-filter-label">To</span>
-        <input type="date" class="date-input" id="dateTo">
-        <button class="date-filter-btn" onclick="searchByDate()">검색</button>
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 12px; color: var(--text-dim);">To</span>
+        <input type="date" class="date-input" id="dateTo" style="border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 13px;">
       </div>
     </div>
+    <button class="date-filter-btn" onclick="searchByDate()" style="width: 100%; padding: 8px; background: var(--hari-pink); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer;">검색</button>
+  </div>
 
-    <!-- 검색 결과 -->
-    <div class="search-results" id="searchResults">
-      <div class="search-no-results">
-        <div class="search-no-results-icon">💬</div>
-        <div class="search-no-results-text">
-          검색어를 입력하거나<br>날짜를 선택해주세요
-        </div>
+  <!-- 검색 결과 영역 -->
+  <div class="search-results" id="searchResults" style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-top: 10px;">
+    <div class="search-no-results" style="text-align: center; padding: 40px 10px; color: var(--text-dim);">
+      <div style="font-size: 32px; margin-bottom: 12px; opacity: 0.3;">💬</div>
+      <div style="font-size: 13px; line-height: 1.6;">
+        검색어를 입력하거나<br>날짜를 선택해줘!
       </div>
     </div>
   </div>
