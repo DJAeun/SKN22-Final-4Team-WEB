@@ -24,15 +24,9 @@
   --hari-sky: #c7ceea;
   
   /* 배경 */
-  --bg-main: #fef9fa;
-  --bg-gradient: linear-gradient(135deg, #fff5f7 0%, #f0f9ff 100%);
-  --bg-pattern: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 20px,
-    rgba(255, 123, 138, 0.02) 20px,
-    rgba(255, 123, 138, 0.02) 40px
-  );
+  --bg-main: #FFF5F7;
+  --bg-gradient: #FFF5F7;
+  --bg-pattern: none;
   
   /* 말풍선 */
   --bubble-hari: linear-gradient(135deg, #ffffff 0%, #fff5f7 100%);
@@ -50,30 +44,91 @@
 }
 
 html, body {
-  height: 100%;
+  height: 100vh;
+  margin: 0;
   overflow: hidden;
-  font-family: 'DM Sans', 'Noto Sans KR', -apple-system, sans-serif;
+  font-family: 'DM Sans', 'Noto Sans KR', sans-serif;
   background: var(--bg-main);
 }
 
-body {
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ═══════════════════════════════════════
+   SIDEBAR LEFT (Profile)
+   ═══════════════════════════════════════ */
+.sidebar-left {
+  width: 320px;
+  background-image: url("{% static 'images/hari_image2.png' %}");
+  background-size: cover;
+  background-position: center;
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
+  z-index: 10;
+  position: relative;
+}
+
+.sidebar-left::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.8) 60%, white 100%);
+  z-index: 1;
+}
+
+.profile-section {
+  position: relative;
+  z-index: 2;
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════
+   CHAT MAIN (Center)
+   ═══════════════════════════════════════ */
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-gradient);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════
+   SIDEBAR RIGHT (Search/Tools)
+   ═══════════════════════════════════════ */
+.sidebar-right {
+  width: 320px;
+  background: white;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  z-index: 10;
 }
 
 /* ═══════════════════════════════════════
    HEADER (하리 스타일)
    ═══════════════════════════════════════ */
 .header {
-  background: var(--header-bg);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(30px);
   border-bottom: 1px solid var(--border);
   padding: 16px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
-  box-shadow: 0 2px 12px rgba(255, 123, 138, 0.08);
+  z-index: 100;
 }
 
 .header-left {
@@ -487,16 +542,12 @@ body {
   position: relative;
 }
 
+.chat-container::after {
+  display: none;
+}
+
 .chat-container::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--bg-pattern);
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 .chat-container::-webkit-scrollbar {
@@ -638,78 +689,32 @@ body {
   flex-direction: row-reverse;
 }
 
-/* 말풍선 (하리 스타일 - 부드러운 꼬리) */
+/* 말풍선 공통 스타일 */
 .msg-bubble {
-  background: var(--bubble-hari);
   padding: 12px 18px;
-  border-radius: 18px;
+  border-radius: 20px;
   font-size: 15px;
   line-height: 1.6;
-  color: var(--text-main);
   position: relative;
   box-shadow: var(--bubble-shadow);
   word-wrap: break-word;
+  max-width: 100%;
+}
+
+/* 하리 말풍선 */
+.message-group.other .msg-bubble {
+  background: var(--bubble-hari);
+  color: var(--text-main);
   border: 0.5px solid rgba(255, 123, 138, 0.1);
 }
 
-/* 하리 말풍선 - 왼쪽 아래 둥근 꼬리 */
-.message-group.other .msg-bubble {
-  border-bottom-left-radius: 4px;
-}
-
-.message-group.other .msg-bubble::before {
-  content: '';
-  position: absolute;
-  left: -8px;
-  bottom: 0;
-  width: 20px;
-  height: 20px;
-  background: white;
-  border-radius: 0 0 20px 0;
-  box-shadow: 0 2px 8px rgba(255, 123, 138, 0.1);
-}
-
-.message-group.other .msg-bubble::after {
-  content: '';
-  position: absolute;
-  left: -8px;
-  bottom: 0;
-  width: 20px;
-  height: 20px;
-  background: var(--bg-main);
-  border-radius: 0 20px 0 0;
-}
-
-/* 내 말풍선 - 핑크 그라데이션 + 오른쪽 아래 둥근 꼬리 */
+/* 내 말풍선 */
 .message-group.me .msg-bubble {
   background: var(--bubble-me);
   color: white;
   border: none;
-  border-bottom-right-radius: 4px;
 }
 
-.message-group.me .msg-bubble::before {
-  content: '';
-  position: absolute;
-  right: -8px;
-  bottom: 0;
-  width: 20px;
-  height: 20px;
-  background: var(--hari-coral);
-  border-radius: 0 0 0 20px;
-  box-shadow: 0 2px 8px rgba(255, 123, 138, 0.15);
-}
-
-.message-group.me .msg-bubble::after {
-  content: '';
-  position: absolute;
-  right: -8px;
-  bottom: 0;
-  width: 20px;
-  height: 20px;
-  background: var(--bg-main);
-  border-radius: 20px 0 0 0;
-}
 
 /* 시간 + 읽음 */
 .msg-meta {
@@ -751,8 +756,7 @@ body {
 .typing-bubble {
   background: white;
   padding: 14px 20px;
-  border-radius: 18px;
-  border-bottom-left-radius: 4px;
+  border-radius: 20px;
   display: flex;
   gap: 5px;
   align-items: center;
@@ -761,28 +765,6 @@ body {
   border: 0.5px solid rgba(255, 123, 138, 0.1);
 }
 
-.typing-bubble::before {
-  content: '';
-  position: absolute;
-  left: -8px;
-  bottom: 0;
-  width: 20px;
-  height: 20px;
-  background: white;
-  border-radius: 0 0 20px 0;
-  box-shadow: 0 2px 8px rgba(255, 123, 138, 0.1);
-}
-
-.typing-bubble::after {
-  content: '';
-  position: absolute;
-  left: -8px;
-  bottom: 0;
-  width: 20px;
-  height: 20px;
-  background: var(--bg-main);
-  border-radius: 0 20px 0 0;
-}
 
 .typing-dot {
   width: 6px;
@@ -1067,17 +1049,76 @@ body {
 </head>
 <body>
 
-{% include "frontend/includes/chat/_header.html" %}
+<div class="app-container">
+  <!-- LEFT SIDEBAR: PROFILE -->
+  <aside class="sidebar-left" style="width: 320px; background-image: url('{% static 'images/hari_image13.png' %}'); background-size: cover; background-position: center; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; z-index: 10; position: relative;">
+    <!-- Full Height Overlay for Readability -->
+    <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.95) 100%); z-index: 1;"></div>
+    
+    <!-- Profile Info (On top of overlay) -->
+    <div style="padding: 100px 24px 40px; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; z-index: 2;">
+      <div style="width: 140px; height: 140px; border-radius: 40px; overflow: hidden; border: 4px solid white; box-shadow: 0 12px 30px rgba(0,0,0,0.15); background: white; margin-bottom: 24px; transform: rotate(-3deg);">
+        <img src="{% static 'images/hari_image1.png' %}" alt="Hari" style="width: 100%; height: 100%; object-fit: cover;">
+      </div>
+      <div>
+        <h2 style="font-size: 24px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">하리 (Hari)</h2>
+        <!-- 일상적인 상태 메시지 -->
+        <p style="font-size: 14px; color: var(--text-dim); font-weight: 400; opacity: 0.9; letter-spacing: -0.01em;">
+          오늘은 연어 덮밥 먹고 싶은 날.. 🍣✨
+        </p>
+      </div>
+    </div>
+    
+    <div style="margin-top: auto; padding: 24px; position: relative; z-index: 2;">
+      <button onclick="goBack()" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); cursor: pointer; font-weight: 500; color: var(--text-dim); transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        ← Back to Home
+      </button>
+    </div>
+  </aside>
 
-{% include "frontend/includes/chat/_search.html" %}
+  <!-- CENTER: CHAT AREA -->
+  <main class="chat-main" id="chatContainer">
+    {% include "frontend/includes/chat/_header.html" %}
+    
+    {% include "frontend/includes/chat/_messages.html" %}
+    
+    <div style="position: sticky; bottom: 0; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding: 16px 24px;">
+      {% include "frontend/includes/chat/_emoji.html" %}
+      {% include "frontend/includes/chat/_input.html" %}
+    </div>
+  </main>
 
-{% include "frontend/includes/chat/_quickreply.html" %}
+  <!-- RIGHT SIDEBAR (Blank for now) -->
+  <aside class="sidebar-right">
+    <!-- Reserved for future features -->
+    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 40px; text-align:center;">
+      <div style="font-size: 32px; margin-bottom: 12px; opacity: 0.1;">⚡</div>
+      <div style="color: var(--text-time); font-size: 13px; font-family: 'DM Mono'; font-weight: 400; letter-spacing: 0.05em; text-transform: uppercase;">
+        COMMING SOON
+      </div>
+    </div>
+  </aside>
+</div>
 
-{% include "frontend/includes/chat/_messages.html" %}
+<!-- SEARCH MODAL (Restored) -->
+<div id="searchModal" style="display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); align-items: flex-start; justify-content: flex-end; padding: 24px;">
+  <div style="background: white; width: 360px; height: auto; max-height: calc(100vh - 48px); border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+    <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+      <h3 style="font-size: 16px; font-weight: 600; color: var(--text-main);">🔍 대화 내용 검색</h3>
+      <button onclick="closeSearch()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-dim);">×</button>
+    </div>
+    <div style="padding: 20px; overflow-y: auto;">
+      {% include "frontend/includes/chat/_search.html" %}
+    </div>
+  </div>
+</div>
 
-{% include "frontend/includes/chat/_emoji.html" %}
-
-{% include "frontend/includes/chat/_input.html" %}
+<style>
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+</style>
 
 <script id="django-data" type="application/json">
   {
@@ -1089,6 +1130,31 @@ body {
 </script>
 
 <script>
+// Django 데이터 파싱
+const djangoData = JSON.parse(document.getElementById('django-data').textContent);
+
+// ═══════════════════════════════════════
+// 검색 기능 활성화
+// ═══════════════════════════════════════
+function openSearch() {
+  const modal = document.getElementById('searchModal');
+  modal.style.display = 'flex';
+  setTimeout(() => {
+    document.getElementById('searchInput').focus();
+  }, 100);
+}
+
+function closeSearch() {
+  const modal = document.getElementById('searchModal');
+  modal.style.display = 'none';
+}
+
+// ESC 키로 닫기
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeSearch();
+});
+
+
 // ═══════════════════════════════════════
 // Django context & state
 // ═══════════════════════════════════════
@@ -1162,17 +1228,17 @@ function sendMessage() {
   const input = document.getElementById('messageInput');
   const text = input.value.trim();
   if (!text) return;
-
-  // 1) Render the bubble immediately (don't interrupt Hari's animation)
-  appendUserMessage(text);
-
-  // 2) Buffer the message text
-  userMessageBuffer.push(text);
-
-  // 3) Reset debounce timer
-  if (debounceTimer) clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(flushMessageBuffer, DEBOUNCE_DELAY);
-
+  
+  // 로그인 체크
+  if (!djangoData.isAuthenticated) {
+    alert('로그인이 필요해! 🌸');
+    window.location.href = djangoData.loginUrl;
+    return;
+  }
+  
+  // 내 메시지 추가
+  addMessage('me', text);
+  
   input.value = '';
   input.style.height = 'auto';
 }
@@ -1190,57 +1256,100 @@ function flushMessageBuffer() {
   chatSocket.send(JSON.stringify({ 'message': combined }));
 }
 
-function appendUserMessage(text) {
-  const messages = document.getElementById('messages');
-  const timeStr = formatTime(new Date());
+// 전역 변수로 마지막 메시지 날짜 추적
+let lastMessageDate = null;
 
-  const html = `
+function checkAndAddDateDivider(date) {
+  const dateOptions = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+  const dateStr = date.toLocaleDateString('ko-KR', dateOptions);
+  
+  const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+  
+  if (lastMessageDate !== dateKey) {
+    const messages = document.getElementById('messages');
+    const dividerHTML = `
+      <div class="date-divider">
+        <span class="date-divider-text">${dateStr}</span>
+      </div>
+    `;
+    messages.insertAdjacentHTML('beforeend', dividerHTML);
+    lastMessageDate = dateKey;
+  }
+  return dateKey;
+}
+
+function handleFileUpload(event) {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+      let content = '';
+      if (file.type.startsWith('image/')) {
+        content = `<img src="${e.target.result}" style="max-width: 100%; border-radius: 12px; margin-top: 5px; cursor: pointer;" onclick="window.open(this.src)">`;
+      } else if (file.type.startsWith('video/')) {
+        content = `<video src="${e.target.result}" controls style="max-width: 100%; border-radius: 12px; margin-top: 5px;"></video>`;
+      } else {
+        content = `<div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px;">
+                     <span>📄</span>
+                     <span style="font-size: 13px;">${file.name}</span>
+                   </div>`;
+      }
+      addMessage('me', content, 'media');
+    };
+
+    reader.readAsDataURL(file);
+  }
+  // 인풋 초기화
+  event.target.value = '';
+}
+
+function addMessage(sender, content, type = 'text') {
+  const messages = document.getElementById('messages');
+  const now = new Date();
+  
+  // 날짜 구분선 체크 및 추가
+  const dateKey = checkAndAddDateDivider(now);
+  
+  const timeStr = formatTime(now);
+  const displayContent = type === 'text' ? escapeHtml(content) : content;
+  
+  // 히스토리에 추가 (검색용)
+  chatHistory.push({
+    date: dateKey,
+    time: timeStr,
+    sender: sender,
+    text: type === 'text' ? content : '[미디어 파일]'
+  });
+  
+  const messageHTML = sender === 'me' 
+    ? `
     <div class="message-group me">
       <div class="msg-content">
         <div class="msg-bubble-row">
           <div class="msg-meta">
-            <span class="msg-read">1</span>
             <span class="msg-time">${timeStr}</span>
           </div>
-          <div class="msg-bubble">${escapeHtml(text)}</div>
+          <div class="msg-bubble">${displayContent}</div>
         </div>
       </div>
     </div>
-  `;
-  messages.insertAdjacentHTML('beforeend', html);
-  scrollToBottom(true); // always scroll for user's own message
-}
-
-// ═══════════════════════════════════════
-// 하리 메시지 (multi-bubble splitting)
-// ═══════════════════════════════════════
-function splitMessage(text) {
-  return text.split(/\n+/).map(s => s.trim()).filter(s => s.length > 0);
-}
-
-function renderSingleHariBubble(text, { isFirst, isLast, animate }) {
-  const messages = document.getElementById('messages');
-  const timeStr = formatTime(new Date());
-
-  const profileHTML = isFirst ? '<div class="msg-profile">H</div>' : '<div class="msg-profile" style="visibility:hidden">H</div>';
-  const nameHTML = isFirst ? '<div class="msg-name">Hari</div>' : '';
-  const metaHTML = isLast
-    ? `<div class="msg-meta">
-         <span class="msg-time">${timeStr}</span>
-         <span class="msg-read">READ</span>
-       </div>`
-    : '';
-
-  const animClass = animate ? '' : ' no-animate';
-
-  const html = `
-    <div class="message-group other${animClass}"${!isFirst ? ' style="margin-top:-8px"' : ''}>
-      ${profileHTML}
+    `
+    : `
+    <div class="message-group other">
+      <div class="msg-profile">
+        <img src="{% static 'images/hari_image1.png' %}" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
+      </div>
       <div class="msg-content">
-        ${nameHTML}
+        <div class="msg-name">하리</div>
         <div class="msg-bubble-row">
-          <div class="msg-bubble">${escapeHtml(text)}</div>
-          ${metaHTML}
+          <div class="msg-bubble">${displayContent}</div>
+          <div class="msg-meta">
+            <span class="msg-time">${timeStr}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1335,7 +1444,9 @@ function showTyping() {
   const messages = document.getElementById('messages');
   const typingHTML = `
     <div class="typing-indicator" id="typingIndicator">
-      <div class="msg-profile">H</div>
+      <div class="msg-profile">
+        <img src="{% static 'images/hari_image1.png' %}" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
+      </div>
       <div class="typing-bubble">
         <span class="typing-dot"></span>
         <span class="typing-dot"></span>
@@ -1353,38 +1464,30 @@ function hideTyping() {
 }
 
 // ═══════════════════════════════════════
-// History loading from REST API
+// 하리 응답 로직 (반말 모드)
 // ═══════════════════════════════════════
-async function loadHistory() {
-  if (!isAuthenticated) return;
-  try {
-    const response = await fetch('/api/chat/api/messages/');
-    if (!response.ok) return;
-    const data = await response.json();
-    const msgs = Array.isArray(data) ? data : (data.results || []);
-    if (msgs.length > 0) {
-      const messagesEl = document.getElementById('messages');
-      messagesEl.innerHTML = '';
-      msgs.forEach(msg => {
-        if (msg.sender_type) {
-          appendUserMessage(msg.content);
-        } else {
-          appendHariMessage(msg.content, true);
-        }
-      });
+const HARI_RESPONSES = {
+  '안녕': ['안녕! 😊', '반가워! 오늘 뭐하고 지냈어? ✨', '어 왔어? 오늘 기분 어때?'],
+  '뭐해': ['나는 너랑 대화 중이지! 이게 제일 재밌어 💕', '방금까지 새 옷 입어보고 사진 찍고 있었어 📸'],
+  '패션': ['요즘은 오버사이즈 핏이 대세야! 중성적인 느낌이 매력 있지 👗', '심플한 게 최고야. 포인트 하나만 딱 주는 스타일 추천해! ✨'],
+  '음악': ['요즘 인디 팝이랑 로파이 음악에 푹 빠졌어 🎵', 'R&B도 너무 좋아. 가사가 마음에 콕 박히는 느낌? 💙'],
+  '좋아': ['나도 좋아! 💕', '완전 공감이네 ✨'],
+  'default': [
+    '오, 그럴 수도 있겠네! 🤔',
+    '진짜? 나도 그런 생각 해봤어 🌙',
+    '와, 재밌는 이야기네 ✨',
+    '그 말 들으니까 나도 기분이 좋아져 💛',
+    '음... 정답은 없겠지만 같이 고민해보자 😊'
+  ]
+};
 
-      // Build search history from loaded messages
-      chatHistory = msgs.map(msg => {
-        const d = new Date(msg.created_at);
-        return {
-          date: d.toISOString().split('T')[0],
-          time: formatTime(d),
-          sender: msg.sender_type ? 'me' : 'hari',
-          text: msg.content
-        };
-      });
-
-      scrollToBottom(true);
+function getHariReply(userText) {
+  const text = userText.toLowerCase();
+  
+  for (const [keyword, responses] of Object.entries(HARI_RESPONSES)) {
+    if (keyword === 'default') continue;
+    if (text.includes(keyword)) {
+      return responses[Math.floor(Math.random() * responses.length)];
     }
   } catch (error) {
     console.error('Error loading history:', error);
@@ -1430,11 +1533,6 @@ function autoResize(textarea) {
   textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
 }
 
-function sendQuick(text) {
-  document.getElementById('messageInput').value = text;
-  sendMessage();
-}
-
 function goBack() {
   window.history.back();
 }
@@ -1453,58 +1551,34 @@ document.addEventListener('click', (e) => {
     input.value += e.target.textContent;
     input.focus();
   }
+  
   if (!e.target.closest('.emoji-picker') && !e.target.closest('.input-btn.emoji')) {
-    document.getElementById('emojiPicker').classList.remove('show');
+    const picker = document.getElementById('emojiPicker');
+    if (picker) picker.classList.remove('show');
   }
 });
 
 // ═══════════════════════════════════════
-// 검색 기능
+// 검색 기능 (사이드바 버전)
 // ═══════════════════════════════════════
-function openSearch() {
-  document.getElementById('searchModal').classList.add('show');
-  document.getElementById('searchInput').focus();
-}
 
-function closeSearch() {
-  document.getElementById('searchModal').classList.remove('show');
-  document.getElementById('searchInput').value = '';
-  document.getElementById('searchResults').innerHTML = `
-    <div class="search-no-results">
-      <div class="search-no-results-icon">&#x1F4AC;</div>
-      <div class="search-no-results-text">
-        검색어를 입력하거나<br>날짜를 선택해주세요
-      </div>
-    </div>
-  `;
-}
+let chatHistory = [
+  { date: '2026-03-30', time: 'PM 2:30', sender: 'hari', text: '안녕! 난 하리야 ✨' }
+];
 
-function closeSearchOnOutside(event) {
-  if (event.target.id === 'searchModal') closeSearch();
-}
-
-function switchSearchTab(tab) {
-  document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-
+function switchSearchTab(event, tab) {
+  document.querySelectorAll('.search-tab').forEach(t => {
+    t.classList.remove('active');
+  });
+  
+  const target = event.currentTarget;
+  target.classList.add('active');
+  
   const dateFilter = document.getElementById('dateFilter');
   if (tab === 'date') {
-    dateFilter.classList.add('show');
-    document.getElementById('searchInput').value = '';
-    document.getElementById('searchResults').innerHTML = `
-      <div class="search-no-results">
-        <div class="search-no-results-icon">&#x1F4C5;</div>
-        <div class="search-no-results-text">날짜 범위를 선택하고<br>검색 버튼을 눌러주세요</div>
-      </div>
-    `;
+    dateFilter.style.display = 'flex';
   } else {
-    dateFilter.classList.remove('show');
-    document.getElementById('searchResults').innerHTML = `
-      <div class="search-no-results">
-        <div class="search-no-results-icon">&#x1F4AC;</div>
-        <div class="search-no-results-text">검색어를 입력해주세요</div>
-      </div>
-    `;
+    dateFilter.style.display = 'none';
   }
 }
 
@@ -1513,15 +1587,10 @@ function performSearch() {
   const resultsContainer = document.getElementById('searchResults');
 
   if (!query) {
-    resultsContainer.innerHTML = `
-      <div class="search-no-results">
-        <div class="search-no-results-icon">&#x1F4AC;</div>
-        <div class="search-no-results-text">검색어를 입력해주세요</div>
-      </div>
-    `;
+    resultsContainer.innerHTML = '<div style="text-align: center; padding: 40px 10px; color: var(--text-dim);">검색어를 입력해줘!</div>';
     return;
   }
-
+  
   const results = chatHistory.filter(msg => msg.text.toLowerCase().includes(query));
   displaySearchResults(results, query);
 }
@@ -1531,63 +1600,39 @@ function searchByDate() {
   const dateTo = document.getElementById('dateTo').value;
 
   if (!dateFrom || !dateTo) {
-    alert('시작 날짜와 종료 날짜를 모두 선택해주세요.');
+    alert('시작이랑 종료 날짜 다 골라줘!');
     return;
   }
-
+  
   const results = chatHistory.filter(msg => msg.date >= dateFrom && msg.date <= dateTo);
-  displaySearchResults(results, null, `${dateFrom} ~ ${dateTo}`);
+  displaySearchResults(results);
 }
 
-function displaySearchResults(results, keyword = null, dateRange = null) {
+function displaySearchResults(results, keyword = null) {
   const resultsContainer = document.getElementById('searchResults');
 
   if (results.length === 0) {
-    resultsContainer.innerHTML = `
-      <div class="search-no-results">
-        <div class="search-no-results-icon">&#x1F50D;</div>
-        <div class="search-no-results-text">검색 결과가 없습니다<br>다른 키워드나 날짜를 시도해보세요</div>
-      </div>
-    `;
+    resultsContainer.innerHTML = '<div style="text-align: center; padding: 40px 10px; color: var(--text-dim);">검색 결과가 없어 😥</div>';
     return;
   }
 
   let html = '';
   results.forEach(msg => {
-    let preview = escapeHtml(msg.text);
+    let preview = msg.text;
     if (keyword) {
       const regex = new RegExp(`(${keyword})`, 'gi');
-      preview = preview.replace(regex, '<mark>$1</mark>');
+      preview = preview.replace(regex, '<mark style="background:rgba(255,123,138,0.2); color:var(--hari-pink); padding:2px 4px; border-radius:4px;">$1</mark>');
     }
     html += `
-      <div class="search-result-item">
-        <div class="search-result-date">${formatDate(msg.date)} ${msg.time}</div>
-        <div class="search-result-preview">${preview}</div>
-        <div class="search-result-sender">${msg.sender === 'hari' ? '하리' : '나'}</div>
+      <div style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; background: white;" onclick="alert('메시지 이동 기능은 준비 중이야!')">
+        <div style="font-size: 11px; color: var(--text-time); margin-bottom: 4px;">${msg.date} ${msg.time}</div>
+        <div style="font-size: 13px; color: var(--text-main); line-height: 1.4;">${preview}</div>
+        <div style="font-size: 11px; color: var(--hari-pink); margin-top: 4px; font-weight: 500;">${msg.sender === 'hari' ? '하리' : '나'}</div>
       </div>
     `;
   });
   resultsContainer.innerHTML = html;
 }
-
-function formatDate(dateStr) {
-  const date = new Date(dateStr);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const days = ['일', '월', '화', '수', '목', '금', '토'];
-  return `${year}.${month}.${day} (${days[date.getDay()]})`;
-}
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeSearch();
-});
-
-// ═══════════════════════════════════════
-// Initialize
-// ═══════════════════════════════════════
-connectWebSocket();
-loadHistory().then(() => scrollToBottom(true));
 </script>
 
 </body>

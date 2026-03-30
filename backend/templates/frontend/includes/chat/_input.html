@@ -1,18 +1,21 @@
-<!-- INPUT AREA -->
-<div class="input-area">
-  <div class="input-left">
-    <button class="input-btn" title="추가" onclick="alert('추가 기능은 준비 중이에요!')">+</button>
-    <button class="input-btn emoji" title="이모티콘" onclick="toggleEmoji()">😊</button>
+<!-- INPUT AREA (Premium Instagram Style) -->
+<div class="input-area" style="display: flex; align-items: flex-end; gap: 12px; background: #f0f2f5; padding: 8px 16px; border-radius: 26px; transition: all 0.3s;">
+  <div class="input-left" style="display: flex; gap: 8px; margin-bottom: 4px;">
+    <!-- 파일 업로드 인풋 (Hidden) -->
+    <input type="file" id="fileInput" multiple style="display: none;" onchange="handleFileUpload(event)">
+    <button class="input-btn" title="추가" onclick="document.getElementById('fileInput').click()" style="background: none; border: none; font-size: 22px; color: var(--text-dim); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">+</button>
+    <button class="input-btn emoji" title="이모티콘" onclick="toggleEmoji()" style="background: none; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">😊</button>
   </div>
-  <div class="input-wrapper">
+  <div class="input-wrapper" style="flex: 1; min-height: 36px; display: flex; align-items: center;">
     <textarea 
       class="input-field" 
       id="messageInput" 
       placeholder="메시지를 입력하세요..."
       rows="1"
       onkeydown="handleKeyPress(event)"
-      oninput="autoResize(this)"></textarea>
+      oninput="autoResize(this)"
+      style="width: 100%; border: none; background: transparent; outline: none; font-size: 15px; color: var(--text-main); font-family: inherit; resize: none; padding: 8px 0; max-height: 120px;"></textarea>
   </div>
-  <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
+  <button class="send-btn" id="sendBtn" onclick="sendMessage()" style="background: var(--hari-pink); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; margin-bottom: 2px;">↑</button>
 </div>
 
