@@ -194,7 +194,7 @@ def _upsert_user_persona_sync(user_id: int, fact: ExtractedFact, vector_str: str
         if vector_str:
             cur.execute(
                 """
-                SELECT id, trait_value, importance,
+                SELECT persona_id, trait_value, importance,
                        1 - (content_vector <=> %s::vector) AS similarity
                 FROM user_persona
                 WHERE user_id = %s
@@ -213,7 +213,7 @@ def _upsert_user_persona_sync(user_id: int, fact: ExtractedFact, vector_str: str
                     if fact.importance >= existing_imp:
                         cur.execute(
                             "UPDATE user_persona SET is_active = FALSE, updated_at = NOW()"
-                            " WHERE id = %s",
+                            " WHERE persona_id = %s",
                             [existing_id],
                         )
                         logger.info(
@@ -276,7 +276,7 @@ def _upsert_hari_knowledge_sync(fact: ExtractedFact, vector_str: str | None) -> 
         if vector_str:
             cur.execute(
                 """
-                SELECT id, answer,
+                SELECT persona_id, answer,
                        1 - (content_vector <=> %s::vector) AS similarity
                 FROM hari_knowledge
                 WHERE is_active = TRUE
@@ -293,7 +293,7 @@ def _upsert_hari_knowledge_sync(fact: ExtractedFact, vector_str: str | None) -> 
                     cur.execute(
                         "UPDATE hari_knowledge"
                         " SET is_active = FALSE, updated_at = NOW()"
-                        " WHERE id = %s",
+                        " WHERE persona_id = %s",
                         [existing_id],
                     )
                     logger.info(

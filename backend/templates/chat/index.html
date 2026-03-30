@@ -248,6 +248,17 @@
             gap: 10px;
         }
 
+        .message-row.hari.continuation {
+            margin-top: -10px;
+        }
+        .message-row.hari.continuation .hari-msg-avatar {
+            visibility: hidden;
+        }
+
+        .message-row.no-animate {
+            animation: none;
+        }
+
         .hari-msg-avatar {
             width: 32px;
             height: 32px;
@@ -581,6 +592,9 @@
         const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
         let chatSocket = null;
         let currentSessionId = null;
+        let bubbleQueue = [];
+        let bubbleTimer = null;
+        let isBubbleAnimating = false;
 
         function connectWebSocket(sessionId = null) {
             if (chatSocket) {
@@ -595,6 +609,7 @@
                 const msg = data.message;
                 const sender = data.sender;
                 if (sender === 'hari') {
+                    if (isBubbleAnimating) flushBubbleQueue();
                     appendHariMessage(msg);
                 }
             };
@@ -667,23 +682,104 @@
             if (row) row.remove();
         }
 
-        function appendHariMessage(text) {
-            hideThinking();
+        function splitMessage(text) {
+            return text.split(/\n+/).map(s => s.trim()).filter(s => s.length > 0);
+        }
+
+        function renderSingleBubble(text, { isFirst, isLast, animate }) {
             const row = document.createElement('div');
             row.className = 'message-row hari';
-            
+            if (!isFirst) row.classList.add('continuation');
+            if (!animate) row.classList.add('no-animate');
+
+            const metaHtml = isLast
+                ? `<div class="message-meta">
+                       ${formatTime()}
+                       <div class="save-badge"><i class="fa-solid fa-thumbtack"></i> 저장</div>
+                   </div>`
+                : '';
+
             row.innerHTML = `
                 <div class="hari-msg-avatar"></div>
                 <div class="message-col">
                     <div class="message-bubble">${text}</div>
-                    <div class="message-meta">
-                        ${formatTime()}
-                        <div class="save-badge"><i class="fa-solid fa-thumbtack"></i> 저장</div>
-                    </div>
+                    ${metaHtml}
                 </div>
             `;
             chatLog.appendChild(row);
             chatLog.scrollTop = chatLog.scrollHeight;
+            return row;
+        }
+
+        function scheduleNextBubble() {
+            if (bubbleQueue.length === 0) {
+                isBubbleAnimating = false;
+                return;
+            }
+
+            showThinking();
+
+            const delay = 800 + Math.random() * 700;
+            bubbleTimer = setTimeout(() => {
+                hideThinking();
+                const item = bubbleQueue.shift();
+                renderSingleBubble(item.text, {
+                    isFirst: false,
+                    isLast: item.isLast,
+                    animate: true
+                });
+                scheduleNextBubble();
+            }, delay);
+        }
+
+        function flushBubbleQueue() {
+            if (bubbleTimer) {
+                clearTimeout(bubbleTimer);
+                bubbleTimer = null;
+            }
+            hideThinking();
+
+            bubbleQueue.forEach(item => {
+                renderSingleBubble(item.text, {
+                    isFirst: false,
+                    isLast: item.isLast,
+                    animate: false
+                });
+            });
+            bubbleQueue = [];
+            isBubbleAnimating = false;
+        }
+
+        function appendHariMessage(text, isHistory = false) {
+            hideThinking();
+            const segments = splitMessage(text);
+            if (segments.length === 0) return;
+
+            if (isHistory) {
+                segments.forEach((seg, i) => {
+                    renderSingleBubble(seg, {
+                        isFirst: i === 0,
+                        isLast: i === segments.length - 1,
+                        animate: false
+                    });
+                });
+                return;
+            }
+
+            renderSingleBubble(segments[0], {
+                isFirst: true,
+                isLast: segments.length === 1,
+                animate: true
+            });
+
+            if (segments.length > 1) {
+                bubbleQueue = segments.slice(1).map((seg, i) => ({
+                    text: seg,
+                    isLast: i === segments.length - 2
+                }));
+                isBubbleAnimating = true;
+                scheduleNextBubble();
+            }
         }
 
         // Remove old onmessage/onclose from global scope since they are in connectWebSocket now
@@ -700,7 +796,9 @@
         document.querySelector('#chat-message-submit').onclick = function(e) {
             const message = messageInputDom.value.trim();
             if (message === '') return;
-            
+
+            if (isBubbleAnimating) flushBubbleQueue();
+
             // Immediate local feedback
             appendUserMessage(message);
             showThinking();
@@ -729,7 +827,7 @@
                         if (msg.sender_type) {
                             appendUserMessage(msg.content);
                         } else {
-                            appendHariMessage(msg.content);
+                            appendHariMessage(msg.content, true);
                         }
                     });
                     chatLog.scrollTop = chatLog.scrollHeight;
@@ -768,6 +866,11 @@
         }
 
         function createNewChat() {
+            if (bubbleTimer) clearTimeout(bubbleTimer);
+            bubbleQueue = [];
+            isBubbleAnimating = false;
+            hideThinking();
+
             chatLog.style.opacity = '0';
             connectWebSocket();
             setTimeout(() => {

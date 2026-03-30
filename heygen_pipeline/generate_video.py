@@ -6,12 +6,14 @@ HeyGen 아바타 영상 자동 생성 파이프라인 (WAV 오디오 입력 버�
   2. MP3 → HeyGen Upload Asset API로 업로드 → audio_asset_id 획득
   3. HeyGen API → talking_photo + audio 기반 영상 생성
   4. 렌더링 대기 → 영상 다운로드
+  5. (선택) 스크립트 텍스트 → DB 자동 등록 + 임베딩
 
 [필요 사전조건]
   - ffmpeg 가 PATH에 있어야 함
     Windows: https://ffmpeg.org/download.html 에서 설치 후 PATH 등록
 """
 
+import argparse
 import requests
 import time
 import os
@@ -22,8 +24,10 @@ import glob
 from datetime import datetime
 from dotenv import load_dotenv
 
-# .env 파일 로드
-load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+# .env 파일 로드 (heygen_pipeline/.env 먼저, 없으면 프로젝트 루트 .env)
+_HERE = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(_HERE, ".env"))
+load_dotenv(os.path.join(_HERE, "..", ".env"))
 
 
 # ============================================================
@@ -195,14 +199,119 @@ def download_video(video_url: str, filename: str) -> str:
 
 
 # ============================================================
+# 6. 콘텐츠 DB 자동 등록
+# ============================================================
+def generate_metadata(script_text: str) -> dict:
+    """LLM으로 스크립트에서 title, summary, tags 자동 생성."""
+    from openai import OpenAI
+    from pydantic import BaseModel, Field
+
+    class ContentMetadata(BaseModel):
+        title: str = Field(description="Short Korean title for the video (under 50 chars)")
+        summary: str = Field(description="1-2 sentence Korean summary of what the video covers")
+        tags: list[str] = Field(description="3-5 English tech keyword tags")
+
+    client = OpenAI()
+    response = client.beta.chat.completions.parse(
+        model="gpt-5.4-mini",
+        temperature=0,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You generate metadata for a Korean tech news short-form video. "
+                    "Given the script, produce: a short Korean title, a 1-2 sentence Korean summary, "
+                    "and 3-5 English tech keyword tags. Keep the title concise and catchy."
+                ),
+            },
+            {"role": "user", "content": script_text},
+        ],
+        response_format=ContentMetadata,
+    )
+    meta = response.choices[0].message.parsed
+    return {"title": meta.title, "summary": meta.summary, "tags": meta.tags}
+
+
+def register_content(script_text: str, video_path: str | None = None, content_url: str | None = None):
+    """
+    스크립트를 generated_contents 테이블에 등록하고 임베딩을 생성한다.
+
+    Args:
+        script_text: 영상 대본 전문
+        video_path: 로컬 영상 파일 경로 (선택)
+        content_url: S3 등 외부 URL (선택)
+    """
+    import psycopg2
+    from openai import OpenAI
+
+    print("\n-- DB 등록 시작 --")
+
+    # 1. LLM으로 메타데이터 생성
+    print("   메타데이터 생성 중...")
+    meta = generate_metadata(script_text)
+    print(f"   title: {meta['title']}")
+    print(f"   summary: {meta['summary']}")
+    print(f"   tags: {meta['tags']}")
+
+    # 2. 임베딩 생성
+    print("   임베딩 생성 중...")
+    client = OpenAI()
+    embed_input = f"{meta['summary']}\n{script_text}"
+    embed_resp = client.embeddings.create(model="text-embedding-3-small", input=embed_input)
+    vector = embed_resp.data[0].embedding
+    vector_str = "[" + ",".join(str(v) for v in vector) + "]"
+
+    # 3. DB 삽입
+    url = content_url or video_path or None
+    conn = psycopg2.connect(
+        host=os.environ.get("DB_HOST"),
+        port=os.environ.get("DB_PORT", "5432"),
+        database=os.environ.get("DB_NAME"),
+        user=os.environ.get("DB_USER"),
+        password=os.environ.get("DB_PASSWORD"),
+        sslmode="require",
+    )
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO generated_contents
+                (title, platform, script_text, summary, tags, content_url, is_published, content_vector, uploaded_at)
+            VALUES
+                (%s, %s, %s, %s, %s, %s, %s, %s::vector, CURRENT_TIMESTAMP)
+            RETURNING content_id
+            """,
+            [
+                meta["title"],
+                "youtube_shorts",
+                script_text,
+                meta["summary"],
+                meta["tags"],
+                url,
+                True,
+                vector_str,
+            ],
+        )
+        content_id = cur.fetchone()[0]
+        conn.commit()
+        print(f"   DB 등록 완료! content_id: {content_id}")
+    finally:
+        conn.close()
+
+    return content_id
+
+
+# ============================================================
 # 파이프라인 실행
 # ============================================================
-def run_pipeline(wav_path: str | None = None):
+def run_pipeline(wav_path: str | None = None, script_text: str | None = None, content_url: str | None = None):
     """
     WAV 오디오 기반 HeyGen 영상 생성 파이프라인.
 
     Args:
         wav_path: WAV 파일 경로. None이면 input_audio 폴더에서 최신 파일 사용.
+        script_text: 영상 대본. 제공 시 DB에 자동 등록 + 임베딩 생성.
+        content_url: S3 등 외부 URL (선택).
     """
     # WAV 파일 결정
     if wav_path is None:
@@ -242,9 +351,16 @@ def run_pipeline(wav_path: str | None = None):
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     final_path = download_video(video_url, f"final_{ts}.mp4")
 
+    # ── Step 6: 스크립트가 있으면 DB 자동 등록
+    if script_text:
+        try:
+            register_content(script_text, video_path=final_path, content_url=content_url)
+        except Exception as e:
+            print(f"\n   DB 등록 실패 (영상은 정상 생성됨): {e}")
+
     print("\n" + "=" * 60)
-    print("🎉 전체 완료!")
-    print(f"   📂 최종 영상 : {final_path}")
+    print("전체 완료!")
+    print(f"   최종 영상 : {final_path}")
     print("=" * 60)
     return final_path
 
@@ -253,6 +369,16 @@ def run_pipeline(wav_path: str | None = None):
 # 실행
 # ============================================================
 if __name__ == "__main__":
-    # 커맨드라인 인자로 WAV 파일 경로 전달 가능
-    wav = sys.argv[1] if len(sys.argv) > 1 else None
-    run_pipeline(wav_path=wav)
+    parser = argparse.ArgumentParser(description="HeyGen video generation pipeline")
+    parser.add_argument("wav", nargs="?", default=None, help="WAV file path")
+    parser.add_argument("--script", type=str, default=None, help="Script text (inline)")
+    parser.add_argument("--script-file", type=str, default=None, help="Path to script .txt file")
+    parser.add_argument("--content-url", type=str, default=None, help="S3 or external URL for the content")
+    args = parser.parse_args()
+
+    script = args.script
+    if args.script_file:
+        with open(args.script_file, "r", encoding="utf-8") as f:
+            script = f.read()
+
+    run_pipeline(wav_path=args.wav, script_text=script, content_url=args.content_url)
