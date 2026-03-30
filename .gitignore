@@ -121,3 +121,10 @@ tmp_script.py
 dino_test.py
 generate_images.py
 update_img.py
+
+# Keep large video assets out of the repo (use YouTube/S3 instead)
+backend/static/video/
+
+# Ensure branding and UI images in static are tracked and deployed
+!backend/static/images/
+!backend/static/images/**
