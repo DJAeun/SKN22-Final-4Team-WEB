@@ -1,0 +1,888 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chating Hari</title>
+    <!-- Modern Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-darker: #13131a;
+            --bg-sidebar: #171720;
+            --bg-chat-header: #14141d;
+            --primary-pink: #ff3377;
+            --gradient-user: linear-gradient(135deg, #ff4d88 0%, #ca4dfa 100%);
+            --bubble-hari: rgba(30, 30, 40, 0.85);
+            --text-main: #ffffff;
+            --text-muted: #8b8b9a;
+            --sidebar-width: 250px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-darker);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Container */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            z-index: 10;
+        }
+
+        .sidebar-section-title {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .sidebar-section-title strong {
+            color: var(--text-main);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        
+        .sidebar-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sidebar-info span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background-color: #000;
+        }
+        
+        /* Background Image */
+        .chat-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8; /* Make the photo more visible */
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Top Header */
+        .chat-header {
+            position: relative;
+            z-index: 10;
+            padding: 15px 25px;
+            background: rgba(20, 20, 29, 0.6);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .header-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: url('/media/images/hari_bg.png') center/cover;
+            border: 2px solid var(--primary-pink);
+        }
+
+        .header-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .header-status {
+            font-size: 0.8rem;
+            color: #2ed573;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #2ed573;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .header-status-text {
+            color: #2ed573;
+        }
+        .header-status-sub {
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-share {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .btn-pro {
+            background: #4a1936;
+            color: #ff6b81;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Top Watermark */
+        .watermark {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.4);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Chat Log Area */
+        .chat-log {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 10;
+            position: relative;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Message Formatting */
+        .message-row {
+            display: flex;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease-out;
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-row.user {
+            align-self: flex-end;
+            justify-content: flex-end;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .message-row.hari {
+            align-self: flex-start;
+            flex-direction: row;
+            gap: 10px;
+        }
+
+        .message-row.hari.continuation {
+            margin-top: -10px;
+        }
+        .message-row.hari.continuation .hari-msg-avatar {
+            visibility: hidden;
+        }
+
+        .message-row.no-animate {
+            animation: none;
+        }
+
+        .hari-msg-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: url('/media/images/hari_bg.png') center/cover;
+            border: 1px solid var(--primary-pink);
+            flex-shrink: 0;
+            margin-top: 5px;
+        }
+
+        .message-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-bubble {
+            padding: 14px 22px;
+            border-radius: 20px;
+            font-size: 1rem;
+            line-height: 1.4;
+            max-width: 100%;
+            word-break: break-all;
+        }
+
+        .message-row.user .message-bubble {
+            background: var(--gradient-user);
+            color: white;
+            border-top-right-radius: 4px;
+        }
+
+        .message-row.hari .message-bubble {
+            background: var(--bubble-hari);
+            backdrop-filter: blur(10px);
+            color: var(--text-main);
+            border-top-left-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .message-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.4);
+            margin-top: 6px;
+        }
+        
+        .message-row.user .message-meta {
+            justify-content: flex-end;
+        }
+
+        .save-badge {
+            background: rgba(255, 51, 119, 0.2);
+            color: #ff3377;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        /* Input Area */
+        .input-container {
+            z-index: 10;
+            padding: 10px 25px 25px 25px;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        }
+
+        /* Chips */
+        .chips-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .chip {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.8);
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chip:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .input-bar {
+            display: flex;
+            background: rgba(30, 30, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 5px 5px 5px 25px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            padding: 12px 0;
+        }
+
+        .chat-input::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
+
+        .send-btn {
+            background: var(--gradient-user);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(255, 77, 136, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Typing/Thinking Animation */
+        .typing-bubble {
+            display: flex;
+            gap: 4px;
+            padding: 10px 15px !important;
+        }
+        
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: pulse-dot 1.4s infinite;
+        }
+        
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes pulse-dot {
+            0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
+            30% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* History List */
+        .history-list {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            max-height: 250px;
+            padding-right: 5px;
+        }
+
+        .history-item {
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .history-item.active {
+            background: rgba(255, 51, 119, 0.1);
+            border-color: var(--primary-pink);
+            color: var(--text-main);
+        }
+
+        .history-item i {
+            font-size: 0.9rem;
+            color: var(--primary-pink);
+            flex-shrink: 0;
+        }
+
+        /* Hide scrollbar for components if needed */
+        .history-list::-webkit-scrollbar { width: 4px; }
+        
+        /* Hide scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Setup based on specific Page 5 design -->
+    <aside class="sidebar">
+        <button onclick="createNewChat()" style="margin-bottom: 20px; padding: 12px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); border-radius: 12px; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 500; transition: all 0.3s ease; width: 100%;">
+            <i class="fa-solid fa-plus"></i> 새 채팅
+        </button>
+
+        <div class="sidebar-section-title">
+            <i class="fa-solid fa-clock-rotate-left" style="font-size: 1.2rem; color: #636e72;"></i>
+            <strong>최근 대화</strong>
+        </div>
+
+        <div class="history-list" id="history-list">
+            <!-- Sessions list will be loaded here -->
+            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.2); text-align: center; padding: 10px;">대화 기록이 없어</div>
+        </div>
+
+        <div class="sidebar-section-title" style="margin-top: 25px;">
+            <i class="fa-solid fa-box-archive" style="font-size: 1.2rem; color: #636e72;"></i>
+            <strong>하리 보관함</strong>
+            저장한 특별 메시지
+        </div>
+        
+        <div class="sidebar-info">
+            <span><i class="fa-regular fa-envelope" style="color:#ff3377;"></i> 하리 메시지</span>
+            <span><i class="fa-solid fa-thumbtack" style="color:#ff3377;"></i> 눌러서 저장해요</span>
+        </div>
+        <div class="sidebar-bottom">
+            {% if user.is_authenticated %}
+                <div style="margin-bottom: 10px; color: var(--text-main);">
+                    <strong>{{ user.username }}</strong> 님, 반가워요! 🌸
+                </div>
+                <a href="{% url 'logout' %}" style="color: var(--text-muted); text-decoration: none; font-size: 0.8rem;">
+                    <i class="fa-solid fa-right-from-bracket"></i> 로그아웃
+                </a>
+            {% else %}
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <a href="{% url 'login' %}" style="color: var(--primary-pink); text-decoration: none; font-weight: 500;">
+                        <i class="fa-solid fa-right-to-bracket"></i> 로그인
+                    </a>
+                    <a href="{% url 'signup' %}" style="color: var(--text-muted); text-decoration: none;">
+                        <i class="fa-solid fa-user-plus"></i> 회원가입
+                    </a>
+                </div>
+            {% endif %}
+            <div style="margin-top: 15px; font-size: 0.7rem; opacity: 0.5;">
+                버전 1.0.2
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <!-- The Background Image of Hari -->
+        <img src="/media/images/hari_bg.png" class="chat-background" alt="Hari Background">
+
+        <header class="chat-header">
+            <div class="header-profile">
+                <div class="header-avatar"></div>
+                <div class="header-info">
+                    <div class="header-name">HARI 하리</div>
+                    <div class="header-status">
+                        <span class="status-dot"></span>
+                        <span class="header-status-text">온라인</span>
+                        <span class="header-status-sub">엔터테이너</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-share"><i class="fa-solid fa-share-nodes"></i> 공유</button>
+                <button class="btn-pro">PRO</button>
+            </div>
+        </header>
+
+        <div class="watermark"><i class="fa-solid fa-sparkles"></i> 하리 실시간 연동</div>
+
+        <div class="chat-log" id="chat-log">
+            <!-- Messages will be loaded here -->
+        </div>
+
+        <div class="input-container">
+            <div class="chips-row">
+                <div class="chip" onclick="setInput('OOTD 보여줘')">👗 OOTD</div>
+                <div class="chip" onclick="setInput('AI 관련 소식 알려줘')">🤖 AI</div>
+                <div class="chip" onclick="setInput('이번 주말 여행지 추천해줘')">✈️ 여행</div>
+                <div class="chip" onclick="setInput('뷰티 팁 알려줘')">💄 뷰티</div>
+                <div class="chip" onclick="setInput('오늘 내 기분 어때보여?')">💬 기분</div>
+                <div class="chip" onclick="setInput('최근 근황 알려줘')">🌸 근황</div>
+            </div>
+            <div class="input-bar">
+                <input type="text" id="chat-message-input" class="chat-input" placeholder="하리에게 메시지 보내기...">
+                <button id="chat-message-submit" class="send-btn">
+                    <i class="fa-solid fa-play"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script id="django-data" type="application/json">
+        {
+            "isAuthenticated": {{ user.is_authenticated|yesno:"true,false" }},
+            "userName": "{{ user.username|default:'사용자' }}",
+            "loginUrl": "{% url 'login' %}",
+            "csrfToken": "{{ csrf_token }}"
+        }
+    </script>
+
+    <script>
+        // Use wss:// for production securely, ws:// for local
+        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        let chatSocket = null;
+        let currentSessionId = null;
+        let bubbleQueue = [];
+        let bubbleTimer = null;
+        let isBubbleAnimating = false;
+
+        function connectWebSocket(sessionId = null) {
+            if (chatSocket) {
+                chatSocket.close();
+            }
+            
+            const wsPath = sessionId ? `/ws/chat/${sessionId}/` : '/ws/chat/';
+            chatSocket = new WebSocket(protocol + window.location.host + wsPath);
+
+            chatSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                const msg = data.message;
+                const sender = data.sender;
+                if (sender === 'hari') {
+                    if (isBubbleAnimating) flushBubbleQueue();
+                    appendHariMessage(msg);
+                }
+            };
+
+            chatSocket.onclose = function(e) {
+                if (e.code === 4401) {
+                    window.location.href = loginUrl;
+                }
+            };
+        }
+
+        // Initial connect
+        connectWebSocket();
+
+        const chatLog = document.querySelector('#chat-log');
+        const chatData = JSON.parse(document.getElementById('django-data').textContent);
+        const { isAuthenticated, userName, loginUrl, csrfToken } = chatData;
+
+        function formatTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            const ampm = hours >= 12 ? '오후' : '오전';
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            return `${ampm} ${hours}:${minutes}`;
+        }
+
+        function setInput(text) {
+            document.getElementById('chat-message-input').value = text;
+            document.getElementById('chat-message-input').focus();
+        }
+
+        function appendUserMessage(text) {
+            const row = document.createElement('div');
+            row.className = 'message-row user';
+            
+            row.innerHTML = `
+                <div class="message-col">
+                    <div class="message-bubble">${text}</div>
+                    <div class="message-meta">${formatTime()}</div>
+                </div>
+            `;
+            chatLog.appendChild(row);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        function showThinking() {
+            if (document.getElementById('thinking-row')) return;
+            const row = document.createElement('div');
+            row.className = 'message-row hari';
+            row.id = 'thinking-row';
+            row.innerHTML = `
+                <div class="hari-msg-avatar"></div>
+                <div class="message-col">
+                    <div class="message-bubble typing-bubble">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            `;
+            chatLog.appendChild(row);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        function hideThinking() {
+            const row = document.getElementById('thinking-row');
+            if (row) row.remove();
+        }
+
+        function splitMessage(text) {
+            return text.split(/\n+/).map(s => s.trim()).filter(s => s.length > 0);
+        }
+
+        function renderSingleBubble(text, { isFirst, isLast, animate }) {
+            const row = document.createElement('div');
+            row.className = 'message-row hari';
+            if (!isFirst) row.classList.add('continuation');
+            if (!animate) row.classList.add('no-animate');
+
+            const metaHtml = isLast
+                ? `<div class="message-meta">
+                       ${formatTime()}
+                       <div class="save-badge"><i class="fa-solid fa-thumbtack"></i> 저장</div>
+                   </div>`
+                : '';
+
+            row.innerHTML = `
+                <div class="hari-msg-avatar"></div>
+                <div class="message-col">
+                    <div class="message-bubble">${text}</div>
+                    ${metaHtml}
+                </div>
+            `;
+            chatLog.appendChild(row);
+            chatLog.scrollTop = chatLog.scrollHeight;
+            return row;
+        }
+
+        function scheduleNextBubble() {
+            if (bubbleQueue.length === 0) {
+                isBubbleAnimating = false;
+                return;
+            }
+
+            showThinking();
+
+            const delay = 800 + Math.random() * 700;
+            bubbleTimer = setTimeout(() => {
+                hideThinking();
+                const item = bubbleQueue.shift();
+                renderSingleBubble(item.text, {
+                    isFirst: false,
+                    isLast: item.isLast,
+                    animate: true
+                });
+                scheduleNextBubble();
+            }, delay);
+        }
+
+        function flushBubbleQueue() {
+            if (bubbleTimer) {
+                clearTimeout(bubbleTimer);
+                bubbleTimer = null;
+            }
+            hideThinking();
+
+            bubbleQueue.forEach(item => {
+                renderSingleBubble(item.text, {
+                    isFirst: false,
+                    isLast: item.isLast,
+                    animate: false
+                });
+            });
+            bubbleQueue = [];
+            isBubbleAnimating = false;
+        }
+
+        function appendHariMessage(text, isHistory = false) {
+            hideThinking();
+            const segments = splitMessage(text);
+            if (segments.length === 0) return;
+
+            if (isHistory) {
+                segments.forEach((seg, i) => {
+                    renderSingleBubble(seg, {
+                        isFirst: i === 0,
+                        isLast: i === segments.length - 1,
+                        animate: false
+                    });
+                });
+                return;
+            }
+
+            renderSingleBubble(segments[0], {
+                isFirst: true,
+                isLast: segments.length === 1,
+                animate: true
+            });
+
+            if (segments.length > 1) {
+                bubbleQueue = segments.slice(1).map((seg, i) => ({
+                    text: seg,
+                    isLast: i === segments.length - 2
+                }));
+                isBubbleAnimating = true;
+                scheduleNextBubble();
+            }
+        }
+
+        // Remove old onmessage/onclose from global scope since they are in connectWebSocket now
+
+        const messageInputDom = document.querySelector('#chat-message-input');
+        
+        messageInputDom.focus();
+        messageInputDom.onkeyup = function(e) {
+            if (e.keyCode === 13) {  // enter
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const message = messageInputDom.value.trim();
+            if (message === '') return;
+
+            if (isBubbleAnimating) flushBubbleQueue();
+
+            // Immediate local feedback
+            appendUserMessage(message);
+            showThinking();
+            
+            // Send socket message
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+
+            messageInputDom.value = '';
+            messageInputDom.focus();
+        };
+        
+        async function loadHistory() {
+            // Only load for authenticated users (anonymous history lives in WS session)
+            if (!isAuthenticated) return;
+            try {
+                const response = await fetch('/api/chat/api/messages/');
+                if (!response.ok) return;
+                const data = await response.json();
+                const messages = Array.isArray(data) ? data : (data.results || []);
+                if (messages.length > 0) {
+                    chatLog.innerHTML = '';
+                    messages.forEach(msg => {
+                        // sender_type: true = user, false = hari
+                        if (msg.sender_type) {
+                            appendUserMessage(msg.content);
+                        } else {
+                            appendHariMessage(msg.content, true);
+                        }
+                    });
+                    chatLog.scrollTop = chatLog.scrollHeight;
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+
+        async function loadMemories() {
+            // Show past conversation summaries in sidebar (authenticated only)
+            if (!isAuthenticated) return;
+            const historyList = document.getElementById('history-list');
+            try {
+                const response = await fetch('/api/chat/api/memories/');
+                if (!response.ok) return;
+                const data = await response.json();
+                const memories = Array.isArray(data) ? data : (data.results || []);
+                if (memories.length > 0) {
+                    historyList.innerHTML = '';
+                    memories.forEach(mem => {
+                        const item = document.createElement('div');
+                        item.className = 'history-item';
+                        const date = new Date(mem.ended_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+                        const preview = mem.keywords || mem.summary?.slice(0, 30) || '대화';
+                        item.innerHTML = `
+                            <i class="fa-regular fa-message"></i>
+                            <span>${date} — ${preview}</span>
+                        `;
+                        historyList.appendChild(item);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading memories:', error);
+            }
+        }
+
+        function createNewChat() {
+            if (bubbleTimer) clearTimeout(bubbleTimer);
+            bubbleQueue = [];
+            isBubbleAnimating = false;
+            hideThinking();
+
+            chatLog.style.opacity = '0';
+            connectWebSocket();
+            setTimeout(() => {
+                chatLog.innerHTML = '';
+                chatLog.style.opacity = '1';
+            }, 300);
+        }
+
+        // On load: show history then load sidebar memories
+        loadHistory().then(() => loadMemories());
+
+        chatLog.scrollTop = chatLog.scrollHeight;
+    </script>
+</body>
+</html>

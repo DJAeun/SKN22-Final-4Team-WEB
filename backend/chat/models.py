@@ -94,6 +94,27 @@ class UserPersona(models.Model):
         return f"[{self.category}] {self.trait_key}: {self.trait_value[:40]}"
 
 
+class GeneratedContent(models.Model):
+    content_id = models.BigAutoField(primary_key=True)
+    title = models.CharField(max_length=255, null=True, blank=True)
+    platform = models.CharField(max_length=50, null=True, blank=True)
+    script_text = models.TextField()
+    summary = models.TextField(null=True, blank=True)
+    tags = models.JSONField(null=True, blank=True)
+    thumbnail_url = models.CharField(max_length=500, null=True, blank=True)
+    content_url = models.CharField(max_length=500, null=True, blank=True)
+    is_published = models.BooleanField(default=False)
+    uploaded_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'generated_contents'
+
+    def __str__(self):
+        return f"Content({self.content_id}) {self.title or 'untitled'}"
+
+
 class VisitLog(models.Model):
     log_id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(

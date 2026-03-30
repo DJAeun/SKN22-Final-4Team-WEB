@@ -68,15 +68,28 @@ def create_tables(cur):
     );
     """)
 
+    cur.execute("DROP TABLE IF EXISTS GENERATED_CONTENTS;")
     cur.execute("""
     CREATE TABLE IF NOT EXISTS GENERATED_CONTENTS (
-        task_id BIGSERIAL PRIMARY KEY,
-        task_type VARCHAR(100),
-        status BOOLEAN,
-        result_url VARCHAR(500),
-        prompt_text TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        content_id      BIGSERIAL PRIMARY KEY,
+        title           VARCHAR(255),
+        platform        VARCHAR(50),
+        script_text     TEXT NOT NULL,
+        summary         TEXT,
+        tags            TEXT[],
+        thumbnail_url   VARCHAR(500),
+        content_url     VARCHAR(500),
+        is_published    BOOLEAN DEFAULT FALSE,
+        content_vector  VECTOR(1536),
+        uploaded_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+    """)
+    cur.execute("""
+    CREATE INDEX IF NOT EXISTS idx_generated_contents_hnsw
+    ON GENERATED_CONTENTS
+    USING hnsw (content_vector vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
     """)
 
     # The 'hari_knowledge' table already exists in the database.
