@@ -1130,36 +1130,13 @@ html, body {
 </script>
 
 <script>
-// Django 데이터 파싱
+/**
+ * ═══════════════════════════════════════
+ * GLOBAL STATE & CONFIG
+ * ═══════════════════════════════════════
+ */
 const djangoData = JSON.parse(document.getElementById('django-data').textContent);
-
-// ═══════════════════════════════════════
-// 검색 기능 활성화
-// ═══════════════════════════════════════
-function openSearch() {
-  const modal = document.getElementById('searchModal');
-  modal.style.display = 'flex';
-  setTimeout(() => {
-    document.getElementById('searchInput').focus();
-  }, 100);
-}
-
-function closeSearch() {
-  const modal = document.getElementById('searchModal');
-  modal.style.display = 'none';
-}
-
-// ESC 키로 닫기
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeSearch();
-});
-
-
-// ═══════════════════════════════════════
-// Django context & state
-// ═══════════════════════════════════════
-const chatData = JSON.parse(document.getElementById('django-data').textContent);
-const { isAuthenticated, userName, loginUrl, csrfToken } = chatData;
+const { isAuthenticated, userName, loginUrl, csrfToken } = djangoData;
 
 const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
 let chatSocket = null;
@@ -1170,17 +1147,25 @@ let bubbleQueue = [];
 let bubbleTimer = null;
 let isBubbleAnimating = false;
 
-// Message batching (debounce) state
+// Message batching (debounce) state for WebSocket
 let userMessageBuffer = [];
 let debounceTimer = null;
-const DEBOUNCE_DELAY = 2500; // ms
+const DEBOUNCE_DELAY = 1000; // ms
 
-// Search history (populated from API)
-let chatHistory = [];
+// Search history (populated dynamically)
+let chatHistory = [
+  { date: new Date().toISOString().split('T')[0], time: 'PM 2:30', sender: 'hari', text: '안녕! 난 하리야 ✨' }
+];
 
-// ═══════════════════════════════════════
-// WebSocket connection
-// ═══════════════════════════════════════
+let lastMessageDate = null;
+
+/**
+ * ═══════════════════════════════════════
+ * CORE CHAT FUNCTIONS
+ * ═══════════════════════════════════════
+ */
+
+// Initialize WebSocket
 function connectWebSocket(sessionId = null) {
   if (chatSocket) chatSocket.close();
 
@@ -1188,19 +1173,24 @@ function connectWebSocket(sessionId = null) {
   chatSocket = new WebSocket(protocol + window.location.host + wsPath);
 
   chatSocket.onmessage = function(e) {
-    const data = JSON.parse(e.data);
+    let data;
+    try {
+        data = JSON.parse(e.data);
+    } catch(err) {
+        console.error("WS error parsing:", err);
+        return;
+    }
+    
     if (data.sender === 'hari') {
-      // If user has buffered messages pending, flush them first
+      // If user is typing more, the buffer will be flushed before Hari speaks
       if (debounceTimer) {
         clearTimeout(debounceTimer);
         flushMessageBuffer();
       }
 
       if (isBubbleAnimating) {
-        // Append new segments to the existing queue instead of flushing
         const newSegments = splitMessage(data.message);
         if (newSegments.length > 0) {
-          // Un-mark the current last item in the queue
           if (bubbleQueue.length > 0) {
             bubbleQueue[bubbleQueue.length - 1].isLast = false;
           }
@@ -1218,183 +1208,88 @@ function connectWebSocket(sessionId = null) {
     if (e.code === 4401) {
       window.location.href = loginUrl;
     }
+    console.log('Chat socket closed.');
   };
 }
 
-// ═══════════════════════════════════════
-// 메시지 전송
-// ═══════════════════════════════════════
+// Send Message Logic
 function sendMessage() {
   const input = document.getElementById('messageInput');
   const text = input.value.trim();
   if (!text) return;
   
-  // 로그인 체크
-  if (!djangoData.isAuthenticated) {
+  if (!isAuthenticated) {
     alert('로그인이 필요해! 🌸');
-    window.location.href = djangoData.loginUrl;
+    window.location.href = loginUrl;
     return;
   }
   
-  // 내 메시지 추가
+  // Add to UI immediately
   addMessage('me', text);
   
+  // Clear input
   input.value = '';
   input.style.height = 'auto';
+
+  // Handle WebSocket transmission OR Local Fallback
+  if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+    userMessageBuffer.push(text);
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(flushMessageBuffer, DEBOUNCE_DELAY);
+  } else {
+    // Local Fallback Simulation
+    showTyping();
+    setTimeout(() => {
+      hideTyping();
+      const reply = getHariReply(text);
+      appendHariMessage(reply);
+    }, 1000 + Math.random() * 1000);
+  }
 }
 
 function flushMessageBuffer() {
   if (userMessageBuffer.length === 0) return;
-
-  // Join all buffered messages and send as one payload
   const combined = userMessageBuffer.join('\n');
   userMessageBuffer = [];
   debounceTimer = null;
-
-  // Show typing indicator only when actually sending
+  
   showTyping();
-  chatSocket.send(JSON.stringify({ 'message': combined }));
-}
-
-// 전역 변수로 마지막 메시지 날짜 추적
-let lastMessageDate = null;
-
-function checkAndAddDateDivider(date) {
-  const dateOptions = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-  const dateStr = date.toLocaleDateString('ko-KR', dateOptions);
-  
-  const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
-  
-  if (lastMessageDate !== dateKey) {
-    const messages = document.getElementById('messages');
-    const dividerHTML = `
-      <div class="date-divider">
-        <span class="date-divider-text">${dateStr}</span>
-      </div>
-    `;
-    messages.insertAdjacentHTML('beforeend', dividerHTML);
-    lastMessageDate = dateKey;
+  if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+    chatSocket.send(JSON.stringify({ 'message': combined }));
   }
-  return dateKey;
 }
 
-function handleFileUpload(event) {
-  const files = event.target.files;
-  if (!files || files.length === 0) return;
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const reader = new FileReader();
-
-    reader.onload = function(e) {
-      let content = '';
-      if (file.type.startsWith('image/')) {
-        content = `<img src="${e.target.result}" style="max-width: 100%; border-radius: 12px; margin-top: 5px; cursor: pointer;" onclick="window.open(this.src)">`;
-      } else if (file.type.startsWith('video/')) {
-        content = `<video src="${e.target.result}" controls style="max-width: 100%; border-radius: 12px; margin-top: 5px;"></video>`;
-      } else {
-        content = `<div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px;">
-                     <span>📄</span>
-                     <span style="font-size: 13px;">${file.name}</span>
-                   </div>`;
-      }
-      addMessage('me', content, 'media');
-    };
-
-    reader.readAsDataURL(file);
-  }
-  // 인풋 초기화
-  event.target.value = '';
+// UI Rendering for Hari (Multi-bubble support)
+function splitMessage(text) {
+  if (!text) return [];
+  return text.split(/\n\n+/).filter(s => s.trim().length > 0);
 }
 
-function addMessage(sender, content, type = 'text') {
+function renderSingleHariBubble(text, options = {}) {
+  const { isFirst = true, isLast = true, animate = true } = options;
   const messages = document.getElementById('messages');
   const now = new Date();
-  
-  // 날짜 구분선 체크 및 추가
+  const timeStr = formatTime(now);
   const dateKey = checkAndAddDateDivider(now);
   
-  const timeStr = formatTime(now);
-  const displayContent = type === 'text' ? escapeHtml(content) : content;
-  
-  // 히스토리에 추가 (검색용)
-  chatHistory.push({
-    date: dateKey,
-    time: timeStr,
-    sender: sender,
-    text: type === 'text' ? content : '[미디어 파일]'
-  });
-  
-  const messageHTML = sender === 'me' 
-    ? `
-    <div class="message-group me">
-      <div class="msg-content">
-        <div class="msg-bubble-row">
-          <div class="msg-meta">
-            <span class="msg-time">${timeStr}</span>
-          </div>
-          <div class="msg-bubble">${displayContent}</div>
-        </div>
-      </div>
-    </div>
-    `
-    : `
-    <div class="message-group other">
-      <div class="msg-profile">
+  chatHistory.push({ date: dateKey, time: timeStr, sender: 'hari', text: text });
+
+  const html = `
+    <div class="message-group other ${animate ? '' : 'no-animate'}">
+      <div class="msg-profile" style="${isFirst ? '' : 'visibility: hidden; height: 0; margin-top: -8px;'}">
         <img src="{% static 'images/hari_image1.png' %}" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
       </div>
       <div class="msg-content">
-        <div class="msg-name">하리</div>
+        ${isFirst ? '<div class="msg-name">하리</div>' : ''}
         <div class="msg-bubble-row">
-          <div class="msg-bubble">${displayContent}</div>
-          <div class="msg-meta">
-            <span class="msg-time">${timeStr}</span>
-          </div>
+          <div class="msg-bubble">${escapeHtml(text)}</div>
+          ${isLast ? `<div class="msg-meta"><span class="msg-time">${timeStr}</span></div>` : ''}
         </div>
       </div>
     </div>
   `;
   messages.insertAdjacentHTML('beforeend', html);
-  scrollToBottom();
-}
-
-function scheduleNextBubble() {
-  if (bubbleQueue.length === 0) {
-    isBubbleAnimating = false;
-    return;
-  }
-
-  showTyping();
-
-  const delay = 1500 + Math.random() * 1000; // 1.5–2.5s between bubbles
-  bubbleTimer = setTimeout(() => {
-    hideTyping();
-    const item = bubbleQueue.shift();
-    renderSingleHariBubble(item.text, {
-      isFirst: false,
-      isLast: item.isLast,
-      animate: true
-    });
-    scheduleNextBubble();
-  }, delay);
-}
-
-function flushBubbleQueue() {
-  if (bubbleTimer) {
-    clearTimeout(bubbleTimer);
-    bubbleTimer = null;
-  }
-  hideTyping();
-
-  bubbleQueue.forEach(item => {
-    renderSingleHariBubble(item.text, {
-      isFirst: false,
-      isLast: item.isLast,
-      animate: false
-    });
-  });
-  bubbleQueue = [];
-  isBubbleAnimating = false;
+  scrollToBottom(animate);
 }
 
 function appendHariMessage(text, isHistory = false) {
@@ -1404,31 +1299,19 @@ function appendHariMessage(text, isHistory = false) {
   if (isHistory) {
     hideTyping();
     segments.forEach((seg, i) => {
-      renderSingleHariBubble(seg, {
-        isFirst: i === 0,
-        isLast: i === segments.length - 1,
-        animate: false
-      });
+      renderSingleHariBubble(seg, { isFirst: i === 0, isLast: i === segments.length - 1, animate: false });
     });
     return;
   }
 
-  // Keep the typing indicator visible for a natural pause before the first bubble
   isBubbleAnimating = true;
-  const firstDelay = 1200 + Math.random() * 800; // 1.2–2.0s
+  const firstDelay = 1000 + Math.random() * 500;
   bubbleTimer = setTimeout(() => {
     hideTyping();
-    renderSingleHariBubble(segments[0], {
-      isFirst: true,
-      isLast: segments.length === 1,
-      animate: true
-    });
+    renderSingleHariBubble(segments[0], { isFirst: true, isLast: segments.length === 1, animate: true });
 
     if (segments.length > 1) {
-      bubbleQueue = segments.slice(1).map((seg, i) => ({
-        text: seg,
-        isLast: i === segments.length - 2
-      }));
+      bubbleQueue = segments.slice(1).map((seg, i) => ({ text: seg, isLast: i === segments.length - 2 }));
       scheduleNextBubble();
     } else {
       isBubbleAnimating = false;
@@ -1436,67 +1319,69 @@ function appendHariMessage(text, isHistory = false) {
   }, firstDelay);
 }
 
-// ═══════════════════════════════════════
-// Typing indicator
-// ═══════════════════════════════════════
-function showTyping() {
-  if (document.getElementById('typingIndicator')) return;
-  const messages = document.getElementById('messages');
-  const typingHTML = `
-    <div class="typing-indicator" id="typingIndicator">
-      <div class="msg-profile">
-        <img src="{% static 'images/hari_image1.png' %}" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
-      </div>
-      <div class="typing-bubble">
-        <span class="typing-dot"></span>
-        <span class="typing-dot"></span>
-        <span class="typing-dot"></span>
-      </div>
-    </div>
-  `;
-  messages.insertAdjacentHTML('beforeend', typingHTML);
-  scrollToBottom();
-}
-
-function hideTyping() {
-  const typing = document.getElementById('typingIndicator');
-  if (typing) typing.remove();
-}
-
-// ═══════════════════════════════════════
-// 하리 응답 로직 (반말 모드)
-// ═══════════════════════════════════════
-const HARI_RESPONSES = {
-  '안녕': ['안녕! 😊', '반가워! 오늘 뭐하고 지냈어? ✨', '어 왔어? 오늘 기분 어때?'],
-  '뭐해': ['나는 너랑 대화 중이지! 이게 제일 재밌어 💕', '방금까지 새 옷 입어보고 사진 찍고 있었어 📸'],
-  '패션': ['요즘은 오버사이즈 핏이 대세야! 중성적인 느낌이 매력 있지 👗', '심플한 게 최고야. 포인트 하나만 딱 주는 스타일 추천해! ✨'],
-  '음악': ['요즘 인디 팝이랑 로파이 음악에 푹 빠졌어 🎵', 'R&B도 너무 좋아. 가사가 마음에 콕 박히는 느낌? 💙'],
-  '좋아': ['나도 좋아! 💕', '완전 공감이네 ✨'],
-  'default': [
-    '오, 그럴 수도 있겠네! 🤔',
-    '진짜? 나도 그런 생각 해봤어 🌙',
-    '와, 재밌는 이야기네 ✨',
-    '그 말 들으니까 나도 기분이 좋아져 💛',
-    '음... 정답은 없겠지만 같이 고민해보자 😊'
-  ]
-};
-
-function getHariReply(userText) {
-  const text = userText.toLowerCase();
-  
-  for (const [keyword, responses] of Object.entries(HARI_RESPONSES)) {
-    if (keyword === 'default') continue;
-    if (text.includes(keyword)) {
-      return responses[Math.floor(Math.random() * responses.length)];
-    }
-  } catch (error) {
-    console.error('Error loading history:', error);
+function scheduleNextBubble() {
+  if (bubbleQueue.length === 0) {
+    isBubbleAnimating = false;
+    return;
   }
+  showTyping();
+  const delay = 1200 + Math.random() * 800;
+  bubbleTimer = setTimeout(() => {
+    hideTyping();
+    const item = bubbleQueue.shift();
+    renderSingleHariBubble(item.text, { isFirst: false, isLast: item.isLast, animate: true });
+    scheduleNextBubble();
+  }, delay);
 }
 
-// ═══════════════════════════════════════
-// 유틸리티
-// ═══════════════════════════════════════
+/**
+ * ═══════════════════════════════════════
+ * UI HELPERS & UTILS
+ * ═══════════════════════════════════════
+ */
+
+function addMessage(sender, content, type = 'text') {
+  const messages = document.getElementById('messages');
+  const now = new Date();
+  const dateKey = checkAndAddDateDivider(now);
+  const timeStr = formatTime(now);
+  const displayContent = type === 'text' ? escapeHtml(content) : content;
+  
+  chatHistory.push({ date: dateKey, time: timeStr, sender: sender, text: type === 'text' ? content : '[파일]' });
+  
+  if (sender === 'me') {
+    const html = `
+      <div class="message-group me">
+        <div class="msg-content">
+          <div class="msg-bubble-row">
+            <div class="msg-meta"><span class="msg-time">${timeStr}</span></div>
+            <div class="msg-bubble">${displayContent}</div>
+          </div>
+        </div>
+      </div>
+    `;
+    messages.insertAdjacentHTML('beforeend', html);
+  } else {
+    renderSingleHariBubble(content);
+    return;
+  }
+  scrollToBottom(true);
+}
+
+function checkAndAddDateDivider(date) {
+  const dateOptions = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+  const dateStr = date.toLocaleDateString('ko-KR', dateOptions);
+  const dateKey = date.toISOString().split('T')[0];
+  
+  if (lastMessageDate !== dateKey) {
+    const messages = document.getElementById('messages');
+    const dividerHTML = `<div class="date-divider"><span class="date-divider-text">${dateStr}</span></div>`;
+    messages.insertAdjacentHTML('beforeend', dividerHTML);
+    lastMessageDate = dateKey;
+  }
+  return dateKey;
+}
+
 function formatTime(date) {
   let hours = date.getHours();
   const minutes = date.getMinutes();
@@ -1513,12 +1398,110 @@ function escapeHtml(text) {
 
 function scrollToBottom(force = false) {
   const container = document.getElementById('chatContainer');
-  const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+  if (!container) return;
+  const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
   if (force || isNearBottom) {
-    setTimeout(() => {
-      container.scrollTop = container.scrollHeight;
-    }, 50);
+    setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
   }
+}
+
+function showTyping() {
+  if (document.getElementById('typingIndicator')) return;
+  const messages = document.getElementById('messages');
+  const typingHTML = `
+    <div class="typing-indicator" id="typingIndicator">
+      <div class="msg-profile">
+        <img src="{% static 'images/hari_image1.png' %}" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
+      </div>
+      <div class="typing-bubble">
+        <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+      </div>
+    </div>
+  `;
+  messages.insertAdjacentHTML('beforeend', typingHTML);
+  scrollToBottom(true);
+}
+
+function hideTyping() {
+  const typing = document.getElementById('typingIndicator');
+  if (typing) typing.remove();
+}
+
+/**
+ * ═══════════════════════════════════════
+ * SEARCH & SIDEBAR LOGIC
+ * ═══════════════════════════════════════
+ */
+
+function openSearch() {
+  const modal = document.getElementById('searchModal');
+  modal.style.display = 'flex';
+  setTimeout(() => { document.getElementById('searchInput').focus(); }, 100);
+}
+
+function closeSearch() {
+  document.getElementById('searchModal').style.display = 'none';
+}
+
+function switchSearchTab(event, tab) {
+  document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('dateFilter').style.display = (tab === 'date') ? 'flex' : 'none';
+}
+
+function performSearch() {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  const resultsContainer = document.getElementById('searchResults');
+  if (!query) {
+    resultsContainer.innerHTML = '<div class="search-no-results">검색어를 입력해줘!</div>';
+    return;
+  }
+  const results = chatHistory.filter(msg => msg.text.toLowerCase().includes(query));
+  displaySearchResults(results, query);
+}
+
+function searchByDate() {
+  const from = document.getElementById('dateFrom').value;
+  const to = document.getElementById('dateTo').value;
+  if (!from || !to) { alert('날짜를 모두 선택해줘!'); return; }
+  const results = chatHistory.filter(msg => msg.date >= from && msg.date <= to);
+  displaySearchResults(results);
+}
+
+function displaySearchResults(results, keyword = null) {
+  const container = document.getElementById('searchResults');
+  if (results.length === 0) {
+    container.innerHTML = '<div class="search-no-results">결과가 없어 😥</div>';
+    return;
+  }
+  let html = '';
+  results.forEach(msg => {
+    let preview = msg.text;
+    if (keyword) {
+      const regex = new RegExp(`(${keyword})`, 'gi');
+      preview = preview.replace(regex, '<mark>$1</mark>');
+    }
+    html += `
+      <div class="search-result-item" onclick="alert('이동 기능 준비 중!')">
+        <div class="search-result-date">${msg.date} ${msg.time}</div>
+        <div class="search-result-preview">${preview}</div>
+        <div class="search-result-sender">${msg.sender === 'hari' ? '하리' : '나'}</div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+/**
+ * ═══════════════════════════════════════
+ * EVENT LISTENERS
+ * ═══════════════════════════════════════
+ */
+
+// Input sizing & shortcuts
+function autoResize(textarea) {
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
 }
 
 function handleKeyPress(event) {
@@ -1528,112 +1511,74 @@ function handleKeyPress(event) {
   }
 }
 
-function autoResize(textarea) {
-  textarea.style.height = 'auto';
-  textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
-}
-
-function goBack() {
-  window.history.back();
-}
-
-// ═══════════════════════════════════════
-// 이모티콘 피커
-// ═══════════════════════════════════════
+// Emoji Handling
 function toggleEmoji() {
-  const picker = document.getElementById('emojiPicker');
-  picker.classList.toggle('show');
+  document.getElementById('emojiPicker').classList.toggle('show');
 }
 
+// Global Click Handlers
 document.addEventListener('click', (e) => {
+  // Emoji select
   if (e.target.classList.contains('emoji-item')) {
     const input = document.getElementById('messageInput');
     input.value += e.target.textContent;
     input.focus();
+    autoResize(input);
   }
-  
+  // Emoji outside click
   if (!e.target.closest('.emoji-picker') && !e.target.closest('.input-btn.emoji')) {
     const picker = document.getElementById('emojiPicker');
     if (picker) picker.classList.remove('show');
   }
 });
 
-// ═══════════════════════════════════════
-// 검색 기능 (사이드바 버전)
-// ═══════════════════════════════════════
-
-let chatHistory = [
-  { date: '2026-03-30', time: 'PM 2:30', sender: 'hari', text: '안녕! 난 하리야 ✨' }
-];
-
-function switchSearchTab(event, tab) {
-  document.querySelectorAll('.search-tab').forEach(t => {
-    t.classList.remove('active');
-  });
-  
-  const target = event.currentTarget;
-  target.classList.add('active');
-  
-  const dateFilter = document.getElementById('dateFilter');
-  if (tab === 'date') {
-    dateFilter.style.display = 'flex';
-  } else {
-    dateFilter.style.display = 'none';
+// File Upload
+function handleFileUpload(event) {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
+  for (let file of files) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      let content = file.type.startsWith('image/') 
+        ? `<img src="${e.target.result}" style="max-width:100%; border-radius:12px; margin-top:5px; cursor:pointer;" onclick="window.open(this.src)">`
+        : `<div style="display:flex; align-items:center; gap:8px; background:rgba(0,0,0,0.05); padding:10px; border-radius:8px;">📄 <span>${file.name}</span></div>`;
+      addMessage('me', content, 'media');
+    };
+    reader.readAsDataURL(file);
   }
+  event.target.value = '';
 }
 
-function performSearch() {
-  const query = document.getElementById('searchInput').value.trim().toLowerCase();
-  const resultsContainer = document.getElementById('searchResults');
+// ESC Key
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSearch(); });
 
-  if (!query) {
-    resultsContainer.innerHTML = '<div style="text-align: center; padding: 40px 10px; color: var(--text-dim);">검색어를 입력해줘!</div>';
-    return;
+// Back Button
+function goBack() { window.history.back(); }
+
+// Fallback Reply patterns (Local Mode)
+const HARI_RESPONSES = {
+  '안녕': ['안녕! 😊', '반가워! 오늘 뭐하고 지냈어? ✨', '어 왔어? 오늘 기분 어때?'],
+  '뭐해': ['나는 너랑 대화 중이지! 이게 제일 재밌어 💕', '방금까지 새 옷 입어보고 사진 찍고 있었어 📸'],
+  '좋아': ['나도 좋아! 💕', '완전 공감이네 ✨'],
+  'default': ['오, 그럴 수도 있겠네! 🤔', '와, 재밌는 이야기네 ✨', '그 말 들으니까 나도 기분이 좋아져 💛']
+};
+
+function getHariReply(userText) {
+  const text = userText.toLowerCase();
+  for (const [keyword, responses] of Object.entries(HARI_RESPONSES)) {
+    if (keyword === 'default') continue;
+    if (text.includes(keyword)) return responses[Math.floor(Math.random() * responses.length)];
   }
-  
-  const results = chatHistory.filter(msg => msg.text.toLowerCase().includes(query));
-  displaySearchResults(results, query);
+  return HARI_RESPONSES.default[Math.floor(Math.random() * HARI_RESPONSES.default.length)];
 }
 
-function searchByDate() {
-  const dateFrom = document.getElementById('dateFrom').value;
-  const dateTo = document.getElementById('dateTo').value;
-
-  if (!dateFrom || !dateTo) {
-    alert('시작이랑 종료 날짜 다 골라줘!');
-    return;
-  }
-  
-  const results = chatHistory.filter(msg => msg.date >= dateFrom && msg.date <= dateTo);
-  displaySearchResults(results);
-}
-
-function displaySearchResults(results, keyword = null) {
-  const resultsContainer = document.getElementById('searchResults');
-
-  if (results.length === 0) {
-    resultsContainer.innerHTML = '<div style="text-align: center; padding: 40px 10px; color: var(--text-dim);">검색 결과가 없어 😥</div>';
-    return;
-  }
-
-  let html = '';
-  results.forEach(msg => {
-    let preview = msg.text;
-    if (keyword) {
-      const regex = new RegExp(`(${keyword})`, 'gi');
-      preview = preview.replace(regex, '<mark style="background:rgba(255,123,138,0.2); color:var(--hari-pink); padding:2px 4px; border-radius:4px;">$1</mark>');
-    }
-    html += `
-      <div style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; background: white;" onclick="alert('메시지 이동 기능은 준비 중이야!')">
-        <div style="font-size: 11px; color: var(--text-time); margin-bottom: 4px;">${msg.date} ${msg.time}</div>
-        <div style="font-size: 13px; color: var(--text-main); line-height: 1.4;">${preview}</div>
-        <div style="font-size: 11px; color: var(--hari-pink); margin-top: 4px; font-weight: 500;">${msg.sender === 'hari' ? '하리' : '나'}</div>
-      </div>
-    `;
-  });
-  resultsContainer.innerHTML = html;
-}
+// Initial Load
+window.addEventListener('load', () => {
+  scrollToBottom(true);
+  connectWebSocket();
+});
 </script>
+
 
 </body>
 </html>

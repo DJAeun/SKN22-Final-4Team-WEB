@@ -1376,7 +1376,6 @@ document.getElementById('chat-page-link').addEventListener('click', function(e){
 });
 function planSelect(btn,tier){ btn.textContent='처리 중...'; setTimeout(()=>{ btn.textContent=`${tier.toUpperCase()} 가입 완료! ✓`; btn.style.background='#2e8b52'; btn.style.borderColor='#2e8b52'; btn.style.color='#fff'; setTimeout(()=>{ btn.textContent=tier==='free'?'무료로 시작하기 →':tier==='fan+'?'Fan+ 시작하기 →':'VIP 시작하기 →'; btn.style.background=''; btn.style.borderColor=''; btn.style.color=''; },3000); },800); }
 
-</script>
 
 
 function toggleFaq(el){ const item=el.parentElement; item.classList.toggle('open'); }
