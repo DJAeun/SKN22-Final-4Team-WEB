@@ -1097,7 +1097,7 @@ html, body {
   {
     "isAuthenticated": {% if user.is_authenticated %}true{% else %}false{% endif %},
     "userName": "{{ user.username|default:'' }}",
-    "loginUrl": "{% url 'login' %}",
+    "loginUrl": "{% url 'home' %}",
     "csrfToken": "{{ csrf_token }}"
   }
 </script>
@@ -1509,6 +1509,39 @@ function handleKeyPress(event) {
 document.addEventListener('click', (e) => {
   // Global click outside handlers can represent here
 });
+
+// ═══════════════════════════════════════
+// Chat History & Fallback
+// ═══════════════════════════════════════
+async function loadHistory() {
+  if (!isAuthenticated) return;
+  try {
+    const response = await fetch('/api/chat/api/messages/');
+    if (!response.ok) return;
+    const data = await response.json();
+    const messages = Array.isArray(data) ? data : (data.results || []);
+    if (messages.length > 0) {
+      messages.forEach(msg => {
+        if (msg.sender_type) {
+          addMessage('me', msg.content);
+        } else {
+          appendHariMessage(msg.content, true);
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error loading history:', error);
+  }
+}
+
+function getHariReply(text) {
+  const replies = [
+    '아 미안 지금 연결이 좀 불안정해ㅜㅜ 잠깐만 기다려줘!',
+    '잠깐 인터넷이 이상한 듯? 다시 말해줘!',
+    '어 잠깐 연결이 끊겼어 다시 해볼게!',
+  ];
+  return replies[Math.floor(Math.random() * replies.length)];
+}
 
 // ═══════════════════════════════════════
 // Initialize
