@@ -1208,20 +1208,61 @@ function checkStrength(inp){
 }
 function doLogin(){
   const btn=document.querySelector('#panel-login .auth-submit');
-  btn.textContent='로그인 중...';
-  setTimeout(()=>{
-    closeAuth();
-    const ab=document.getElementById('auth-btn');
-    ab.textContent='팬페이지'; ab.classList.add('logged-in');
-    ab.onclick=()=>{ window.location.href='/fanpage/'; };
-  },900);
+  const email=document.querySelector('#panel-login input[type="email"]').value;
+  const pw=document.getElementById('login-pw').value;
+  if(!email||!pw){alert('이메일과 비밀번호를 입력해주세요.');return;}
+  btn.textContent='로그인 중...'; btn.disabled=true;
+  fetch('/api/auth/login/',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+    body:JSON.stringify({email:email,password:pw})
+  }).then(r=>{
+    if(!r.ok) return r.json().then(d=>{throw d;});
+    return r.json();
+  }).then(()=>{
+    window.location.reload();
+  }).catch(err=>{
+    btn.textContent='로그인 →'; btn.disabled=false;
+    const msg=err.non_field_errors?err.non_field_errors[0]
+      :err.email?err.email[0]
+      :'이메일 또는 비밀번호가 올바르지 않습니다.';
+    alert(msg);
+  });
+}
+function getCookie(name){
+  const v=document.cookie.match('(^|;)\\s*'+name+'\\s*=\\s*([^;]+)');
+  return v?v.pop():'';
 }
 function doSignup(){
   const btn=document.querySelector('#panel-signup .auth-submit');
-  btn.textContent='가입 중...';
-  setTimeout(()=>{ btn.textContent='가입 완료! ✓'; btn.style.background='var(--grn)';
-    setTimeout(()=>{ switchTab('login'); btn.textContent='가입하기 →'; btn.style.background=''; },1800);
-  },900);
+  const panel=document.getElementById('panel-signup');
+  const name=panel.querySelectorAll('.auth-inp')[0].value;
+  const nickname=panel.querySelectorAll('.auth-inp')[1].value;
+  const email=panel.querySelector('input[type="email"]').value;
+  const pw=document.getElementById('signup-pw').value;
+  const agreed=panel.querySelector('input[type="checkbox"][required]');
+  if(!email||!pw){alert('이메일과 비밀번호를 입력해주세요.');return;}
+  if(pw.length<8){alert('비밀번호는 8자 이상이어야 합니다.');return;}
+  if(!agreed.checked){alert('이용약관에 동의해주세요.');return;}
+  btn.textContent='가입 중...'; btn.disabled=true;
+  fetch('/api/auth/registration/',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+    body:JSON.stringify({username:nickname||email.split('@')[0],email:email,password1:pw,password2:pw,first_name:name})
+  }).then(r=>{
+    if(!r.ok) return r.json().then(d=>{throw d;});
+    return r.json();
+  }).then(()=>{
+    window.location.reload();
+  }).catch(err=>{
+    btn.textContent='가입하기 →'; btn.disabled=false;
+    const msg=err.username?err.username[0]
+      :err.email?err.email[0]
+      :err.password1?err.password1[0]
+      :err.non_field_errors?err.non_field_errors[0]
+      :'회원가입에 실패했습니다.';
+    alert(msg);
+  });
 }
 function doForgot(){
   const btn=document.querySelector('#panel-forgot .auth-submit');
@@ -1231,8 +1272,7 @@ function doForgot(){
   },900);
 }
 function socialLogin(provider){
-  const names={'google':'Google','naver':'네이버'};
-  alert(`${names[provider]} 로그인은 OAuth 연동 후 사용 가능해요.\n(현재 UI 데모 상태)`);
+  window.location.href='/accounts/'+provider+'/login/?process=login';
 }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAuth(); });
 
