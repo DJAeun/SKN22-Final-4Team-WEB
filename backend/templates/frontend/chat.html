@@ -1123,7 +1123,7 @@ let isBubbleAnimating = false;
 // Message batching (debounce) state for WebSocket
 let userMessageBuffer = [];
 let debounceTimer = null;
-const DEBOUNCE_DELAY = 1000; // ms
+const DEBOUNCE_DELAY = 3000; // ms - wait for user to finish typing
 
 // Search history (populated dynamically)
 let chatHistory = [];
@@ -1142,6 +1142,14 @@ function connectWebSocket(sessionId = null) {
 
   const wsPath = sessionId ? `/ws/chat/${sessionId}/` : '/ws/chat/';
   chatSocket = new WebSocket(protocol + window.location.host + wsPath);
+
+  chatSocket.onopen = function() {
+    console.log('[WS] Connected:', protocol + window.location.host + wsPath);
+  };
+
+  chatSocket.onerror = function(err) {
+    console.error('[WS] Connection error:', err);
+  };
 
   chatSocket.onmessage = function(e) {
     let data;
@@ -1176,10 +1184,15 @@ function connectWebSocket(sessionId = null) {
   };
 
   chatSocket.onclose = function(e) {
+    console.warn('[WS] Closed. code:', e.code, 'reason:', e.reason);
     if (e.code === 4401) {
+      // Unauthenticated — redirect to login
       window.location.href = loginUrl;
+    } else if (e.code !== 1000) {
+      // Unexpected close — attempt reconnect after 3s
+      console.log('[WS] Attempting reconnect in 3s...');
+      setTimeout(() => connectWebSocket(currentSessionId), 3000);
     }
-    console.log('Chat socket closed.');
   };
 }
 
