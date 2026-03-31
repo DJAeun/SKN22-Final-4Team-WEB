@@ -15,10 +15,9 @@ class Message(models.Model):
     sender_type = models.BooleanField()
     content = models.TextField()
     is_read = models.BooleanField(default=False)
-    # Running message sequence number per user/anonymous session
+    # Running message sequence number per session
     count = models.SmallIntegerField(default=0)
-    # Set for anonymous users (Django session key); NULL for logged-in users
-    anonymous_id = models.CharField(max_length=40, null=True, blank=True)
+    session_id = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -40,8 +39,8 @@ class ChatMemory(models.Model):
     )
     summary = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=500, null=True, blank=True)
+    session_id = models.CharField(max_length=255, null=True, blank=True)
     ended_at = models.DateTimeField(null=True, blank=True)
-    anonymous_id = models.CharField(max_length=40, null=True, blank=True)
 
     class Meta:
         managed = False

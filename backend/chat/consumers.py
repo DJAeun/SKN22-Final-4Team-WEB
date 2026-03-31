@@ -50,7 +50,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.session_messages = []
             self.user_id = user.id
             self.thread_id = str(user.id)
-            self.anonymous_id = None
+
+            # Get or create a session_id
+            url_session = self.scope['url_route']['kwargs'].get('session_id')
+            self.session_id = str(url_session) if url_session else await self._create_session()
 
             self.room_group_name = f"chat_{self.thread_id}"
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
@@ -73,6 +76,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         try:
+            await self._close_session()
             if self.session_messages:
                 conversation_count = await self.save_chat_memory()
 
@@ -192,13 +196,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # ------------------------------------------------------------------ #
 
     @database_sync_to_async
+    def _create_session(self):
+        """Create a new CHAT_SESSION row and return its session_id."""
+        import uuid
+        session_id = str(uuid.uuid4())
+        with connection.cursor() as cur:
+            cur.execute(
+                "INSERT INTO chat_session (session_id, is_active, user_id) VALUES (%s, TRUE, %s)",
+                [session_id, self.user_id],
+            )
+        return session_id
+
+    @database_sync_to_async
+    def _close_session(self):
+        """Mark the current session as inactive."""
+        with connection.cursor() as cur:
+            cur.execute(
+                "UPDATE chat_session SET is_active = FALSE WHERE session_id = %s",
+                [self.session_id],
+            )
+
+    @database_sync_to_async
     def get_message_count(self):
-        """Return the number of messages already saved for this user/session."""
-        if self.user_id:
-            return Message.objects.filter(user_id=self.user_id).count()
-        if self.anonymous_id:
-            return Message.objects.filter(anonymous_id=self.anonymous_id).count()
-        return 0
+        """Return the number of messages already saved for this user."""
+        return Message.objects.filter(user_id=self.user_id).count()
 
     @database_sync_to_async
     def save_message(self, sender_type, content):
@@ -213,7 +234,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             sender_type=sender_type,
             content=content,
             count=self.message_count,
-            anonymous_id=self.anonymous_id,
+            session_id=self.session_id,
         )
 
     @database_sync_to_async
@@ -254,7 +275,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         record = ChatMemory.objects.create(
             user_id=self.user_id,
-            anonymous_id=self.anonymous_id,
+            session_id=self.session_id,
             summary=summary,
             ended_at=timezone.now(),
         )
@@ -268,9 +289,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             logger.error(f"Failed to save summary vector for memory {record.memory_id}: {e}", exc_info=True)
 
-        if self.user_id:
-            return ChatMemory.objects.filter(user_id=self.user_id).count()
-        return None
+        return ChatMemory.objects.filter(user_id=self.user_id).count()
 
     # trigger_persona_update is now handled inside disconnect() via
     # run_extraction_pipeline(update_hari=True) at the PERSONA_UPDATE_INTERVAL milestone.
