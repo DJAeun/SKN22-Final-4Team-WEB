@@ -140,9 +140,10 @@ def create_tables(cur):
         user_id BIGINT REFERENCES USERS(user_id) ON DELETE CASCADE,
         sender_type BOOLEAN,
         content TEXT,
-        is_read BOOLEAN,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        session_id VARCHAR(255) REFERENCES CHAT_SESSION(session_id) ON DELETE CASCADE
+        is_read BOOLEAN DEFAULT FALSE,
+        count SMALLINT DEFAULT 0,
+        session_id VARCHAR(255) REFERENCES CHAT_SESSION(session_id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     """)
 
@@ -152,9 +153,47 @@ def create_tables(cur):
         user_id BIGINT REFERENCES USERS(user_id) ON DELETE CASCADE,
         session_id VARCHAR(255) REFERENCES CHAT_SESSION(session_id) ON DELETE CASCADE,
         summary TEXT,
-        keywords VARCHAR(255),
+        keywords VARCHAR(500),
         ended_at TIMESTAMP
     );
+    """)
+
+    # Migrate existing CHAT_MESSAGES: add missing 'count' column, drop unused 'anonymous_id'
+    cur.execute("""
+    ALTER TABLE chat_messages
+    ADD COLUMN IF NOT EXISTS count SMALLINT DEFAULT 0;
+    """)
+    cur.execute("""
+    ALTER TABLE chat_messages
+    ALTER COLUMN is_read SET DEFAULT FALSE;
+    """)
+    cur.execute("""
+    DO $$
+    BEGIN
+        IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'chat_messages' AND column_name = 'anonymous_id'
+        ) THEN
+            ALTER TABLE chat_messages DROP COLUMN anonymous_id;
+        END IF;
+    END $$;
+    """)
+
+    # Migrate existing CHAT_MEMORY: drop unused 'anonymous_id', expand keywords
+    cur.execute("""
+    DO $$
+    BEGIN
+        IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'chat_memory' AND column_name = 'anonymous_id'
+        ) THEN
+            ALTER TABLE chat_memory DROP COLUMN anonymous_id;
+        END IF;
+    END $$;
+    """)
+    cur.execute("""
+    ALTER TABLE chat_memory
+    ALTER COLUMN keywords TYPE VARCHAR(500);
     """)
 
     cur.execute("""
@@ -202,10 +241,10 @@ def main():
 
         # Commit transactions
         conn.commit()
-        print("✅ Schema created successfully!")
+        print("[OK] Schema created successfully!")
         
     except Exception as e:
-        print(f"❌ Error setting up schema: {e}")
+        print(f"[ERROR] Error setting up schema: {e}")
         if conn:
             conn.rollback()
         raise e
