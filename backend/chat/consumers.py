@@ -51,9 +51,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.user_id = user.id
             self.thread_id = str(user.id)
 
-            # Get or create a session_id
+            # Generate a session_id for this conversation
+            import uuid
             url_session = self.scope['url_route']['kwargs'].get('session_id')
-            self.session_id = str(url_session) if url_session else await self._create_session()
+            self.session_id = str(url_session) if url_session else str(uuid.uuid4())
 
             self.room_group_name = f"chat_{self.thread_id}"
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
@@ -76,8 +77,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         try:
-            await self._close_session()
-            if self.session_messages:
+            if getattr(self, 'session_messages', None):
                 conversation_count = await self.save_chat_memory()
 
                 if self.user_id:
@@ -194,27 +194,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # ------------------------------------------------------------------ #
     #  DB helpers (run in thread pool via database_sync_to_async)         #
     # ------------------------------------------------------------------ #
-
-    @database_sync_to_async
-    def _create_session(self):
-        """Create a new CHAT_SESSION row and return its session_id."""
-        import uuid
-        session_id = str(uuid.uuid4())
-        with connection.cursor() as cur:
-            cur.execute(
-                "INSERT INTO chat_session (session_id, is_active, user_id) VALUES (%s, TRUE, %s)",
-                [session_id, self.user_id],
-            )
-        return session_id
-
-    @database_sync_to_async
-    def _close_session(self):
-        """Mark the current session as inactive."""
-        with connection.cursor() as cur:
-            cur.execute(
-                "UPDATE chat_session SET is_active = FALSE WHERE session_id = %s",
-                [self.session_id],
-            )
 
     @database_sync_to_async
     def get_message_count(self):
