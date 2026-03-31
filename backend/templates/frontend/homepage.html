@@ -54,7 +54,7 @@
   --bdr-dk: rgba(255,245,246,0.12);
 }
 html { scroll-behavior:smooth; }
-body { background:var(--bg); color:var(--ink); font-family:var(--f-thin); font-size: 1.25rem; line-height: 1.5; font-weight:400; overflow-x:hidden; }
+body { background:var(--bg); color:var(--ink); font-family:var(--f-thin); font-size: 1rem; line-height: 1.5; font-weight:400; overflow-x:hidden; }
 ::-webkit-scrollbar { width:2px; }
 ::-webkit-scrollbar-thumb { background:var(--acc); }
 
@@ -529,7 +529,7 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 .msg.h { align-self:flex-start; align-items:flex-start; }
 .msg.u { align-self:flex-end; align-items:flex-end; }
 .msg-who { font-family:'DM Mono',monospace; font-size:.5rem; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); }
-.bbl { padding:.65rem .9rem; font-size:.83rem; line-height:1.65; border:0.5px solid; }
+.bbl { padding:.65rem .9rem; font-size:.95rem; line-height:1.65; border:0.5px solid; }
 .h .bbl { background:var(--bg); color:var(--ink); border-color:var(--bdr2); border-radius:0 10px 10px 10px; }
 .u .bbl { background:var(--acc); color:#fff; border-color:var(--acc); border-radius:10px 0 10px 10px; }
 .msg-t { font-family:'DM Mono',monospace; font-size:.48rem; color:var(--dim); }
@@ -664,6 +664,60 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
   .chat-right { padding:2.5rem 1.5rem; }
 }
 
+/* ──────────────────────────────────────────
+   RESPONSIVE OVERLAYS v3 — Mobile First Thinking
+   ────────────────────────────────────────── */
+
+/* ──────────────────────────────────────────
+   모바일 최적화 헤더 v5 — 로고/인증 버튼 포함
+   ────────────────────────────────────────── */
+
+@media (max-width: 1300px) {
+  #nav { padding: 0 1.5rem; }
+  .nav-center { gap: 0.7rem; }
+  .nav-desktop-menu { gap: 0.8rem; margin-left: 1.2rem; }
+  .nav-item-secondary { display: none !important; } /* 중요도 낮은 메뉴 숨김 */
+}
+
+@media (max-width: 1024px) {
+  #nav { padding: 0 1.2rem; }
+  .hero-inner { grid-template-columns: 1fr; padding: 3rem 1.5rem; }
+  .hero-title { font-size: clamp(3.5rem, 10vw, 7rem); }
+  .hero-right { align-items: flex-start; padding-top: 2rem; }
+}
+
+@media (max-width: 768px) {
+  #nav { height: 56px; padding: 0 1rem; justify-content: space-between; }
+  .nav-logo, #auth-btn { display: flex !important; }
+  
+  /* 모바일에서 데스크탑 전용 메뉴만 숨기고 나머지는 노출 */
+  .nav-center { display: flex !important; margin-left: auto; gap: 0.8rem; }
+  .nav-desktop-menu { display: none !important; }
+  
+  #drawer { top: 56px; }
+  
+  .hero-inner { padding-top: 1.5rem; }
+  .hero-desc { max-width: 100%; font-size: 0.9rem; line-height: 1.6; }
+  
+  .sec-header { padding: 1.2rem; flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+  .sec-title { font-size: 2.5rem; }
+  
+  .news-grid { grid-template-columns: 1fr; }
+  #s2 { padding: 2.5rem 1rem; }
+  
+  .chat-box-msgs { max-height: 350px; }
+}
+
+@media (max-width: 480px) {
+  .hero-title { font-size: 2.8rem; letter-spacing: -1px; }
+  .profile-char-name { font-size: 2.2rem; }
+  .chat-left-title { font-size: 2.4rem; }
+  .chat-left { padding: 1.5rem 1rem; }
+  .yt-grid { grid-template-columns: 1fr; }
+  
+  #auth-btn { font-size: 0.8rem; padding: 0.4rem 0.8rem; } /* 아주 작은 화면에서 폰트 깨짐 방지 */
+}
+
 /* §5 NEWS */
 #s5 { background:var(--s5-bg); }
 .news-grid { display:grid; grid-template-columns:1fr 1fr; }
@@ -690,7 +744,7 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 .yt-api-notice a:hover { opacity:.6; }
 .yt-grid {
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
   gap:1px;
   background:var(--bdr);
   padding:0;
@@ -752,6 +806,7 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
   font-size:.8rem; color:var(--ink);
   line-height:1.45; font-weight:400;
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  line-clamp:2;
   overflow:hidden;
 }
 .yt-meta {
