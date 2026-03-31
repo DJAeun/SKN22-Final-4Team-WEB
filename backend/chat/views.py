@@ -2,11 +2,13 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.http import JsonResponse
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import viewsets, permissions
 from .models import Message, ChatMemory
 from .serializers import MessageSerializer, ChatMemorySerializer
 
 
+@ensure_csrf_cookie
 def homepage(request):
     return render(request, 'frontend/homepage.html')
 
@@ -17,7 +19,7 @@ def fanpage(request):
 
 def frontend_chat(request):
     if not request.user.is_authenticated:
-        return redirect('login')
+        return redirect('home')
     return render(request, 'frontend/chat.html')
 
 

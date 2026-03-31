@@ -24,7 +24,11 @@
 
 
     <!-- 로그인 버튼 -->
+    {% if user.is_authenticated %}
+    <button id="auth-btn" class="logged-in" onclick="window.location.href='/fanpage/'">{{ user.username }}</button>
+    {% else %}
     <button id="auth-btn" onclick="openAuth('login')">로그인</button>
+    {% endif %}
 
     <!-- 햄버거 메뉴 -->
     <button id="menu-btn" onclick="toggleDrawer()" aria-label="메뉴">
