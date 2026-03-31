@@ -1,9 +1,9 @@
 {% load static %}
 <!-- TOPBAR -->
 <header id="topbar">
-  <div class="tb-logo">
-    <img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI" style="height:18px; width:auto; object-fit:contain; margin-right:4px; mix-blend-mode:multiply;">
-    <span class="tb-logo-sub">보리 팬클럽</span>
+  <div class="tb-logo" style="display:flex; align-items:center; gap:12px; padding-left:1.5rem;">
+    <!-- 보리 메인 서명 로고 (확대형 및 배경 최적화) -->
+    <img src="{% static 'images/bori_logo_none.png' %}?v=2" alt="Bori" style="height:42px; width:auto; object-fit:contain; filter: contrast(110%) brightness(110%); mix-blend-mode: multiply; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'; this.style.opacity='0.8';" onmouseout="this.style.transform='scale(1)'; this.style.opacity='1';">
   </div>
   <div class="tb-center">
     <div class="tb-greet">안녕하세요, <strong id="tb-name">보리팬01</strong>님 👋</div>
