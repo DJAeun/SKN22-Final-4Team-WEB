@@ -1115,6 +1115,7 @@ const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
 let chatSocket = null;
 let currentSessionId = null;
 let chatHistory = [];
+let lastMessageDate = null;
 
 // Multi-bubble queue state
 let bubbleQueue = [];
