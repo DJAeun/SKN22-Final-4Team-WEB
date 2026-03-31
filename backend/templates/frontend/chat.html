@@ -1114,6 +1114,7 @@ const { isAuthenticated, userName, loginUrl, csrfToken } = djangoData;
 const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
 let chatSocket = null;
 let currentSessionId = null;
+let chatHistory = [];
 
 // Multi-bubble queue state
 let bubbleQueue = [];
@@ -1532,6 +1533,14 @@ async function loadHistory() {
   } catch (error) {
     console.error('Error loading history:', error);
   }
+}
+
+function goBack() {
+  window.location.href = '/';
+}
+
+function handleFileUpload(event) {
+  // File upload not yet implemented
 }
 
 function getHariReply(text) {
