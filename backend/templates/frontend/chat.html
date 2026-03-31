@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>하리와의 대화</title>
-<link rel="icon" type="image/png" href="{% static 'images/hari_logo_none.png' %}?v=2">
+<link rel="icon" type="image/png" href="{% static 'images/hari_favicon.png' %}?v=2">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/NeoDunggeunmo.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSSaemmul.css">
 <style>
@@ -46,7 +46,7 @@ html, body {
   margin: 0;
   overflow: hidden;
   font-family: var(--f-pixel);
-  font-size: 1.15rem;
+  font-size: 1rem;
   background: var(--bg-main);
 }
 
@@ -61,7 +61,6 @@ html, body {
    ═══════════════════════════════════════ */
 .sidebar-left {
   width: 320px;
-  background-image: url("{% static 'images/hari_image2.png' %}");
   background-size: cover;
   background-position: center;
   border-right: 1px solid var(--border);
@@ -70,6 +69,7 @@ html, body {
   flex-shrink: 0;
   z-index: 10;
   position: relative;
+  overflow: hidden;
 }
 
 .sidebar-left::after {
@@ -692,7 +692,7 @@ html, body {
 .msg-bubble {
   padding: 12px 18px;
   border-radius: 20px;
-  font-size: 1.15rem;
+  font-size: 1rem;
   font-family: var(--f-pixel);
   line-height: 1.6;
   position: relative;
@@ -998,52 +998,26 @@ html, body {
   overflow-y: auto;
 }
 
-.emoji-grid::-webkit-scrollbar {
-  width: 6px;
-}
-
-.emoji-grid::-webkit-scrollbar-thumb {
-  background: var(--hari-pink);
-  border-radius: 3px;
-}
-
-.emoji-item {
-  font-size: 26px;
-  cursor: pointer;
-  padding: 6px;
-  text-align: center;
-  border-radius: 8px;
-  transition: all 0.2s;
-}
-
-.emoji-item:hover {
-  background: rgba(255, 123, 138, 0.1);
-  transform: scale(1.2);
-}
 
 /* ═══════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════ */
+@media (max-width: 1200px) {
+  .sidebar-right { display: none; }
+}
+
+@media (max-width: 1024px) {
+  .app-container { width: 100vw; }
+}
+
 @media (max-width: 768px) {
-  .msg-content {
-    max-width: 80%;
-  }
-  
-  .header {
-    padding: 12px 16px;
-  }
-  
-  .chat-container {
-    padding: 16px;
-  }
-  
-  .input-area {
-    padding: 12px 16px;
-  }
-  
-  .quick-replies {
-    padding: 12px 16px;
-  }
+  .sidebar-left { display: none; }
+  .chat-main { width: 100%; }
+  .msg-content { max-width: 85%; }
+  .header { padding: 12px 16px; }
+  .chat-container { padding: 12px; }
+  .input-area { padding: 8px 12px; }
+  .quick-replies { padding: 8px 12px; }
 }
 </style>
 </head>
@@ -1051,7 +1025,7 @@ html, body {
 
 <div class="app-container">
   <!-- LEFT SIDEBAR: PROFILE -->
-  <aside class="sidebar-left" style="width: 320px; background-image: url('{% static 'images/hari_image13.png' %}'); background-size: cover; background-position: center; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; z-index: 10; position: relative;">
+  <aside class="sidebar-left" style="background-image: url('{% static 'images/hari_image13.png' %}');">
     <!-- Full Height Overlay for Readability -->
     <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.95) 100%); z-index: 1;"></div>
     
@@ -1083,7 +1057,6 @@ html, body {
     {% include "frontend/includes/chat/_messages.html" %}
     
     <div style="position: sticky; bottom: 0; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding: 16px 24px;">
-      {% include "frontend/includes/chat/_emoji.html" %}
       {% include "frontend/includes/chat/_input.html" %}
     </div>
   </main>
@@ -1165,6 +1138,14 @@ function connectWebSocket(sessionId = null) {
   const wsPath = sessionId ? `/ws/chat/${sessionId}/` : '/ws/chat/';
   chatSocket = new WebSocket(protocol + window.location.host + wsPath);
 
+  chatSocket.onopen = function() {
+    console.log('[WS] Connected:', protocol + window.location.host + wsPath);
+  };
+
+  chatSocket.onerror = function(err) {
+    console.error('[WS] Connection error:', err);
+  };
+
   chatSocket.onmessage = function(e) {
     let data;
     try {
@@ -1198,10 +1179,15 @@ function connectWebSocket(sessionId = null) {
   };
 
   chatSocket.onclose = function(e) {
+    console.warn('[WS] Closed. code:', e.code, 'reason:', e.reason);
     if (e.code === 4401) {
+      // Unauthenticated — redirect to login
       window.location.href = loginUrl;
+    } else if (e.code !== 1000) {
+      // Unexpected close — attempt reconnect after 3s
+      console.log('[WS] Attempting reconnect in 3s...');
+      setTimeout(() => connectWebSocket(currentSessionId), 3000);
     }
-    console.log('Chat socket closed.');
   };
 }
 
@@ -1518,25 +1504,10 @@ function handleKeyPress(event) {
   }
 }
 
-// Emoji Handling
-function toggleEmoji() {
-  document.getElementById('emojiPicker').classList.toggle('show');
-}
 
 // Global Click Handlers
 document.addEventListener('click', (e) => {
-  // Emoji select
-  if (e.target.classList.contains('emoji-item')) {
-    const input = document.getElementById('messageInput');
-    input.value += e.target.textContent;
-    input.focus();
-    autoResize(input);
-  }
-  // Emoji outside click
-  if (!e.target.closest('.emoji-picker') && !e.target.closest('.input-btn.emoji')) {
-    const picker = document.getElementById('emojiPicker');
-    if (picker) picker.classList.remove('show');
-  }
+  // Global click outside handlers can represent here
 });
 
 // ═══════════════════════════════════════

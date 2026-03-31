@@ -35,12 +35,17 @@ ALLOWED_HOSTS = ['*', 'chatting-hari.com', 'www.chatting-hari.com']
 
 # Security Headers (Fix for AWS HTTP/HTTPS issues)
 # Silence COOP warning for HTTP domains
-SECURE_CROSS_ORIGIN_OPENER_POLICY = None 
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 # Trust AWS Load Balancer's Proto header (essential for HTTPS)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# Session/Cookie security (optional but good for production)
-SESSION_COOKIE_SECURE = False  # Set to True if you move to full HTTPS
-CSRF_COOKIE_SECURE = False     # Set to True if you move to full HTTPS
+# Session/Cookie security
+SESSION_COOKIE_SECURE = False      # Set to True if full HTTPS
+CSRF_COOKIE_SECURE = False         # Set to True if full HTTPS
+# SameSite=Lax is required for WebSocket session auth on AWS ALB
+# Without this, the browser may strip the sessionid cookie on WS handshake
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_HTTPONLY = True
 
 
 # Application definition
@@ -297,3 +302,9 @@ LOGGING = {
         },
     },
 }
+
+# Load local_settings if it exists (useful for local host machine development)
+try:
+    from .local_settings import *
+except ImportError:
+    pass
