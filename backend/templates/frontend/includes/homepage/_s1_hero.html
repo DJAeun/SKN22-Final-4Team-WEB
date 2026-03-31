@@ -1,30 +1,15 @@
-<section id="s1">
-  <div class="hero-grid"></div>
-  <div class="hero-inner">
-    <div class="hero-left">
-      <div class="hero-eyebrow">Virtual Human — 가상 인간 · Seoul</div>
-      <h1 class="hero-title">HA<em>RI</em></h1>
-      <p class="hero-desc">하리는 새로운 세대의 가상 인간입니다.<br>패션, 음악, 문화를 통해 자신만의 세계를 탐험하며<br>보리 팬클럽을 통해 진정성 있는 관계를 만들어갑니다.</p>
-    </div>
-    <div class="hero-right">
-      <div class="hero-stat">
-        <div class="hero-stat-num" id="cnt-followers">0</div>
-        <div class="hero-stat-label">Global Followers</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hero-stat-num">12+</div>
-        <div class="hero-stat-label">Brand Collabs</div>
-      </div>
-      <div class="hero-chips">
-        <span class="hero-chip">Vogue Korea</span>
-        <span class="hero-chip">Forbes</span>
-        <span class="hero-chip">Seoul FW</span>
-        <span class="hero-chip">Weverse</span>
-      </div>
-    </div>
+{% load static %}
+<section id="s1" style="position: relative; height: 100vh; overflow: hidden; background-image: linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.4)), url('{% static 'images/hari_image5.png' %}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+  <div class="hero-logo-box" style="position: absolute; top: 100px; left: 50px; z-index: 10;">
+    <img src="{% static 'images/hari_logo_none.png' %}?v=3" alt="HARI" style="height: 140px; width: auto; filter: brightness(0) drop-shadow(0 0 20px rgba(255,255,255,0.3));">
   </div>
-  <div class="hero-bottom">
-    <div class="hero-bottom-text">01 — Company Overview</div>
+  
+  <div class="hero-inner" style="height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; padding: 100px 50px;">
+    <!-- Removed Artist & Creative Box -->
+  </div>
+
+  <div class="hero-bottom" style="font-family: var(--f-pixel);">
+    <div class="hero-bottom-text">Welcome to Hari's World</div>
     <div class="hero-scroll-hint"><div class="scroll-line"></div>Scroll</div>
   </div>
 </section>
