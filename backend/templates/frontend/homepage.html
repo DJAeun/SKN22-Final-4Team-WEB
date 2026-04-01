@@ -55,8 +55,8 @@
 }
 html { scroll-behavior:smooth; }
 body { background:var(--bg); color:var(--ink); font-family:var(--f-thin); font-size: 1rem; line-height: 1.5; font-weight:400; overflow-x:hidden; }
-::-webkit-scrollbar { width:2px; }
-::-webkit-scrollbar-thumb { background:var(--acc); }
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-thumb { background:var(--acc); border-radius:3px; }
 
 /* NAV — logo left | lang+time center-right | menu far right */
 #nav {
@@ -388,11 +388,45 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 .hero-stat-label { font-family:'DM Mono',monospace; font-size:.55rem; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); }
 .hero-chips { display:flex; flex-wrap:wrap; gap:5px; }
 .hero-chip { font-family:'DM Mono',monospace; font-size:.56rem; letter-spacing:.1em; padding:4px 10px; border:0.5px solid var(--bdr2); color:var(--dim); }
-.hero-bottom { padding:1.2rem 2.5rem; border-top:0.5px solid var(--bdr); display:flex; align-items:center; justify-content:space-between; position:relative; z-index:1; }
-.hero-bottom-text { font-family:'DM Mono',monospace; font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); }
-.hero-scroll-hint { display:flex; align-items:center; gap:.7rem; font-family:'DM Mono',monospace; font-size:.56rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); }
-.scroll-line { width:40px; height:.5px; background:var(--acc); animation:scrl 1.6s ease-in-out infinite; }
-@keyframes scrl{0%,100%{transform:scaleX(1);opacity:.4}50%{transform:scaleX(.5);opacity:1}}
+.hero-bottom { padding:1.8rem 2.5rem; border-top:0.5px solid var(--bdr); display:flex; align-items:center; justify-content:space-between; position:relative; z-index:1; }
+.hero-bottom-text { font-family:'DM Mono',monospace; font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); }
+.hero-scroll-hint {
+  display:flex; align-items:center; gap:1rem;
+  font-family:'DM Mono',monospace; font-size:.8rem;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--acc);
+  font-weight:500;
+}
+.scroll-line { width:72px; height:2px; background:var(--acc); border-radius:2px; animation:scrl 1.6s ease-in-out infinite; }
+
+/* 마우스 스크롤 아이콘 */
+.scroll-mouse {
+  width:22px; height:34px;
+  border:2px solid var(--acc); border-radius:12px;
+  position:relative; display:flex; justify-content:center;
+  flex-shrink:0;
+}
+.scroll-mouse::before {
+  content:'';
+  width:3px; height:7px;
+  background:var(--acc); border-radius:2px;
+  position:absolute; top:5px;
+  animation:mouse-scroll 1.6s ease-in-out infinite;
+}
+.scroll-arrow {
+  display:flex; flex-direction:column; align-items:center; gap:2px; flex-shrink:0;
+}
+.scroll-arrow span {
+  display:block; width:10px; height:10px;
+  border-right:2px solid var(--acc); border-bottom:2px solid var(--acc);
+  transform:rotate(45deg);
+  animation:arrow-bounce 1.6s ease-in-out infinite;
+  border-radius:1px;
+}
+.scroll-arrow span:nth-child(2) { animation-delay:.2s; opacity:.6; }
+
+@keyframes scrl{0%,100%{transform:scaleX(1);opacity:.5}50%{transform:scaleX(.5);opacity:1}}
+@keyframes mouse-scroll{0%,100%{transform:translateY(0);opacity:1}60%{transform:translateY(10px);opacity:0}61%{transform:translateY(0);opacity:0}80%{opacity:1}}
+@keyframes arrow-bounce{0%,100%{transform:rotate(45deg) translateY(0);opacity:.8}50%{transform:rotate(45deg) translateY(4px);opacity:1}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 
 /* §2 PROFILE */
