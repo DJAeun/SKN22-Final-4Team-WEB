@@ -41,17 +41,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         try:
+            from django.conf import settings
             user = self.scope["user"]
 
             if not user.is_authenticated:
-                await self.close(code=4401)
-                return
+                if not settings.DEBUG:
+                    await self.close(code=4401)
+                    return
+                # 로컬 개발 전용 guest 모드
+                self.user_id = None
+                self.thread_id = 'guest'
+                self.message_count = 0
+            else:
+                self.user_id = user.id
+                self.thread_id = str(user.id)
+                self.message_count = 0
 
             self.session_messages = []
-            self.user_id = user.id
-            self.thread_id = str(user.id)
-
-            # Generate a session_id for this conversation
             import uuid
             url_session = self.scope['url_route']['kwargs'].get('session_id')
             self.session_id = str(url_session) if url_session else str(uuid.uuid4())
@@ -60,11 +66,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
             await self.accept()
 
-            # Get current message count so we continue the sequence correctly
-            self.message_count = await self.get_message_count()
+            # DB에서 메시지 수 조회 (guest 모드거나 DB 없으면 0 유지)
+            if self.user_id is not None:
+                try:
+                    self.message_count = await self.get_message_count()
+                except Exception:
+                    self.message_count = 0
+
             logger.info(f"WS connected: thread={self.thread_id}, message_count={self.message_count}")
 
-            # Pick greeting based on whether we know the user
             greeting = await self._pick_greeting()
             await self.send(text_data=json.dumps({
                 'message': greeting,
@@ -203,11 +213,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def save_message(self, sender_type, content):
         self.message_count += 1
-        # Track in session first — even if the DB write fails the memory summary still works
         self.session_messages.append({
             'sender': 'user' if sender_type else 'hari',
             'content': content,
         })
+        if self.user_id is None:
+            return  # guest 모드 — DB 저장 skip
         Message.objects.create(
             user_id=self.user_id,
             sender_type=sender_type,
@@ -222,6 +233,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Persist a summary of this conversation session to chat_memory.
         Returns the total number of conversations this user has had.
         """
+        if self.user_id is None:
+            return 0  # guest 모드 — DB 저장 skip
+
         # Build conversation transcript
         lines = [
             f"{'User' if m['sender'] == 'user' else 'Hari'}: {m['content']}"

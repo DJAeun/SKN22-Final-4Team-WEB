@@ -8,7 +8,11 @@
   <div class="nav-center">
     <!-- 상단 GNB 메뉴 (이전 언어/시간 위치) -->
     <div class="nav-desktop-menu" style="display:flex; align-items:center; gap:1.1rem; margin-right:auto; margin-left:2rem; font-family:var(--f-playful); font-size:0.85rem; letter-spacing:0.01em; text-transform:uppercase;">
+      {% if user.is_authenticated %}
       <a href="/hari-chat/" style="color:var(--acc);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:0.3rem;white-space:nowrap;">하리와 대화하기 <span style="font-size:1rem;">💬</span></a>
+      {% else %}
+      <a href="#" onclick="openAuth('login'); return false;" style="color:var(--acc);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:0.3rem;white-space:nowrap;">하리와 대화하기 <span style="font-size:1rem;">💬</span></a>
+      {% endif %}
       <a href="#s2" style="color:var(--ink);text-decoration:none;transition:opacity 0.2s;white-space:nowrap;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">Profile <sup style="color:var(--dim); font-family:var(--f-pixel); font-size:0.6rem;">01</sup></a>
       <a href="#s3" style="color:var(--ink);text-decoration:none;transition:opacity 0.2s;white-space:nowrap;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">Gallery <sup style="color:var(--dim); font-family:var(--f-pixel); font-size:0.6rem;">02</sup></a>
       <a href="#s4" style="color:var(--ink);text-decoration:none;transition:opacity 0.2s;white-space:nowrap;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">Chat <sup style="color:var(--dim); font-family:var(--f-pixel); font-size:0.6rem;">03</sup></a>
@@ -23,9 +27,20 @@
     </div>
 
 
-    <!-- 로그인 버튼 -->
+    <!-- 로컬 전용 관리자 링크 -->
+    {% if debug %}
+    <a href="/admin-panel/" style="margin-left:1rem; font-family:'DM Mono',monospace; font-size:.6rem; letter-spacing:.12em; text-transform:uppercase; color:var(--acc2); border:0.5px solid var(--acc2); padding:5px 12px; text-decoration:none; transition:background .2s;" onmouseover="this.style.background='rgba(255,209,102,0.15)'" onmouseout="this.style.background='transparent'">Admin ⚙</a>
+    {% endif %}
+
+    <!-- 로그인/유저 버튼 -->
     {% if user.is_authenticated %}
-    <button id="auth-btn" class="logged-in" onclick="window.location.href='/fanpage/'">{{ user.username }}</button>
+    <div class="auth-user-wrap" id="user-menu-wrap">
+      <button id="auth-btn" class="logged-in" onclick="toggleUserMenu()">{{ user.username }} ▾</button>
+      <div class="user-dropdown" id="user-dropdown">
+        <a href="/fanpage/">마이페이지</a>
+        <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+      </div>
+    </div>
     {% else %}
     <button id="auth-btn" onclick="openAuth('login')">로그인</button>
     {% endif %}
@@ -41,7 +56,11 @@
 <div id="drawer">
   <div class="drawer-label">Navigation</div>
   <ul>
+    {% if user.is_authenticated %}
     <li><a href="/hari-chat/" onclick="closeDrawer()"><span style="color:var(--acc);font-weight:600;">하리와 대화하기</span></a></li>
+    {% else %}
+    <li><a href="#" onclick="closeDrawer(); openAuth('login'); return false;"><span style="color:var(--acc);font-weight:600;">하리와 대화하기</span></a></li>
+    {% endif %}
     <li><a href="#s2" onclick="closeDrawer()"><span>Profile</span><span class="d-num">01</span></a></li>
     <li><a href="#s3" onclick="closeDrawer()"><span>Gallery</span><span class="d-num">02</span></a></li>
     <li><a href="#s4" onclick="closeDrawer()"><span>Chat</span><span class="d-num">03</span></a></li>
@@ -58,6 +77,11 @@
     <a href="#s-sub" onclick="closeDrawer()" style="display:flex;align-items:center;justify-content:space-between;padding:.7rem .9rem;background:var(--acc);color:var(--ink);font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;margin-top:.5rem;transition:background .2s;">
       <span>멤버십 가입하기</span><span>↗</span>
     </a>
+    {% if user.is_authenticated %}
+    <button onclick="doLogout()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.7rem .9rem;background:transparent;border:0.5px solid rgba(255,123,138,0.3);color:var(--acc);font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;margin-top:.5rem;transition:background .2s;" onmouseover="this.style.background='rgba(255,123,138,0.1)'" onmouseout="this.style.background='transparent'">
+      <span>로그아웃</span><span>→</span>
+    </button>
+    {% endif %}
     <p>하리 팬클럽 —<br>더 가깝게, 더 특별하게</p>
   </div>
 </div>

@@ -13,6 +13,22 @@ services:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
+      - DB_HOST=${DB_HOST:-}
+      - DB_NAME=${DB_NAME:-}
+      - DB_USER=${DB_USER:-}
+      - DB_PASSWORD=${DB_PASSWORD:-}
+      - DB_PORT=${DB_PORT:-5432}
+      - SECRET_KEY=${DJANGO_SECRET_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID:-}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET:-}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY:-}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT:-}
+      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2:-}
+      - TAVILY_API_KEY=${TAVILY_API_KEY:-}
+      - DEBUG=${DEBUG:-False}
     depends_on:
       - redis
       - db
