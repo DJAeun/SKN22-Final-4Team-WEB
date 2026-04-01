@@ -1401,8 +1401,11 @@ function scrollToBottom() {
   if (!container) return;
   if (userScrolledUp) return;
   programmaticScroll = true;
-  container.scrollTop = container.scrollHeight;
-  setTimeout(() => { programmaticScroll = false; }, 150);
+  // Use requestAnimationFrame to ensure DOM has laid out new content
+  requestAnimationFrame(() => {
+    container.scrollTop = container.scrollHeight;
+    setTimeout(() => { programmaticScroll = false; }, 200);
+  });
 }
 
 function showTyping() {
