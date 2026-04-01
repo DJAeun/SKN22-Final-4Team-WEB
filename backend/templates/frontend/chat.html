@@ -1401,10 +1401,8 @@ function scrollToBottom() {
   if (!container) return;
   if (userScrolledUp) return;
   programmaticScroll = true;
-  setTimeout(() => {
-    container.scrollTop = container.scrollHeight;
-    setTimeout(() => { programmaticScroll = false; }, 100);
-  }, 50);
+  container.scrollTop = container.scrollHeight;
+  setTimeout(() => { programmaticScroll = false; }, 150);
 }
 
 function showTyping() {
@@ -1567,17 +1565,20 @@ connectWebSocket();
 loadHistory().then(() => {
   userScrolledUp = false;
   scrollToBottom();
-});
 
-// Track user scroll to disable auto-scroll when scrolled up
-const chatContainerEl = document.getElementById('chatContainer');
-if (chatContainerEl) {
-  chatContainerEl.addEventListener('scroll', () => {
-    if (programmaticScroll) return;
-    const nearBottom = chatContainerEl.scrollHeight - chatContainerEl.scrollTop - chatContainerEl.clientHeight < 150;
-    userScrolledUp = !nearBottom;
-  });
-}
+  // Register scroll listener AFTER initial load so history rendering
+  // doesn't accidentally set userScrolledUp = true
+  setTimeout(() => {
+    const chatContainerEl = document.getElementById('chatContainer');
+    if (chatContainerEl) {
+      chatContainerEl.addEventListener('scroll', () => {
+        if (programmaticScroll) return;
+        const nearBottom = chatContainerEl.scrollHeight - chatContainerEl.scrollTop - chatContainerEl.clientHeight < 150;
+        userScrolledUp = !nearBottom;
+      });
+    }
+  }, 300);
+});
 
 // Cleanly close WebSocket on page exit so disconnect() fires on the server
 window.addEventListener('beforeunload', () => {
