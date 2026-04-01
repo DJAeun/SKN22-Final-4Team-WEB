@@ -185,6 +185,57 @@ def embed_and_save_content_vector(content_id: int, script_text: str, summary: st
         )
 
 
+def _summarize_script(script_text: str) -> str:
+    """Summarize a video script into 1-2 sentences in Korean via LLM."""
+    from langchain_openai import ChatOpenAI
+    from langchain_core.messages import SystemMessage, HumanMessage
+
+    llm = ChatOpenAI(model="gpt-5.4-mini", temperature=0.3, timeout=15)
+    result = llm.invoke([
+        SystemMessage(content=(
+            "You summarize video scripts into 1-2 concise sentences in Korean. "
+            "Focus on the main topic and key points. No markdown, no bullet points."
+        )),
+        HumanMessage(content=script_text),
+    ])
+    return result.content.strip()
+
+
+def process_new_contents() -> int:
+    """
+    Find generated_contents rows missing summary or content_vector,
+    auto-generate them, and return the number of rows processed.
+    """
+    with connection.cursor() as cur:
+        cur.execute(
+            "SELECT content_id, script_text, summary FROM generated_contents "
+            "WHERE summary IS NULL OR content_vector IS NULL"
+        )
+        rows = cur.fetchall()
+
+    processed = 0
+    for content_id, script_text, summary in rows:
+        try:
+            # Step 1: Summarize if missing
+            if not summary:
+                summary = _summarize_script(script_text)
+                with connection.cursor() as cur:
+                    cur.execute(
+                        "UPDATE generated_contents SET summary = %s WHERE content_id = %s",
+                        [summary, content_id],
+                    )
+                logger.info("Summarized content %d", content_id)
+
+            # Step 2: Embed and save vector
+            embed_and_save_content_vector(content_id, script_text, summary)
+            logger.info("Embedded content %d", content_id)
+            processed += 1
+        except Exception as e:
+            logger.error("Failed to process content %d: %s", content_id, e, exc_info=True)
+
+    return processed
+
+
 def retrieve_user_persona(user_id: int):
     """
     Fetch all active facts about a user from user_persona.
