@@ -8,7 +8,11 @@
   <div class="nav-center">
     <!-- 상단 GNB 메뉴 (이전 언어/시간 위치) -->
     <div class="nav-desktop-menu" style="display:flex; align-items:center; gap:1.1rem; margin-right:auto; margin-left:2rem; font-family:var(--f-playful); font-size:0.85rem; letter-spacing:0.01em; text-transform:uppercase;">
+      {% if user.is_authenticated %}
       <a href="/hari-chat/" style="color:var(--acc);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:0.3rem;white-space:nowrap;">하리와 대화하기 <span style="font-size:1rem;">💬</span></a>
+      {% else %}
+      <a href="#" onclick="openAuth('login'); return false;" style="color:var(--acc);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:0.3rem;white-space:nowrap;">하리와 대화하기 <span style="font-size:1rem;">💬</span></a>
+      {% endif %}
       <a href="#s2" style="color:var(--ink);text-decoration:none;transition:opacity 0.2s;white-space:nowrap;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">Profile <sup style="color:var(--dim); font-family:var(--f-pixel); font-size:0.6rem;">01</sup></a>
       <a href="#s3" style="color:var(--ink);text-decoration:none;transition:opacity 0.2s;white-space:nowrap;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">Gallery <sup style="color:var(--dim); font-family:var(--f-pixel); font-size:0.6rem;">02</sup></a>
       <a href="#s4" style="color:var(--ink);text-decoration:none;transition:opacity 0.2s;white-space:nowrap;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">Chat <sup style="color:var(--dim); font-family:var(--f-pixel); font-size:0.6rem;">03</sup></a>
@@ -52,7 +56,11 @@
 <div id="drawer">
   <div class="drawer-label">Navigation</div>
   <ul>
+    {% if user.is_authenticated %}
     <li><a href="/hari-chat/" onclick="closeDrawer()"><span style="color:var(--acc);font-weight:600;">하리와 대화하기</span></a></li>
+    {% else %}
+    <li><a href="#" onclick="closeDrawer(); openAuth('login'); return false;"><span style="color:var(--acc);font-weight:600;">하리와 대화하기</span></a></li>
+    {% endif %}
     <li><a href="#s2" onclick="closeDrawer()"><span>Profile</span><span class="d-num">01</span></a></li>
     <li><a href="#s3" onclick="closeDrawer()"><span>Gallery</span><span class="d-num">02</span></a></li>
     <li><a href="#s4" onclick="closeDrawer()"><span>Chat</span><span class="d-num">03</span></a></li>

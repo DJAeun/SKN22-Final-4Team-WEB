@@ -1418,11 +1418,9 @@ function qSend(t){ document.getElementById('ci').value=t; doSend(); }
 function ckKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doSend();} }
 function aRz(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
 
-/* 하리 대화 페이지 링크 — URL 연결 시 아래 href를 교체하세요 */
-const CHAT_URL = '/hari-chat/';
-document.getElementById('chat-page-link').href = CHAT_URL;
+/* 하리 대화 페이지 링크 — 비로그인 시 로그인 모달 오픈 */
 document.getElementById('chat-page-link').addEventListener('click', function(e){
-  if(this.getAttribute('href') === '#'){ e.preventDefault(); alert('하리 대화 페이지를 준비 중이에요.\n곧 오픈 예정입니다! 🙏'); }
+  if(this.getAttribute('href') === '#'){ e.preventDefault(); openAuth('login'); }
 });
 function planSelect(btn,tier){ btn.textContent='처리 중...'; setTimeout(()=>{ btn.textContent=`${tier.toUpperCase()} 가입 완료! ✓`; btn.style.background='#2e8b52'; btn.style.borderColor='#2e8b52'; btn.style.color='#fff'; setTimeout(()=>{ btn.textContent=tier==='free'?'무료로 시작하기 →':tier==='fan+'?'Fan+ 시작하기 →':'VIP 시작하기 →'; btn.style.background=''; btn.style.borderColor=''; btn.style.color=''; },3000); },800); }
 
