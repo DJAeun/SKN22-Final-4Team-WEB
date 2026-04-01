@@ -23,9 +23,15 @@
     </div>
 
 
-    <!-- 로그인 버튼 -->
+    <!-- 로그인/유저 버튼 -->
     {% if user.is_authenticated %}
-    <button id="auth-btn" class="logged-in" onclick="window.location.href='/fanpage/'">{{ user.username }}</button>
+    <div class="auth-user-wrap" id="user-menu-wrap">
+      <button id="auth-btn" class="logged-in" onclick="toggleUserMenu()">{{ user.username }} ▾</button>
+      <div class="user-dropdown" id="user-dropdown">
+        <a href="/fanpage/">마이페이지</a>
+        <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+      </div>
+    </div>
     {% else %}
     <button id="auth-btn" onclick="openAuth('login')">로그인</button>
     {% endif %}
@@ -58,6 +64,11 @@
     <a href="#s-sub" onclick="closeDrawer()" style="display:flex;align-items:center;justify-content:space-between;padding:.7rem .9rem;background:var(--acc);color:var(--ink);font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;margin-top:.5rem;transition:background .2s;">
       <span>멤버십 가입하기</span><span>↗</span>
     </a>
+    {% if user.is_authenticated %}
+    <button onclick="doLogout()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.7rem .9rem;background:transparent;border:0.5px solid rgba(255,123,138,0.3);color:var(--acc);font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;margin-top:.5rem;transition:background .2s;" onmouseover="this.style.background='rgba(255,123,138,0.1)'" onmouseout="this.style.background='transparent'">
+      <span>로그아웃</span><span>→</span>
+    </button>
+    {% endif %}
     <p>하리 팬클럽 —<br>더 가깝게, 더 특별하게</p>
   </div>
 </div>

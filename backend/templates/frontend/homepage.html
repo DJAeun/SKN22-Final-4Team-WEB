@@ -147,6 +147,26 @@ body { background:var(--bg); color:var(--ink); font-family:var(--f-thin); font-s
 #auth-btn.logged-in { border-color:var(--grn); color:var(--grn); }
 #auth-btn.logged-in:hover { background:var(--grn); color:#fff; border-color:var(--grn); }
 
+/* ── USER DROPDOWN ── */
+.auth-user-wrap { position:relative; margin-left:1.4rem; flex-shrink:0; }
+.user-dropdown {
+  position:absolute; top:calc(100% + 8px); right:0;
+  background:var(--bg); border:0.5px solid var(--bdr2);
+  min-width:130px; z-index:300;
+  display:none; flex-direction:column;
+  box-shadow:0 4px 20px rgba(42,36,32,0.1);
+}
+.user-dropdown.show { display:flex; }
+.user-dropdown a, .user-dropdown button {
+  display:block; width:100%; padding:0.6rem 1rem;
+  text-align:left; color:var(--ink); text-decoration:none;
+  font-size:0.78rem; background:transparent; border:none;
+  cursor:pointer; font-family:inherit; letter-spacing:0.02em;
+  transition:background 0.2s;
+}
+.user-dropdown a:hover, .user-dropdown button:hover { background:rgba(255,123,138,0.08); }
+.user-dropdown .logout-btn { color:var(--acc); border-top:0.5px solid var(--bdr); }
+
 /* ── AUTH MODAL ── */
 #auth-overlay {
   position:fixed; inset:0; z-index:500;
@@ -1317,6 +1337,22 @@ function doForgot(){
 }
 function socialLogin(provider){
   window.location.href='/accounts/'+provider+'/login/?process=login';
+}
+function toggleUserMenu(){
+  document.getElementById('user-dropdown').classList.toggle('show');
+}
+document.addEventListener('click',function(e){
+  const wrap=document.getElementById('user-menu-wrap');
+  if(wrap&&!wrap.contains(e.target)){
+    const dd=document.getElementById('user-dropdown');
+    if(dd) dd.classList.remove('show');
+  }
+});
+function doLogout(){
+  fetch('/api/auth/logout/',{
+    method:'POST',
+    headers:{'X-CSRFToken':getCookie('csrftoken'),'Content-Type':'application/json'}
+  }).finally(()=>{ window.location.href='/'; });
 }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAuth(); });
 
