@@ -1096,6 +1096,7 @@ html, body {
 <script id="django-data" type="application/json">
   {
     "isAuthenticated": {% if user.is_authenticated %}true{% else %}false{% endif %},
+    "isDebug": {% if debug %}true{% else %}false{% endif %},
     "userName": "{{ user.username|default:'' }}",
     "loginUrl": "{% url 'home' %}",
     "csrfToken": "{{ csrf_token }}"
@@ -1109,7 +1110,7 @@ html, body {
  * ═══════════════════════════════════════
  */
 const djangoData = JSON.parse(document.getElementById('django-data').textContent);
-const { isAuthenticated, userName, loginUrl, csrfToken } = djangoData;
+const { isAuthenticated, isDebug, userName, loginUrl, csrfToken } = djangoData;
 
 const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
 let chatSocket = null;
@@ -1199,7 +1200,7 @@ function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
   
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isDebug) {
     alert('로그인이 필요해! 🌸');
     window.location.href = loginUrl;
     return;
@@ -1255,9 +1256,9 @@ function splitMessage(text) {
 }
 
 function renderSingleHariBubble(text, options = {}) {
-  const { isFirst = true, isLast = true, animate = true } = options;
+  const { isFirst = true, isLast = true, animate = true, timestamp = null } = options;
   const messages = document.getElementById('messages');
-  const now = new Date();
+  const now = timestamp ? new Date(timestamp) : new Date();
   const timeStr = formatTime(now);
   const dateKey = checkAndAddDateDivider(now);
   
@@ -1281,14 +1282,14 @@ function renderSingleHariBubble(text, options = {}) {
   scrollToBottom(animate);
 }
 
-function appendHariMessage(text, isHistory = false) {
+function appendHariMessage(text, isHistory = false, timestamp = null) {
   const segments = splitMessage(text);
   if (segments.length === 0) return;
 
   if (isHistory) {
     hideTyping();
     segments.forEach((seg, i) => {
-      renderSingleHariBubble(seg, { isFirst: i === 0, isLast: i === segments.length - 1, animate: false });
+      renderSingleHariBubble(seg, { isFirst: i === 0, isLast: i === segments.length - 1, animate: false, timestamp });
     });
     return;
   }
@@ -1329,9 +1330,9 @@ function scheduleNextBubble() {
  * ═══════════════════════════════════════
  */
 
-function addMessage(sender, content, type = 'text') {
+function addMessage(sender, content, type = 'text', timestamp = null) {
   const messages = document.getElementById('messages');
-  const now = new Date();
+  const now = timestamp ? new Date(timestamp) : new Date();
   const dateKey = checkAndAddDateDivider(now);
   const timeStr = formatTime(now);
   const displayContent = type === 'text' ? escapeHtml(content) : content;
@@ -1380,7 +1381,7 @@ function checkAndAddDateDivider(date) {
 function formatTime(date) {
   let hours = date.getHours();
   const minutes = date.getMinutes();
-  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const ampm = hours >= 12 ? '오후' : '오전';
   hours = hours % 12 || 12;
   return `${ampm} ${hours}:${String(minutes).padStart(2, '0')}`;
 }
@@ -1525,9 +1526,9 @@ async function loadHistory() {
     if (messages.length > 0) {
       messages.forEach(msg => {
         if (msg.sender_type) {
-          addMessage('me', msg.content);
+          addMessage('me', msg.content, 'text', msg.created_at);
         } else {
-          appendHariMessage(msg.content, true);
+          appendHariMessage(msg.content, true, msg.created_at);
         }
       });
     }
