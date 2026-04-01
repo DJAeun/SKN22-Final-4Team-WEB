@@ -1,0 +1,11 @@
+# Exclude local development overrides from Docker build
+config/local_settings.py
+db.sqlite3
+
+# Exclude unnecessary files
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+*.log
