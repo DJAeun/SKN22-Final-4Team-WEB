@@ -1051,7 +1051,7 @@ html, body {
   </aside>
 
   <!-- CENTER: CHAT AREA -->
-  <main class="chat-main" id="chatContainer">
+  <main class="chat-main" id="chatMain">
     {% include "frontend/includes/chat/_header.html" %}
     
     {% include "frontend/includes/chat/_messages.html" %}
@@ -1401,7 +1401,6 @@ function scrollToBottom() {
   if (!container) return;
   if (userScrolledUp) return;
   programmaticScroll = true;
-  // Use requestAnimationFrame to ensure DOM has laid out new content
   requestAnimationFrame(() => {
     container.scrollTop = container.scrollHeight;
     setTimeout(() => { programmaticScroll = false; }, 200);
