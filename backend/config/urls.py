@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from chat.views import health_check, homepage, fanpage, frontend_chat
+from chat.views import health_check, homepage, fanpage, frontend_chat, admin_dashboard, admin_toggle_content, admin_toggle_knowledge
 
 urlpatterns = [
     path('', homepage, name='home'),
@@ -27,6 +27,9 @@ urlpatterns = [
     path('hari-chat/', frontend_chat, name='frontend_chat'),
     path('health/', health_check, name='health_check'),
     path('admin/', admin.site.urls),
+    path('admin-panel/', admin_dashboard, name='admin_panel'),
+    path('admin-panel/content/<int:content_id>/toggle/', admin_toggle_content, name='admin_toggle_content'),
+    path('admin-panel/knowledge/<int:persona_id>/toggle/', admin_toggle_knowledge, name='admin_toggle_knowledge'),
     path('accounts/', include('allauth.urls')),
     path('api/auth/', include('dj_rest_auth.urls')),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),

@@ -1,10 +1,13 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout, authenticate, get_user_model
 from django.contrib.auth.models import User
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
+from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.http import require_POST
 from rest_framework import viewsets, permissions
-from .models import Message, ChatMemory
+from .models import Message, ChatMemory, HariKnowledge, GeneratedContent, VisitLog
 from .serializers import MessageSerializer, ChatMemorySerializer
 
 
@@ -103,3 +106,63 @@ def health_check(request):
         "database_error": db_error,
         "allowed_hosts": settings.ALLOWED_HOSTS,
     })
+
+
+# ── ADMIN PANEL ────────────────────────────────────────────────────────────────
+
+@staff_member_required(login_url='/')
+def admin_dashboard(request):
+    AuthUser = get_user_model()
+    today = timezone.now().date()
+    active_tab = request.GET.get('tab', 'dashboard')
+    search_user = request.GET.get('search_user', '')
+
+    users_qs = AuthUser.objects.order_by('-date_joined')
+    if search_user:
+        users_qs = users_qs.filter(username__icontains=search_user)
+
+    context = {
+        'active_tab': active_tab,
+        'search_user': search_user,
+        # stats
+        'total_users': AuthUser.objects.count(),
+        'today_visits': VisitLog.objects.filter(visit_time__date=today).count(),
+        'total_messages': Message.objects.count(),
+        'published_contents': GeneratedContent.objects.filter(is_published=True).count(),
+        'total_contents': GeneratedContent.objects.count(),
+        'total_knowledge': HariKnowledge.objects.count(),
+        'total_memories': ChatMemory.objects.count(),
+        # tables
+        'users': users_qs[:50],
+        'recent_users': AuthUser.objects.order_by('-date_joined')[:8],
+        'contents': GeneratedContent.objects.order_by('-created_at')[:50],
+        'hari_knowledge': HariKnowledge.objects.order_by('-updated_at'),
+        'recent_messages': Message.objects.select_related('user').order_by('-created_at')[:8],
+        'all_messages': Message.objects.select_related('user').order_by('-created_at')[:100],
+        'chat_memories': ChatMemory.objects.select_related('user').order_by('-ended_at')[:50],
+    }
+    return render(request, 'frontend/admin.html', context)
+
+
+@staff_member_required(login_url='/')
+@require_POST
+def admin_toggle_content(request, content_id):
+    try:
+        content = GeneratedContent.objects.get(content_id=content_id)
+        content.is_published = not content.is_published
+        content.save()
+        return JsonResponse({'ok': True, 'is_published': content.is_published})
+    except GeneratedContent.DoesNotExist:
+        return JsonResponse({'ok': False}, status=404)
+
+
+@staff_member_required(login_url='/')
+@require_POST
+def admin_toggle_knowledge(request, persona_id):
+    try:
+        k = HariKnowledge.objects.get(persona_id=persona_id)
+        k.is_active = not k.is_active
+        k.save()
+        return JsonResponse({'ok': True, 'is_active': k.is_active})
+    except HariKnowledge.DoesNotExist:
+        return JsonResponse({'ok': False}, status=404)
