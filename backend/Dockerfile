@@ -31,4 +31,4 @@ COPY . /app/
 EXPOSE 8000
 
 # Run Daphne (ASGI server) for handling both HTTP and WebSockets
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "config.asgi:application"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && daphne -b 0.0.0.0 -p 8000 config.asgi:application"]
