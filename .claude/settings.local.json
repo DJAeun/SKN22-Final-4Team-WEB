@@ -13,7 +13,8 @@
       "Bash(python -c \"import ast; ast.parse\\(open\\(''backend/chat/engine.py'', encoding=''utf-8''\\).read\\(\\)\\); print\\(''engine.py: OK''\\)\")",
       "Bash(curl -sI https://chatting-hari.com)",
       "Bash(eb deploy:*)",
-      "Bash(curl -sI https://chatting-hari.com/static/chat/images/hari_bg.png)"
+      "Bash(curl -sI https://chatting-hari.com/static/chat/images/hari_bg.png)",
+      "Bash(aws elasticbeanstalk:*)"
     ]
   }
 }
