@@ -25,6 +25,9 @@ from chat.views import health_check, homepage, fanpage, frontend_chat, admin_das
 def robots_txt(_request):
     return HttpResponse('User-agent: *\nAllow: /\n', content_type='text/plain')
 
+def google_verify(_request):
+    return HttpResponse('google-site-verification: google840fb0dac52a59f6.html', content_type='text/html')
+
 urlpatterns = [
     path('', homepage, name='home'),
     path('homepage/', homepage, name='homepage'),
@@ -37,6 +40,7 @@ urlpatterns = [
     path('admin-panel/knowledge/<int:persona_id>/toggle/', admin_toggle_knowledge, name='admin_toggle_knowledge'),
     path('favicon.ico', RedirectView.as_view(url='/static/images/hari_favicon.png', permanent=True)),
     path('robots.txt', robots_txt),
+    path('google840fb0dac52a59f6.html', google_verify),
     path('accounts/', include('allauth.urls')),
     path('api/auth/', include('dj_rest_auth.urls')),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
