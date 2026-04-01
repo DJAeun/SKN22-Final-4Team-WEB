@@ -10,7 +10,10 @@
       "Bash(git pull:*)",
       "Bash(git stash:*)",
       "Bash(python -c \"import ast; ast.parse\\(open\\(''backend/chat/knowledge_boundary.py'', encoding=''utf-8''\\).read\\(\\)\\); print\\(''knowledge_boundary.py: OK''\\)\")",
-      "Bash(python -c \"import ast; ast.parse\\(open\\(''backend/chat/engine.py'', encoding=''utf-8''\\).read\\(\\)\\); print\\(''engine.py: OK''\\)\")"
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''backend/chat/engine.py'', encoding=''utf-8''\\).read\\(\\)\\); print\\(''engine.py: OK''\\)\")",
+      "Bash(curl -sI https://chatting-hari.com)",
+      "Bash(eb deploy:*)",
+      "Bash(curl -sI https://chatting-hari.com/static/chat/images/hari_bg.png)"
     ]
   }
 }
