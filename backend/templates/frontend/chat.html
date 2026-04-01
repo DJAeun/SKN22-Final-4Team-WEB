@@ -1117,6 +1117,10 @@ let currentSessionId = null;
 let chatHistory = [];
 let lastMessageDate = null;
 
+// Auto-scroll state
+let userScrolledUp = false;
+let programmaticScroll = false;
+
 // Multi-bubble queue state
 let bubbleQueue = [];
 let bubbleTimer = null;
@@ -1278,7 +1282,7 @@ function renderSingleHariBubble(text, options = {}) {
     </div>
   `;
   messages.insertAdjacentHTML('beforeend', html);
-  scrollToBottom(animate);
+  scrollToBottom();
 }
 
 function appendHariMessage(text, isHistory = false) {
@@ -1354,7 +1358,8 @@ function addMessage(sender, content, type = 'text') {
     renderSingleHariBubble(content);
     return;
   }
-  scrollToBottom(true);
+  userScrolledUp = false;
+  scrollToBottom();
 }
 
 function checkAndAddDateDivider(date) {
@@ -1391,13 +1396,15 @@ function escapeHtml(text) {
   return div.innerHTML.replace(/\n/g, '<br>');
 }
 
-function scrollToBottom(force = false) {
+function scrollToBottom() {
   const container = document.getElementById('chatContainer');
   if (!container) return;
-  const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
-  if (force || isNearBottom) {
-    setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
-  }
+  if (userScrolledUp) return;
+  programmaticScroll = true;
+  setTimeout(() => {
+    container.scrollTop = container.scrollHeight;
+    setTimeout(() => { programmaticScroll = false; }, 100);
+  }, 50);
 }
 
 function showTyping() {
@@ -1414,7 +1421,7 @@ function showTyping() {
     </div>
   `;
   messages.insertAdjacentHTML('beforeend', typingHTML);
-  scrollToBottom(true);
+  scrollToBottom();
 }
 
 function hideTyping() {
@@ -1557,7 +1564,20 @@ function getHariReply(text) {
 // Initialize
 // ═══════════════════════════════════════
 connectWebSocket();
-loadHistory().then(() => scrollToBottom(true));
+loadHistory().then(() => {
+  userScrolledUp = false;
+  scrollToBottom();
+});
+
+// Track user scroll to disable auto-scroll when scrolled up
+const chatContainerEl = document.getElementById('chatContainer');
+if (chatContainerEl) {
+  chatContainerEl.addEventListener('scroll', () => {
+    if (programmaticScroll) return;
+    const nearBottom = chatContainerEl.scrollHeight - chatContainerEl.scrollTop - chatContainerEl.clientHeight < 150;
+    userScrolledUp = !nearBottom;
+  });
+}
 
 // Cleanly close WebSocket on page exit so disconnect() fires on the server
 window.addEventListener('beforeunload', () => {
