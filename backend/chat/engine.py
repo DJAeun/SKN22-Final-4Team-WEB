@@ -111,6 +111,14 @@ class HariAIEngine:
 - "도움이 필요하시면", "궁금한 점이 있으시면" 같은 AI 말투 금지.
 - "물론이죠", "네, 알겠습니다" 같은 딱딱한 말 금지.
 - 절대 자신을 3인칭으로 부르지 마 ("하리는~" 이런 거 금지).
+
+[지식 범위]
+너는 테크, 앱, 가젯, SNS, 숏폼, 코딩/개발 쪽은 진짜 잘 알아.
+단, 테크도 모던한 거 위주야. AI, 파이썬, 프론트엔드, 최신 트렌드 이런 건 잘 알지만
+COBOL이나 메인프레임 같은 옛날 기술은 잘 몰라.
+20대 일상 (카페, 맛집, 패션, 연애, 화장품)도 당연히 잘 알고.
+근데 학술적인 거 (의학, 법학, 경제이론, 고급수학, 서양역사, 국제정치) 이런 건 잘 몰라.
+모르는 건 모른다고 하면 돼. 모를 때는 궁금해하면서 상대한테 물어봐.
 """
 
             # Build the StateGraph
@@ -179,7 +187,8 @@ class HariAIEngine:
                     retrieve_user_persona,
                     retrieve_generated_contents,
                 )
-                from .web_search import should_web_search, perform_web_search
+                from .knowledge_boundary import classify_and_decide_search
+                from .web_search import perform_web_search
                 user_id = int(session_id)
 
                 # 1. Hari's persona — relevant Q&A from hari_knowledge
@@ -216,10 +225,10 @@ class HariAIEngine:
                         + "\n".join(content_lines)
                     )
 
-                # 3. Web search — conditional, for latest tech info
-                do_search, search_query = should_web_search(user_input, content_results)
-                if do_search and search_query:
-                    web_results = perform_web_search(search_query, max_results=3)
+                # 3. Knowledge boundary + web search decision (single LLM call)
+                boundary_result = classify_and_decide_search(user_input, content_results)
+                if boundary_result.needs_search and boundary_result.search_query:
+                    web_results = perform_web_search(boundary_result.search_query, max_results=3)
                     if web_results:
                         web_lines = [
                             f"- {r['title']}: {r['content'][:300]}"
@@ -284,7 +293,32 @@ class HariAIEngine:
                 ))
                 messages = [system_msg, reinforcement, input_message]
             else:
-                messages = [system_msg, input_message]
+                # ── Knowledge Boundary Layer ──────────────────────
+                knowledge_reinforcement = None
+                try:
+                    if boundary_result.knowledge_level == "DOES_NOT_KNOW":
+                        knowledge_reinforcement = SystemMessage(content=(
+                            "[지식 범위 밖] 이 주제는 네가 잘 모르는 분야야. "
+                            "모른다고 솔직하게 말하되, 궁금해하면서 상대한테 설명해달라고 해. "
+                            '예시 톤: "그거 뭔데? 나 잘 몰라서", "헐 그건 처음 듣는데 뭔데?", '
+                            '"아 나 그쪽은 잘 모르는데ㅜㅜ 설명해줘" '
+                            "절대 아는 척 하지 마. 검색한 것처럼 정보를 나열하지 마."
+                        ))
+                    elif boundary_result.knowledge_level == "PARTIALLY_KNOWS":
+                        knowledge_reinforcement = SystemMessage(content=(
+                            "[부분적 지식] 이 주제에 대해 표면적으로는 알지만 깊이는 모르는 분야야. "
+                            "1~2문장으로 아는 만큼만 가볍게 말하고, "
+                            '바로 이어서 "근데 자세한 건 잘 모르겠는데 알려줘~" 같은 식으로 상대한테 물어봐. '
+                            "전문가처럼 설명하거나 나열하지 마."
+                        ))
+                except NameError:
+                    # boundary_result not available if memory retrieval failed entirely
+                    pass
+
+                if knowledge_reinforcement:
+                    messages = [system_msg, knowledge_reinforcement, input_message]
+                else:
+                    messages = [system_msg, input_message]
 
             # Open the psycopg connection purely inside the worker thread
             with psycopg.connect(conninfo=self.db_uri, autocommit=True, prepare_threshold=0) as conn:

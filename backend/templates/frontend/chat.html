@@ -577,6 +577,36 @@ html, body {
   z-index: 1;
 }
 
+.scroll-to-bottom-btn {
+  position: sticky;
+  bottom: 16px;
+  float: right;
+  margin-right: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--hari-pink);
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 10;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.scroll-to-bottom-btn:hover {
+  background: var(--hari-coral);
+  transform: scale(1.1);
+}
+
+.scroll-to-bottom-btn.visible {
+  display: flex;
+}
+
 /* 날짜 구분선 */
 .date-divider {
   display: flex;
@@ -1407,6 +1437,17 @@ function scrollToBottom() {
   });
 }
 
+function forceScrollToBottom() {
+  const container = document.getElementById('chatContainer');
+  if (!container) return;
+  userScrolledUp = false;
+  programmaticScroll = true;
+  container.scrollTop = container.scrollHeight;
+  setTimeout(() => { programmaticScroll = false; }, 200);
+  const btn = document.getElementById('scrollToBottomBtn');
+  if (btn) btn.classList.remove('visible');
+}
+
 function showTyping() {
   if (document.getElementById('typingIndicator')) return;
   const messages = document.getElementById('messages');
@@ -1577,6 +1618,8 @@ loadHistory().then(() => {
         if (programmaticScroll) return;
         const nearBottom = chatContainerEl.scrollHeight - chatContainerEl.scrollTop - chatContainerEl.clientHeight < 150;
         userScrolledUp = !nearBottom;
+        const btn = document.getElementById('scrollToBottomBtn');
+        if (btn) btn.classList.toggle('visible', userScrolledUp);
       });
     }
   }, 300);

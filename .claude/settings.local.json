@@ -8,7 +8,9 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(git pull:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''backend/chat/knowledge_boundary.py'', encoding=''utf-8''\\).read\\(\\)\\); print\\(''knowledge_boundary.py: OK''\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''backend/chat/engine.py'', encoding=''utf-8''\\).read\\(\\)\\); print\\(''engine.py: OK''\\)\")"
     ]
   }
 }
