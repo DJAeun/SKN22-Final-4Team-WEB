@@ -23,6 +23,11 @@
     </div>
 
 
+    <!-- 로컬 전용 관리자 링크 -->
+    {% if debug %}
+    <a href="/admin-panel/" style="margin-left:1rem; font-family:'DM Mono',monospace; font-size:.6rem; letter-spacing:.12em; text-transform:uppercase; color:var(--acc2); border:0.5px solid var(--acc2); padding:5px 12px; text-decoration:none; transition:background .2s;" onmouseover="this.style.background='rgba(255,209,102,0.15)'" onmouseout="this.style.background='transparent'">Admin ⚙</a>
+    {% endif %}
+
     <!-- 로그인/유저 버튼 -->
     {% if user.is_authenticated %}
     <div class="auth-user-wrap" id="user-menu-wrap">

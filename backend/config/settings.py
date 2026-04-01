@@ -32,6 +32,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dua(s)e0q*qn5a)@924c=
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*', 'chatting-hari.com', 'www.chatting-hari.com']
+INTERNAL_IPS = ['127.0.0.1']
 
 # Security Headers (Fix for AWS HTTP/HTTPS issues)
 # Silence COOP warning for HTTP domains
@@ -145,6 +146,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
