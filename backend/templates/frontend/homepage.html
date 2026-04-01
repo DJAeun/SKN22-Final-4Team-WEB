@@ -1389,7 +1389,8 @@ function toggleDrawer(){ document.getElementById('drawer').classList.toggle('ope
 function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('menu-btn').classList.remove('open'); document.getElementById('drawer-bd').classList.remove('show'); }
 
 (function(){
-  const el=document.getElementById('cnt-followers'); const target=1284700; let start=null;
+  const el=document.getElementById('cnt-followers'); if(!el)return;
+  const target=1284700; let start=null;
   const io=new IntersectionObserver(entries=>{ if(!entries[0].isIntersecting)return; io.disconnect();
     function step(ts){ if(!start)start=ts; const p=Math.min((ts-start)/2000,1); const ease=1-Math.pow(1-p,3); el.textContent=Math.floor(ease*target/1000)+'K+'; if(p<1)requestAnimationFrame(step); }
     requestAnimationFrame(step); });
