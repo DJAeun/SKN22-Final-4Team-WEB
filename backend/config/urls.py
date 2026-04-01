@@ -18,7 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
+from django.http import HttpResponse
 from chat.views import health_check, homepage, fanpage, frontend_chat, admin_dashboard, admin_toggle_content, admin_toggle_knowledge
+
+def robots_txt(_request):
+    return HttpResponse('User-agent: *\nAllow: /\n', content_type='text/plain')
 
 urlpatterns = [
     path('', homepage, name='home'),
@@ -30,6 +35,8 @@ urlpatterns = [
     path('admin-panel/', admin_dashboard, name='admin_panel'),
     path('admin-panel/content/<int:content_id>/toggle/', admin_toggle_content, name='admin_toggle_content'),
     path('admin-panel/knowledge/<int:persona_id>/toggle/', admin_toggle_knowledge, name='admin_toggle_knowledge'),
+    path('favicon.ico', RedirectView.as_view(url='/static/images/hari_favicon.png', permanent=True)),
+    path('robots.txt', robots_txt),
     path('accounts/', include('allauth.urls')),
     path('api/auth/', include('dj_rest_auth.urls')),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
