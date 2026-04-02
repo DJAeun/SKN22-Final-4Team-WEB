@@ -67,6 +67,9 @@ yarn-error.log*
 
 # Databases
 db.sqlite3
+
+# Local development settings
+local_settings.py
 db.sqlite3-journal
 .chroma_db/
 backend/db.sqlite3
