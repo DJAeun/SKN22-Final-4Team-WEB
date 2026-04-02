@@ -26,10 +26,10 @@ _RETURNING_GREETINGS = [
 
 # Returning user but name unknown
 _RETURNING_NO_NAME_GREETINGS = [
-    '어 왔어!! 오늘 뭐 했어?',
-    '오 또 왔네~ 반가워! 오늘은 무슨 얘기 할까?',
-    '왔어?? 나 심심했는데 잘 왔어',
-    '어 반가워~ 오늘 기분 어때?',
+    '어 왔어!! 근데 너 이름이 뭐였지?',
+    '오 또 왔네~ 좋아! 미안한데... 이름을 까먹었어...',
+    '왔어?? 나 심심했는데 잘 왔어~ 갑자기 네 이름이 헷갈리네.. 뭐였지?',
+    '어 반가워! 나 심심한데, 재밌는 썰 풀어주라~ 그건 그렇고 네 이름을 말해준 적이 있었나??',
 ]
 
 # Trigger Hari persona enrichment every N completed conversations per user
