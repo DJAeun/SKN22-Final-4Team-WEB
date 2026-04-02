@@ -1,0 +1,218 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hari — News</title>
+<link rel="icon" type="image/png" href="{% static 'images/hari_favicon.png' %}?v=2">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/NeoDunggeunmo.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSSaemmul.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --f-pixel:'DOSSaemmul',sans-serif;
+  --f-neo:'NeoDunggeunmo',sans-serif;
+  --bg:#ffffff;--ink:#2a2420;--acc:#ff7b8a;--acc2:#ffd166;--acc3:#06d6a0;
+  --dim:#9e9490;--bdr:rgba(255,123,138,0.12);--bdr2:rgba(255,123,138,0.22);
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--ink);overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:var(--acc);border-radius:3px;}
+
+/* NAV */
+.nw-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;border-bottom:.5px solid var(--bdr);background:rgba(255,255,255,0.95);backdrop-filter:blur(16px);}
+.nw-nav-logo img{height:44px;width:auto;mix-blend-mode:multiply;}
+.nw-nav-back{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);text-decoration:none;display:flex;align-items:center;gap:.5rem;transition:color .2s;}
+.nw-nav-back:hover{color:var(--acc);}
+.nw-nav-back svg{transition:transform .2s;}
+.nw-nav-back:hover svg{transform:translateX(-3px);}
+
+/* HEADER */
+.nw-header{margin-top:64px;padding:4rem 2.5rem 2.5rem;border-bottom:.5px solid var(--bdr);display:flex;align-items:flex-end;justify-content:space-between;}
+.nw-header-left{}
+.nw-eyebrow{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.26em;text-transform:uppercase;color:var(--dim);margin-bottom:.8rem;}
+.nw-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(4rem,10vw,9rem);line-height:.85;color:var(--ink);}
+.nw-video-link{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);text-decoration:none;border-bottom:.5px solid var(--acc);padding-bottom:1px;transition:color .2s;white-space:nowrap;}
+.nw-video-link:hover{color:var(--ink);}
+
+/* TAB NAV */
+.nw-tabs{display:flex;border-bottom:.5px solid var(--bdr);}
+.nw-tab{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;padding:1.2rem 2.5rem;cursor:pointer;color:var(--dim);border-bottom:2px solid transparent;background:transparent;border-top:none;border-left:none;border-right:none;transition:all .2s;}
+.nw-tab.on{color:var(--ink);border-bottom-color:var(--acc);}
+.nw-tab:hover{color:var(--ink);}
+
+.nw-section{display:none;padding:3rem 2.5rem;}
+.nw-section.on{display:block;}
+
+/* SCHEDULE & NEWS */
+.nw-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:.5px solid var(--bdr);}
+.nw-col{padding:0;}
+.nw-col-label{font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);padding:1.4rem 2rem;border-bottom:.5px solid var(--bdr);background:rgba(255,123,138,0.03);}
+.nw-col:first-child{border-right:.5px solid var(--bdr);}
+
+.sched-item{display:flex;align-items:center;gap:1.5rem;padding:1.4rem 2rem;border-bottom:.5px solid var(--bdr);transition:background .2s;}
+.sched-item:hover{background:rgba(255,123,138,0.04);}
+.sched-date{font-family:'Bebas Neue',sans-serif;font-size:2rem;line-height:1;color:var(--ink);text-align:center;min-width:48px;letter-spacing:.02em;}
+.sched-date span{display:block;font-family:'DM Mono',monospace;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);}
+.sched-txt{flex:1;font-size:.88rem;color:var(--ink);line-height:1.5;}
+.sched-txt small{display:block;font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.08em;color:var(--dim);margin-top:.2rem;}
+.badge{font-family:'DM Mono',monospace;font-size:.48rem;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;flex-shrink:0;}
+.badge.up{background:rgba(255,123,138,0.1);color:var(--acc);}
+.badge.tbd{background:rgba(255,209,102,0.15);color:#c49a00;}
+
+.past-item{padding:1.4rem 2rem;border-bottom:.5px solid var(--bdr);transition:background .2s;}
+.past-item:hover{background:rgba(255,123,138,0.03);}
+.past-date{font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.14em;color:var(--dim);margin-bottom:.4rem;}
+.past-txt{font-size:.88rem;color:var(--ink);line-height:1.6;margin-bottom:.5rem;}
+.past-cat{display:inline-block;font-family:'DM Mono',monospace;font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;padding:2px 10px;border:.5px solid var(--bdr2);color:var(--dim);}
+
+/* MEDIA */
+.nw-media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--bdr);border:.5px solid var(--bdr);}
+.nw-media-card{background:#fff;padding:2rem 1.5rem;display:flex;flex-direction:column;gap:.6rem;transition:background .2s;}
+.nw-media-card:hover{background:rgba(255,123,138,0.04);}
+.nw-media-outlet{font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);}
+.nw-media-headline{font-size:.88rem;color:var(--ink);line-height:1.55;}
+.nw-media-date{font-family:'DM Mono',monospace;font-size:.5rem;letter-spacing:.1em;color:var(--dim);margin-top:auto;}
+
+@media(max-width:768px){
+  .nw-grid{grid-template-columns:1fr;}
+  .nw-col:first-child{border-right:none;border-bottom:.5px solid var(--bdr);}
+  .nw-section{padding:2rem 1.5rem;}
+  .nw-tabs .nw-tab{padding:1rem 1.2rem;font-size:.54rem;}
+  .nw-header{flex-direction:column;gap:1rem;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nw-nav">
+  <a class="nw-nav-logo" href="/"><img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI"></a>
+  <a class="nw-nav-back" href="/">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    홈으로
+  </a>
+</nav>
+
+<div class="nw-header">
+  <div class="nw-header-left">
+    <div class="nw-eyebrow">04 — News &amp; Schedule</div>
+    <div class="nw-title">NEWS</div>
+  </div>
+  <a class="nw-video-link" href="/videos/">비디오 보러가기 →</a>
+</div>
+
+<div class="nw-tabs">
+  <button class="nw-tab on" onclick="switchTab('schedule',this)">Schedule</button>
+  <button class="nw-tab" onclick="switchTab('media',this)">Media</button>
+</div>
+
+<!-- TAB: SCHEDULE -->
+<div class="nw-section on" id="tab-schedule">
+  <div class="nw-grid">
+    <div class="nw-col">
+      <div class="nw-col-label">업로드 예정</div>
+      <div class="sched-item">
+        <div class="sched-date">28<span>MAR</span></div>
+        <div class="sched-txt">유튜브 쇼츠 — 봄 룩북<small>YouTube Shorts</small></div>
+        <span class="badge up">예정</span>
+      </div>
+      <div class="sched-item">
+        <div class="sched-date">01<span>APR</span></div>
+        <div class="sched-txt">인스타그램 라이브 — 보리 Q&amp;A<small>Instagram Live · 21:00 KST</small></div>
+        <span class="badge tbd">D-7</span>
+      </div>
+      <div class="sched-item">
+        <div class="sched-date">10<span>APR</span></div>
+        <div class="sched-txt">새 싱글 「BLOOM」 티저 공개<small>All Platforms</small></div>
+        <span class="badge up">예정</span>
+      </div>
+      <div class="sched-item">
+        <div class="sched-date">15<span>APR</span></div>
+        <div class="sched-txt">틱톡 챌린지 캠페인 시작<small>TikTok · #HariBloom</small></div>
+        <span class="badge tbd">예정</span>
+      </div>
+      <div class="sched-item">
+        <div class="sched-date">01<span>MAY</span></div>
+        <div class="sched-txt">콜라보 컬렉션 공식 발표<small>Brand Announcement</small></div>
+        <span class="badge tbd">예정</span>
+      </div>
+    </div>
+    <div class="nw-col">
+      <div class="nw-col-label">최근 소식</div>
+      <div class="past-item">
+        <div class="past-date">MAR.20</div>
+        <div class="past-txt">서울 패션위크 공식 앰배서더 선정 — 가상 인간 최초</div>
+        <span class="past-cat">Fashion</span>
+      </div>
+      <div class="past-item">
+        <div class="past-date">FEB.14</div>
+        <div class="past-txt">첫 디지털 싱글 「SIGNAL」 발매, 글로벌 차트 진입</div>
+        <span class="past-cat">Music</span>
+      </div>
+      <div class="past-item">
+        <div class="past-date">JAN.30</div>
+        <div class="past-txt">하리 대화 서비스 공개 — 보리 팬클럽과 실시간 소통 오픈</div>
+        <span class="past-cat">New</span>
+      </div>
+      <div class="past-item">
+        <div class="past-date">JAN.10</div>
+        <div class="past-txt">Forbes Korea 「주목할 크리에이터 10인」 선정</div>
+        <span class="past-cat">Media</span>
+      </div>
+      <div class="past-item">
+        <div class="past-date">DEC.25</div>
+        <div class="past-txt">글로벌 뷰티 브랜드 콜라보 컬렉션, 12시간 만에 완판</div>
+        <span class="past-cat">Collab</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: MEDIA -->
+<div class="nw-section" id="tab-media">
+  <div class="nw-media-grid">
+    <div class="nw-media-card">
+      <div class="nw-media-outlet">Forbes Korea</div>
+      <div class="nw-media-headline">「주목할 크리에이터 10인」 — 하리, 가상 아티스트의 새 기준을 쓰다</div>
+      <div class="nw-media-date">2026.01.10</div>
+    </div>
+    <div class="nw-media-card">
+      <div class="nw-media-outlet">Vogue Korea</div>
+      <div class="nw-media-headline">서울 패션위크 앰배서더 하리, 가상과 현실의 경계를 허물다</div>
+      <div class="nw-media-date">2026.03.22</div>
+    </div>
+    <div class="nw-media-card">
+      <div class="nw-media-outlet">Billboard Korea</div>
+      <div class="nw-media-headline">「SIGNAL」 글로벌 차트 진입 — AI 아티스트 시대를 알리다</div>
+      <div class="nw-media-date">2026.02.16</div>
+    </div>
+    <div class="nw-media-card">
+      <div class="nw-media-outlet">TechCrunch Korea</div>
+      <div class="nw-media-headline">하리 팬 대화 서비스 — 실시간 AI 소통의 새 모델</div>
+      <div class="nw-media-date">2026.02.02</div>
+    </div>
+    <div class="nw-media-card">
+      <div class="nw-media-outlet">W Korea</div>
+      <div class="nw-media-headline">뷰티 콜라보 완판 12시간 — 하리가 증명한 가상 인플루언서의 힘</div>
+      <div class="nw-media-date">2025.12.27</div>
+    </div>
+    <div class="nw-media-card">
+      <div class="nw-media-outlet">Cosmopolitan</div>
+      <div class="nw-media-headline">2026년 주목해야 할 버추얼 아이돌 TOP 5 — 하리 1위</div>
+      <div class="nw-media-date">2026.01.03</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(id, btn){
+  document.querySelectorAll('.nw-tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.nw-section').forEach(s=>s.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('tab-'+id).classList.add('on');
+}
+</script>
+</body>
+</html>

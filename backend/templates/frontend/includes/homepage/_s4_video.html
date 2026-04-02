@@ -1,0 +1,192 @@
+{% load static %}
+<style>
+  #s4 { 
+    background: #ffffff; 
+    padding: 5rem 3%; 
+    position: relative; 
+  }
+  
+  .s4-header {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-end; 
+    margin-bottom: 4rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 123, 138, 0.15);
+  }
+  
+  .s4-title { 
+    font-family: 'Bebas Neue', sans-serif; 
+    font-size: 6.5rem; 
+    font-weight: 400; 
+    color: #2a2420; 
+    line-height: 0.8; 
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+  
+  .s4-more { 
+    font-family: var(--f-pixel);
+    font-size: 0.75rem; 
+    color: #ff7b8a; 
+    text-decoration: none; 
+    transition: opacity 0.2s; 
+    padding-bottom: 0.2rem;
+    white-space: nowrap;
+  }
+  .s4-more:hover { opacity: 0.7; }
+
+  /* Swiper 재구성 및 Custom CSS */
+  .swiper-video { /* container if we decide to re-init swiper */
+    overflow: hidden;
+  }
+  /* 만약 Swiper JS가 없더라도 두 개 띄우기용 (왼쪽 정렬 적용) */
+  .swiper-wrapper.static-view {
+    display: flex !important;
+    justify-content: flex-start; /* 화면 왼쪽부터 나란히 배치 */
+    gap: 24px; /* 영상 간격 */
+    transform: none !important;
+  }
+
+  .yt-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* 텍스트도 왼쪽 언저리로 자연스럽게 */
+    max-width: 340px; /* Shorts가 예쁘게 보이는 크기 */
+    width: 100%;
+    margin: 0; /* 중앙 강제 정렬 해제 */
+  }
+
+  /* 9:16 Shorts 비율 썸네일(iframe) 래퍼 */
+  .yt-thumb-wrap {
+    position: relative;
+    width: 100%;
+    padding-bottom: 177.78%; /* 16:9 역방향 9:16 */
+    background: #000;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+
+  /* 꽉 차게 유튜브 iframe 임베드 */
+  .yt-thumb-wrap iframe {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    border: none;
+  }
+
+  /* Shorts Badge - 우측 하단 */
+  .yt-shorts-badge {
+    position: absolute; 
+    bottom: 10px; 
+    right: 10px;
+    background: #ff0000; 
+    color: #fff; 
+    font-size: 0.7rem; 
+    font-weight: 700;
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    display: flex; 
+    align-items: center; 
+    font-family: sans-serif;
+    pointer-events: none; /* iframe 클릭 방해 방지 */
+  }
+
+  .yt-info { 
+    text-align: left; /* 중앙 정렬에서 왼쪽 정렬로 변경 (요청사항 매칭) */
+    margin-top: 1rem; 
+    width: 100%;
+    padding: 0 4px;
+  }
+  
+  .yt-title { 
+    font-family: var(--f-neo);
+    font-size: 1.05rem; 
+    font-weight: 500; 
+    color: #222; 
+    line-height: 1.3;
+    margin-bottom: 0.4rem;
+  }
+  
+  .yt-meta span {
+    font-family: var(--f-pixel);
+    font-size: 0.75rem; 
+    color: var(--dim);
+    display: inline-block;
+    margin-bottom: 0.8rem;
+  }
+
+  .yt-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #555;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .yt-link:hover {
+    color: #ff7b8a;
+  }
+  .yt-link svg {
+    margin-top: -1px;
+  }
+
+  @media (max-width: 768px) {
+    .s4-title { font-size: 4rem; }
+    .swiper-wrapper.static-view { 
+      grid-template-columns: 1fr; 
+      gap: 3rem; 
+    }
+  }
+</style>
+
+<section id="s4">
+  <div class="s4-header">
+    <h2 class="s4-title">VIDEOS</h2>
+    <a class="s4-more" href="https://www.youtube.com/@Hari-o5m2r" target="_blank">채널 보기 ↗</a>
+  </div>
+
+  <!-- 전달해주신 코드 원형 적용 -->
+  <div class="swiper-video">
+    <div class="swiper-wrapper static-view" id="swiper-wrapper-46a1b4e65be38254" aria-live="polite" style="transform: translate3d(0px, 0px, 0px);">
+
+      <!-- 영상 1 -->
+      <div class="swiper-slide yt-card swiper-slide-active" role="group" aria-label="1 / 2" style="margin-right: 16px;">
+        <div class="yt-thumb-wrap">
+          <iframe src="https://www.youtube.com/embed/7Ytd-ZDlO0c?mute=1&amp;loop=1&amp;playlist=7Ytd-ZDlO0c" title="YouTube Shorts" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="">
+          </iframe>
+          <span class="yt-shorts-badge">▶ Shorts</span>
+        </div>
+        <div class="yt-info">
+          <div class="yt-title">&lt;테크뉴스&gt; 초파리 뇌의 비밀</div>
+          <div class="yt-meta"><span>최근 소식</span></div>
+          <a class="yt-link" href="https://www.youtube.com/shorts/7Ytd-ZDlO0c" target="_blank" rel="noopener">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
+            YouTube 앱에서 보기 ↗
+          </a>
+        </div>
+      </div>
+
+      <!-- 영상 2 -->
+      <div class="swiper-slide yt-card swiper-slide-next" role="group" aria-label="2 / 2" style="margin-right: 16px;">
+        <div class="yt-thumb-wrap">
+          <iframe src="https://www.youtube.com/embed/LFBHDLvL2Yw?mute=1&amp;loop=1&amp;playlist=LFBHDLvL2Yw" title="YouTube Shorts" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="">
+          </iframe>
+          <span class="yt-shorts-badge">▶ Shorts</span>
+        </div>
+        <div class="yt-info">
+          <div class="yt-title">&lt;테크뉴스&gt; 구글 Stitch</div>
+          <div class="yt-meta"><span>최근 소식</span></div>
+          <a class="yt-link" href="https://www.youtube.com/shorts/LFBHDLvL2Yw" target="_blank" rel="noopener">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
+            YouTube 앱에서 보기 ↗
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>

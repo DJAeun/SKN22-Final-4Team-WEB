@@ -1,0 +1,476 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hari — Videos</title>
+<meta name="description" content="하리의 유튜브 영상 모음 — Shorts, Full Videos, 테크뉴스까지 한눈에">
+<link rel="icon" type="image/png" href="{% static 'images/hari_favicon.png' %}?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/NeoDunggeunmo.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSSaemmul.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --f-pixel:'DOSSaemmul',sans-serif;
+  --f-neo:'NeoDunggeunmo',sans-serif;
+  --bg:#ffffff;--ink:#2a2420;--acc:#ff7b8a;--acc2:#ffd166;
+  --dim:#9e9490;--bdr:rgba(255,123,138,0.12);--bdr2:rgba(255,123,138,0.22);
+  --grn:#06d6a0;--s7-bg:#2a2420;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:var(--acc);border-radius:3px;}
+
+/* ── NAV ── */
+.vd-nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  height:64px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 2.5rem;border-bottom:.5px solid var(--bdr);
+  background:rgba(255,255,255,0.96);backdrop-filter:blur(16px);
+  transition:background .3s;
+}
+.vd-nav-logo img{height:44px;width:auto;mix-blend-mode:multiply;display:block;}
+.vd-nav-right{display:flex;align-items:center;gap:1.5rem;}
+.vd-filter-group{display:flex;gap:.3rem;}
+.vd-filter-btn{
+  font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.1em;
+  text-transform:uppercase;padding:5px 16px;
+  border:.5px solid var(--bdr2);background:transparent;
+  color:var(--dim);cursor:pointer;transition:all .2s;
+}
+.vd-filter-btn.on,.vd-filter-btn:hover{border-color:var(--acc);color:var(--acc);}
+.vd-nav-back{
+  font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--dim);text-decoration:none;
+  display:flex;align-items:center;gap:.5rem;transition:color .2s;
+}
+.vd-nav-back:hover{color:var(--acc);}
+.vd-nav-back:hover svg{transform:translateX(-3px);}
+.vd-nav-back svg{transition:transform .2s;}
+
+/* ── HEADER ── */
+.vd-header{
+  margin-top:64px;padding:4rem 2.5rem 2.5rem;
+  border-bottom:.5px solid var(--bdr);
+  display:flex;align-items:flex-end;justify-content:space-between;
+  position:relative;overflow:hidden;
+}
+.vd-header-bg{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,123,138,0.05) .5px,transparent .5px),linear-gradient(90deg,rgba(255,123,138,0.05) .5px,transparent .5px);
+  background-size:60px 60px;pointer-events:none;
+}
+.vd-eyebrow{
+  font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.3em;
+  text-transform:uppercase;color:var(--acc);margin-bottom:.8rem;
+}
+.vd-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(4rem,10vw,9rem);line-height:.85;color:var(--ink);
+  opacity:0;animation:fadeUp .8s .1s forwards;
+}
+.vd-title em{font-style:normal;-webkit-text-stroke:1.5px var(--acc);color:transparent;}
+.vd-header-right{display:flex;flex-direction:column;align-items:flex-end;gap:1rem;flex-shrink:0;}
+.vd-count{
+  font-family:'Bebas Neue',sans-serif;font-size:4rem;line-height:1;
+  color:var(--ink);letter-spacing:.02em;
+  opacity:0;animation:fadeUp .7s .25s forwards;
+}
+.vd-count small{font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);display:block;margin-top:2px;}
+.vd-yt-link{
+  font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--acc);text-decoration:none;
+  border-bottom:.5px solid var(--acc);padding-bottom:1px;transition:color .2s;white-space:nowrap;
+}
+.vd-yt-link:hover{color:var(--ink);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── FILTER BAR (mobile) ── */
+.vd-mobile-bar{
+  display:none;padding:.8rem 2.5rem;
+  border-bottom:.5px solid var(--bdr);
+  background:var(--bg);
+  gap:.4rem;overflow-x:auto;
+  scrollbar-width:none;
+}
+.vd-mobile-bar::-webkit-scrollbar{display:none;}
+
+/* ── VIDEO GRID ── */
+.vd-grid{
+  padding:2.5rem;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:1.5rem;
+}
+
+/* ── VIDEO CARD ── */
+.vd-card{
+  border:.5px solid var(--bdr);overflow:hidden;
+  transition:border-color .25s,transform .25s,box-shadow .25s;
+  cursor:pointer;
+  animation:cardIn .5s ease both;
+}
+.vd-card:hover{
+  border-color:var(--acc);
+  transform:translateY(-4px);
+  box-shadow:0 12px 40px rgba(255,123,138,0.15);
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.vd-card:nth-child(1){animation-delay:.05s}
+.vd-card:nth-child(2){animation-delay:.1s}
+.vd-card:nth-child(3){animation-delay:.15s}
+.vd-card:nth-child(4){animation-delay:.2s}
+.vd-card:nth-child(5){animation-delay:.25s}
+.vd-card:nth-child(6){animation-delay:.3s}
+.vd-card[data-type="full"]{grid-column:span 2;}
+
+/* 세로형 Shorts */
+.vd-frame-shorts{position:relative;padding-bottom:177.78%;height:0;overflow:hidden;background:#0a0a0a;}
+.vd-frame-shorts img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;}
+.vd-frame-shorts .vd-play-overlay{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.25);transition:background .2s;
+}
+.vd-card:hover .vd-play-overlay{background:rgba(0,0,0,0.4);}
+.vd-play-btn{
+  width:52px;height:52px;border-radius:50%;
+  background:rgba(255,255,255,0.95);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .2s,background .2s;
+}
+.vd-card:hover .vd-play-btn{transform:scale(1.1);background:#fff;}
+.vd-play-btn svg{width:20px;height:20px;fill:var(--acc);margin-left:2px;}
+
+/* 가로형 Full */
+.vd-frame-full{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;background:#0a0a0a;}
+.vd-frame-full img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;}
+.vd-frame-full .vd-play-overlay{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.25);transition:background .2s;
+}
+.vd-card:hover .vd-frame-full .vd-play-overlay{background:rgba(0,0,0,0.4);}
+
+.vd-badge{
+  position:absolute;top:.6rem;left:.6rem;
+  font-family:'DM Mono',monospace;font-size:.46rem;
+  letter-spacing:.12em;text-transform:uppercase;
+  padding:3px 9px;pointer-events:none;z-index:2;
+}
+.vd-badge.shorts{background:var(--acc);color:#fff;}
+.vd-badge.full{background:var(--ink);color:#fff;}
+
+.vd-info{padding:1.1rem 1.2rem;}
+.vd-info-title{font-size:.88rem;color:var(--ink);line-height:1.5;margin-bottom:.3rem;font-weight:400;}
+.vd-info-meta{font-family:'DM Mono',monospace;font-size:.5rem;letter-spacing:.1em;color:var(--dim);margin-bottom:.7rem;}
+.vd-info-link{
+  font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--acc);text-decoration:none;
+  display:inline-flex;align-items:center;gap:.3rem;
+  border-bottom:.5px solid var(--acc);padding-bottom:1px;transition:color .2s;
+}
+.vd-info-link:hover{color:var(--ink);}
+
+/* ── EMPTY STATE ── */
+.vd-empty{
+  grid-column:1/-1;padding:5rem 2.5rem;
+  text-align:center;color:var(--dim);display:none;
+}
+.vd-empty p{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:1rem;}
+.vd-empty a{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);text-decoration:none;border-bottom:.5px solid var(--acc);}
+
+/* ── YT MODAL ── */
+#vd-modal-overlay{
+  position:fixed;inset:0;z-index:600;
+  background:rgba(42,36,32,0.85);
+  backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s;
+}
+#vd-modal-overlay.show{opacity:1;pointer-events:all;}
+#vd-modal-box{
+  position:relative;
+  transform:translateY(24px) scale(.97);
+  transition:transform .38s cubic-bezier(.77,0,.18,1);
+}
+#vd-modal-overlay.show #vd-modal-box{transform:translateY(0) scale(1);}
+#vd-modal-iframe-wrap{
+  position:relative;width:100%;
+  background:#000;
+}
+#vd-modal-iframe-wrap iframe{
+  position:absolute;inset:0;width:100%;height:100%;border:none;
+}
+#vd-modal-info{
+  padding:.85rem 1rem .7rem;
+  background:var(--s7-bg);
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+}
+#vd-modal-title{font-size:.86rem;color:rgba(255,245,246,0.9);line-height:1.5;flex:1;}
+#vd-modal-yt-link{
+  font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--acc);text-decoration:none;
+  border-bottom:.5px solid var(--acc);padding-bottom:1px;white-space:nowrap;transition:color .2s;
+}
+#vd-modal-yt-link:hover{color:#fff;}
+#vd-modal-close{
+  flex-shrink:0;
+  background:transparent;border:.5px solid rgba(255,245,246,.22);
+  color:rgba(255,245,246,.9);font-family:'DM Mono',monospace;
+  font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;
+  padding:5px 14px;cursor:pointer;transition:background .2s;white-space:nowrap;
+}
+#vd-modal-close:hover{background:var(--acc);border-color:var(--acc);}
+
+/* ── FOOTER ── */
+.vd-footer{
+  border-top:.5px solid var(--bdr);
+  padding:2rem 2.5rem;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.vd-footer-copy{font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
+.vd-footer-links{display:flex;gap:1.5rem;}
+.vd-footer-links a{font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);text-decoration:none;transition:color .2s;}
+.vd-footer-links a:hover{color:var(--acc);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .vd-grid{grid-template-columns:repeat(2,1fr);padding:1.5rem;}
+  .vd-card[data-type="full"]{grid-column:span 2;}
+  .vd-filter-group{display:none;}
+  .vd-mobile-bar{display:flex;}
+  .vd-header{padding:3rem 1.5rem 2rem;}
+}
+@media(max-width:600px){
+  .vd-nav{padding:0 1.2rem;height:56px;}
+  .vd-grid{grid-template-columns:1fr;padding:1rem;}
+  .vd-card[data-type="full"]{grid-column:span 1;}
+  .vd-footer{flex-direction:column;gap:1rem;text-align:center;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="vd-nav">
+  <a class="vd-nav-logo" href="/">
+    <img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI">
+  </a>
+  <div class="vd-nav-right">
+    <div class="vd-filter-group" id="filter-group-nav">
+      <button class="vd-filter-btn on" id="btn-all" onclick="filterVideos('all',this)">All</button>
+      <button class="vd-filter-btn" id="btn-shorts" onclick="filterVideos('shorts',this)">Shorts</button>
+      <button class="vd-filter-btn" id="btn-full" onclick="filterVideos('full',this)">Videos</button>
+    </div>
+    <a class="vd-nav-back" href="/">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      홈으로
+    </a>
+  </div>
+</nav>
+
+<!-- MOBILE FILTER BAR -->
+<div class="vd-mobile-bar" id="filter-group-mobile">
+  <button class="vd-filter-btn on" onclick="filterVideos('all',this)">All</button>
+  <button class="vd-filter-btn" onclick="filterVideos('shorts',this)">Shorts</button>
+  <button class="vd-filter-btn" onclick="filterVideos('full',this)">Videos</button>
+</div>
+
+<!-- HEADER -->
+<div class="vd-header">
+  <div class="vd-header-bg"></div>
+  <div style="position:relative;z-index:1;">
+    <div class="vd-eyebrow">03 — YouTube Channel</div>
+    <div class="vd-title">VID<em>EOS</em></div>
+  </div>
+  <div class="vd-header-right" style="position:relative;z-index:1;">
+    <div class="vd-count">
+      <span id="video-total-count">4</span>
+      <small>Total Videos</small>
+    </div>
+    <a class="vd-yt-link" href="https://www.youtube.com/@Hari-o5m2r" target="_blank" rel="noopener">
+      채널 구독하기 ↗
+    </a>
+  </div>
+</div>
+
+<!-- VIDEO GRID -->
+<div class="vd-grid" id="vd-grid">
+
+  <!-- Shorts 1 -->
+  <div class="vd-card" data-type="shorts" onclick="openModal('7Ytd-ZDlO0c','&lt;테크뉴스&gt; 초파리 뇌의 비밀','https://www.youtube.com/shorts/7Ytd-ZDlO0c',true)">
+    <div class="vd-frame-shorts" style="position:relative;">
+      <img src="https://img.youtube.com/vi/7Ytd-ZDlO0c/hqdefault.jpg" alt="초파리 뇌의 비밀" loading="lazy">
+      <span class="vd-badge shorts">▶ Shorts</span>
+      <div class="vd-play-overlay">
+        <div class="vd-play-btn">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="vd-info">
+      <div class="vd-info-title">&lt;테크뉴스&gt; 초파리 뇌의 비밀</div>
+      <div class="vd-info-meta">최근 소식 · Shorts</div>
+      <a class="vd-info-link" href="https://www.youtube.com/shorts/7Ytd-ZDlO0c" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"/></svg>
+        YouTube에서 보기
+      </a>
+    </div>
+  </div>
+
+  <!-- Shorts 2 -->
+  <div class="vd-card" data-type="shorts" onclick="openModal('LFBHDLvL2Yw','&lt;테크뉴스&gt; 구글 Stitch','https://www.youtube.com/shorts/LFBHDLvL2Yw',true)">
+    <div class="vd-frame-shorts" style="position:relative;">
+      <img src="https://img.youtube.com/vi/LFBHDLvL2Yw/hqdefault.jpg" alt="구글 Stitch" loading="lazy">
+      <span class="vd-badge shorts">▶ Shorts</span>
+      <div class="vd-play-overlay">
+        <div class="vd-play-btn">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="vd-info">
+      <div class="vd-info-title">&lt;테크뉴스&gt; 구글 Stitch</div>
+      <div class="vd-info-meta">최근 소식 · Shorts</div>
+      <a class="vd-info-link" href="https://www.youtube.com/shorts/LFBHDLvL2Yw" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"/></svg>
+        YouTube에서 보기
+      </a>
+    </div>
+  </div>
+
+
+
+  <!-- Empty state (보이는 카드가 없을 때) -->
+  <div class="vd-empty" id="vd-empty">
+    <p>해당 카테고리에 영상이 없어요</p>
+    <a href="https://www.youtube.com/@Hari-o5m2r" target="_blank" rel="noopener">YouTube 채널 방문하기 ↗</a>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="vd-footer">
+  <div class="vd-footer-copy">© 2025 Hari. All rights reserved.</div>
+  <div class="vd-footer-links">
+    <a href="/">홈으로</a>
+    <a href="/gallery/">갤러리</a>
+    <a href="https://www.youtube.com/@Hari-o5m2r" target="_blank" rel="noopener">YouTube ↗</a>
+  </div>
+</footer>
+
+<!-- YT MODAL -->
+<div id="vd-modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div id="vd-modal-box">
+    <div id="vd-modal-iframe-wrap">
+      <iframe id="vd-modal-iframe" src="" allowfullscreen
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+      </iframe>
+    </div>
+    <div id="vd-modal-info">
+      <div id="vd-modal-title"></div>
+      <a id="vd-modal-yt-link" href="#" target="_blank" rel="noopener">채널 방문 ↗</a>
+      <button id="vd-modal-close" onclick="closeModal()">닫기 ✕</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Filter ── */
+let currentFilter = 'all';
+
+function filterVideos(type, btn) {
+  currentFilter = type;
+
+  // 모든 버튼 off
+  document.querySelectorAll('.vd-filter-btn').forEach(b => b.classList.remove('on'));
+  // 클릭된 버튼 그룹의 같은 타입 버튼들 on
+  document.querySelectorAll('.vd-filter-btn').forEach(b => {
+    if ((b.textContent.trim().toLowerCase() === type) ||
+        (type === 'all' && b.textContent.trim() === 'All')) {
+      b.classList.add('on');
+    }
+  });
+  if (type === 'all') {
+    document.querySelectorAll('.vd-filter-btn').forEach(b => {
+      if (b.textContent.trim() === 'All') b.classList.add('on');
+    });
+  }
+
+  let visible = 0;
+  document.querySelectorAll('.vd-card').forEach(card => {
+    const show = (type === 'all' || card.dataset.type === type);
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+
+  const empty = document.getElementById('vd-empty');
+  if (empty) empty.style.display = visible === 0 ? 'block' : 'none';
+
+  // span 컬럼 조정 — 필터 시 full 카드 span 유지
+  updateSpan();
+}
+
+function updateSpan() {
+  document.querySelectorAll('.vd-card[data-type="full"]').forEach(card => {
+    card.style.gridColumn = card.style.display === 'none' ? '' : 'span 2';
+  });
+}
+
+/* ── Modal ── */
+let currentYtUrl = '#';
+
+function openModal(vid, title, ytUrl, isShorts) {
+  const overlay = document.getElementById('vd-modal-overlay');
+  const iframe  = document.getElementById('vd-modal-iframe');
+  const titleEl = document.getElementById('vd-modal-title');
+  const ytLink  = document.getElementById('vd-modal-yt-link');
+  const box     = document.getElementById('vd-modal-box');
+  const wrap    = document.getElementById('vd-modal-iframe-wrap');
+
+  currentYtUrl = ytUrl;
+  ytLink.href  = ytUrl;
+
+  const decoded = title.replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+  titleEl.textContent = decoded;
+
+  if (isShorts) {
+    box.style.maxWidth     = '380px';
+    wrap.style.aspectRatio = '9/16';
+    iframe.src = `https://www.youtube.com/embed/${vid}?rel=0&autoplay=1&loop=1&playlist=${vid}`;
+  } else {
+    box.style.maxWidth     = '900px';
+    wrap.style.aspectRatio = '16/9';
+    iframe.src = `https://www.youtube.com/embed/${vid}?rel=0&autoplay=1`;
+  }
+
+  overlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  const overlay = document.getElementById('vd-modal-overlay');
+  const iframe  = document.getElementById('vd-modal-iframe');
+  overlay.classList.remove('show');
+  document.body.style.overflow = '';
+  setTimeout(() => { iframe.src = ''; }, 350);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+/* ── video count ── */
+document.addEventListener('DOMContentLoaded', () => {
+  const total = document.querySelectorAll('.vd-card').length;
+  const el = document.getElementById('video-total-count');
+  if (el) el.textContent = total;
+});
+</script>
+</body>
+</html>

@@ -35,12 +35,34 @@ def fanpage(request):
     return render(request, 'frontend/fanpage.html')
 
 
+def profile_page(request):
+    _try_jwt_auth(request)
+    return render(request, 'frontend/profile.html')
+
+
+def gallery_page(request):
+    return render(request, 'frontend/gallery.html')
+
+
+def news_page(request):
+    return render(request, 'frontend/news.html')
+
+
+@ensure_csrf_cookie
+def video_page(request):
+    return render(request, 'frontend/video.html')
+
+
 def frontend_chat(request):
     if not settings.DEBUG:
         _try_jwt_auth(request)
         if not request.user.is_authenticated:
             return redirect('home')
     return render(request, 'frontend/chat.html')
+
+
+def membership_page(request):
+    return render(request, 'frontend/membership.html')
 
 
 def chat_index(request):
