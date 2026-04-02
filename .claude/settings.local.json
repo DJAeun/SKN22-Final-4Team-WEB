@@ -14,7 +14,8 @@
       "Bash(curl -sI https://chatting-hari.com)",
       "Bash(eb deploy:*)",
       "Bash(curl -sI https://chatting-hari.com/static/chat/images/hari_bg.png)",
-      "Bash(aws elasticbeanstalk:*)"
+      "Bash(aws elasticbeanstalk:*)",
+      "Bash(aws sts:*)"
     ]
   }
 }
