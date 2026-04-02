@@ -1157,10 +1157,15 @@ let bubbleQueue = [];
 let bubbleTimer = null;
 let isBubbleAnimating = false;
 
-// Message batching (debounce) state for WebSocket
+// Message batching (typing-aware) state for WebSocket
 let userMessageBuffer = [];
 let debounceTimer = null;
-const DEBOUNCE_DELAY = 7000; // ms — wait for user to finish typing
+let typingCheckTimer = null;
+let maxWaitTimer = null;
+let isUserTyping = false;
+const IDLE_FLUSH_DELAY = 2500;   // ms after last Enter, if not typing
+const TYPING_STOP_DELAY = 1500;  // ms after user stops typing to re-check flush
+const MAX_WAIT_DELAY = 10000;    // safety net: always flush within 10s
 
 /**
  * ═══════════════════════════════════════
@@ -1177,6 +1182,13 @@ function connectWebSocket(sessionId = null) {
 
   chatSocket.onopen = function() {
     console.log('[WS] Connected:', protocol + window.location.host + wsPath);
+    // Keep-alive ping every 30s to prevent ALB idle timeout
+    if (window._wsPingInterval) clearInterval(window._wsPingInterval);
+    window._wsPingInterval = setInterval(() => {
+      if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+        chatSocket.send(JSON.stringify({ ping: true }));
+      }
+    }, 30000);
   };
 
   chatSocket.onerror = function(err) {
@@ -1194,8 +1206,9 @@ function connectWebSocket(sessionId = null) {
     
     if (data.sender === 'hari') {
       // If user is typing more, the buffer will be flushed before Hari speaks
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
+      if (debounceTimer || typingCheckTimer || maxWaitTimer) {
+        clearTimeout(debounceTimer); clearTimeout(typingCheckTimer); clearTimeout(maxWaitTimer);
+        debounceTimer = null; typingCheckTimer = null; maxWaitTimer = null;
         flushMessageBuffer();
       }
 
@@ -1251,7 +1264,13 @@ function sendMessage() {
   if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
     userMessageBuffer.push(text);
     if (debounceTimer) clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(flushMessageBuffer, DEBOUNCE_DELAY);
+    if (typingCheckTimer) clearTimeout(typingCheckTimer);
+    debounceTimer = setTimeout(tryFlush, IDLE_FLUSH_DELAY);
+
+    // Start max wait timer only on the FIRST buffered message
+    if (!maxWaitTimer) {
+      maxWaitTimer = setTimeout(flushMessageBuffer, MAX_WAIT_DELAY);
+    }
   } else {
     // Local Fallback Simulation
     showTyping();
@@ -1263,8 +1282,21 @@ function sendMessage() {
   }
 }
 
+function tryFlush() {
+  const input = document.getElementById('messageInput');
+  if (input && input.value.trim().length > 0) return; // user has unsent text
+  if (userMessageBuffer.length === 0) return;
+  flushMessageBuffer();
+}
+
 function flushMessageBuffer() {
   if (userMessageBuffer.length === 0) return;
+
+  // Clean up all timers
+  if (typingCheckTimer) { clearTimeout(typingCheckTimer); typingCheckTimer = null; }
+  if (debounceTimer) { clearTimeout(debounceTimer); debounceTimer = null; }
+  if (maxWaitTimer) { clearTimeout(maxWaitTimer); maxWaitTimer = null; }
+  isUserTyping = false;
 
   // If Hari is still animating, wait and retry after animation finishes
   if (isBubbleAnimating) {
@@ -1275,7 +1307,6 @@ function flushMessageBuffer() {
   // Join all buffered messages and send as one payload
   const combined = userMessageBuffer.join('\n');
   userMessageBuffer = [];
-  debounceTimer = null;
   
   showTyping();
   if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
@@ -1546,6 +1577,24 @@ function displaySearchResults(results, keyword = null) {
 function autoResize(textarea) {
   textarea.style.height = 'auto';
   textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+}
+
+function onTextareaInput(textarea) {
+  autoResize(textarea);
+  const hasText = textarea.value.trim().length > 0;
+  isUserTyping = hasText;
+
+  // User cleared the textarea while buffer has messages — start short timer to flush
+  if (!hasText && userMessageBuffer.length > 0) {
+    if (typingCheckTimer) clearTimeout(typingCheckTimer);
+    typingCheckTimer = setTimeout(tryFlush, TYPING_STOP_DELAY);
+  }
+
+  // User is typing — cancel the idle flush timer (max wait still runs)
+  if (hasText && debounceTimer) {
+    clearTimeout(debounceTimer);
+    debounceTimer = null;
+  }
 }
 
 function handleKeyPress(event) {
