@@ -170,21 +170,32 @@ CORS_ALLOW_ALL_ORIGINS = True # For development only
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database Configuration — PostgreSQL only (RDS)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME') or os.environ.get('RDS_DB_NAME', 'hari_persona'),
-        'USER': os.environ.get('DB_USER') or os.environ.get('RDS_USERNAME'),
-        'PASSWORD': os.environ.get('DB_PASSWORD') or os.environ.get('RDS_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST') or os.environ.get('RDS_HOSTNAME'),
-        'PORT': os.environ.get('DB_PORT') or os.environ.get('RDS_PORT', '5432'),
-        'CONN_MAX_AGE': 600,
-        'OPTIONS': {
-            'sslmode': os.environ.get('DB_SSLMODE', 'require'),
-            'connect_timeout': 10,
-        },
+_db_host = os.environ.get('DB_HOST') or os.environ.get('RDS_HOSTNAME')
+
+if _db_host:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME') or os.environ.get('RDS_DB_NAME', 'hari_persona'),
+            'USER': os.environ.get('DB_USER') or os.environ.get('RDS_USERNAME'),
+            'PASSWORD': os.environ.get('DB_PASSWORD') or os.environ.get('RDS_PASSWORD'),
+            'HOST': _db_host,
+            'PORT': os.environ.get('DB_PORT') or os.environ.get('RDS_PORT', '5432'),
+            'CONN_MAX_AGE': 600,
+            'OPTIONS': {
+                'sslmode': os.environ.get('DB_SSLMODE', 'require'),
+                'connect_timeout': 10,
+            },
+        }
     }
-}
+else:
+    # 로컬 개발 전용 (DB 없이 실행 시) — 배포 환경에서는 절대 도달하지 않음
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
