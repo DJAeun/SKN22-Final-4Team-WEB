@@ -20,7 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
 from django.http import HttpResponse
-from chat.views import health_check, homepage, fanpage, frontend_chat, admin_dashboard, admin_toggle_content, admin_toggle_knowledge
+from chat.views import health_check, homepage, fanpage, frontend_chat, admin_dashboard, admin_toggle_content, admin_toggle_knowledge, profile_page, gallery_page, news_page, video_page, membership_page
 
 def robots_txt(_request):
     return HttpResponse('User-agent: *\nAllow: /\n', content_type='text/plain')
@@ -32,6 +32,11 @@ urlpatterns = [
     path('', homepage, name='home'),
     path('homepage/', homepage, name='homepage'),
     path('fanpage/', fanpage, name='fanpage'),
+    path('profile/', profile_page, name='profile'),
+    path('gallery/', gallery_page, name='gallery'),
+    path('news/', news_page, name='news'),
+    path('video/', video_page, name='video'),
+    path('membership/', membership_page, name='membership'),
     path('hari-chat/', frontend_chat, name='frontend_chat'),
     path('health/', health_check, name='health_check'),
     path('admin/', admin.site.urls),

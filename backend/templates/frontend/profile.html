@@ -1,0 +1,276 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hari — Profile</title>
+<link rel="icon" type="image/png" href="{% static 'images/hari_favicon.png' %}?v=2">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/NeoDunggeunmo.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSSaemmul.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2301-wagle@1.0/WagleWagle.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/LoveType.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2210@1.0/SejongGeulgot.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --f-pixel:'DOSSaemmul',sans-serif;
+  --f-playful:'WagleWagle',sans-serif;
+  --f-cute:'LoveType',sans-serif;
+  --f-thin:'SejongGeulgot',sans-serif;
+  --f-neo:'NeoDunggeunmo',sans-serif;
+  --bg:#ffffff;--ink:#2a2420;--acc:#ff7b8a;--acc2:#ffd166;--acc3:#06d6a0;
+  --dim:#9e9490;--bdr:rgba(255,123,138,0.12);--bdr2:rgba(255,123,138,0.22);
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-thin);overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:var(--acc);border-radius:3px;}
+
+/* NAV */
+.pf-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;border-bottom:.5px solid var(--bdr);background:rgba(255,255,255,0.95);backdrop-filter:blur(16px);}
+.pf-nav-logo img{height:44px;width:auto;mix-blend-mode:multiply;}
+.pf-nav-back{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);text-decoration:none;display:flex;align-items:center;gap:.5rem;transition:color .2s;}
+.pf-nav-back:hover{color:var(--acc);}
+.pf-nav-back svg{transition:transform .2s;}
+.pf-nav-back:hover svg{transform:translateX(-3px);}
+
+/* HERO */
+.pf-hero{margin-top:64px;height:55vh;min-height:360px;position:relative;overflow:hidden;background-image:linear-gradient(rgba(0,0,0,0.25),rgba(0,0,0,0.55)),url('{% static "images/hari_image16.png" %}');background-size:cover;background-position:center top;display:flex;flex-direction:column;justify-content:flex-end;padding:3rem 2.5rem;}
+.pf-hero-tag{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:.8rem;}
+.pf-hero-title{font-family:var(--f-playful);font-size:clamp(3.5rem,8vw,7rem);color:#fff;line-height:.9;opacity:0;animation:fadeUp .7s .2s forwards;}
+.pf-hero-sub{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.65);margin-top:.9rem;opacity:0;animation:fadeUp .6s .45s forwards;}
+
+/* MAIN LAYOUT */
+.pf-main{display:grid;grid-template-columns:420px 1fr;min-height:60vh;}
+
+/* LEFT PANEL — sticky image */
+.pf-img-panel{position:sticky;top:64px;height:calc(100vh - 64px);overflow:hidden;border-right:.5px solid var(--bdr);}
+.pf-img-panel img{width:100%;height:100%;object-fit:cover;object-position:top;display:block;}
+
+/* RIGHT PANEL */
+.pf-info-panel{padding:3.5rem 3rem;}
+
+.pf-section-label{font-family:'DM Mono',monospace;font-size:.54rem;letter-spacing:.26em;text-transform:uppercase;color:var(--dim);margin-bottom:2rem;padding-bottom:.8rem;border-bottom:.5px solid var(--bdr);}
+
+/* Name block */
+.pf-name{font-family:var(--f-playful);font-size:clamp(2.5rem,5vw,4.5rem);line-height:1;color:var(--ink);margin-bottom:.4rem;}
+.pf-name-en{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin-bottom:2rem;}
+
+/* Bio */
+.pf-bio{font-size:.94rem;line-height:2;color:var(--ink);max-width:480px;margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:.5px solid var(--bdr);}
+
+/* Stats row */
+.pf-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:.5px solid var(--bdr);margin-bottom:2.5rem;}
+.pf-stat{padding:1.2rem 1rem;border-right:.5px solid var(--bdr);text-align:center;}
+.pf-stat:last-child{border-right:none;}
+.pf-stat-num{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--ink);display:block;line-height:1;}
+.pf-stat-lbl{font-family:'DM Mono',monospace;font-size:.48rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-top:.3rem;}
+
+/* Keywords */
+.pf-keywords{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:.5px solid var(--bdr);}
+.pf-kw{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.1em;padding:5px 14px;border:.5px solid var(--bdr2);color:var(--dim);transition:all .2s;}
+.pf-kw:hover{border-color:var(--acc);color:var(--acc);}
+
+/* SNS */
+.pf-sns-title{font-family:'DM Mono',monospace;font-size:.54rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:1.2rem;}
+.pf-sns-grid{display:flex;flex-direction:column;gap:.5rem;margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:.5px solid var(--bdr);}
+.pf-sns-item{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1rem;border:.5px solid var(--bdr);text-decoration:none;transition:all .2s;}
+.pf-sns-item:hover{border-color:var(--acc);background:rgba(255,123,138,0.04);}
+.pf-sns-left{display:flex;align-items:center;gap:.9rem;}
+.pf-sns-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pf-sns-name{font-family:var(--f-playful);font-size:.95rem;color:var(--ink);}
+.pf-sns-handle{font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.1em;color:var(--dim);}
+.pf-sns-arr{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--dim);transition:transform .2s;}
+.pf-sns-item:hover .pf-sns-arr{transform:translateX(4px);color:var(--acc);}
+
+/* Gallery preview */
+.pf-gallery-title{font-family:'DM Mono',monospace;font-size:.54rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:center;}
+.pf-gallery-link{color:var(--acc);text-decoration:none;border-bottom:.5px solid var(--acc);padding-bottom:1px;transition:color .2s;}
+.pf-gallery-link:hover{color:var(--ink);}
+.pf-gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;}
+.pf-gallery-thumb{aspect-ratio:1;overflow:hidden;cursor:pointer;}
+.pf-gallery-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
+.pf-gallery-thumb:hover img{transform:scale(1.07);}
+
+/* CTA */
+.pf-cta{margin-top:2.5rem;padding-top:2.5rem;border-top:.5px solid var(--bdr);display:flex;gap:1rem;}
+.pf-btn{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;padding:.85rem 1.8rem;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem;}
+.pf-btn-primary{background:var(--acc);color:#fff;border:.5px solid var(--acc);}
+.pf-btn-primary:hover{background:#ff4c6c;border-color:#ff4c6c;}
+.pf-btn-secondary{background:transparent;color:var(--ink);border:.5px solid var(--bdr2);}
+.pf-btn-secondary:hover{border-color:var(--acc);color:var(--acc);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:900px){
+  .pf-main{grid-template-columns:1fr;}
+  .pf-img-panel{position:relative;height:60vw;top:0;}
+  .pf-info-panel{padding:2.5rem 1.5rem;}
+  .pf-stats{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:480px){
+  .pf-hero{padding:2rem 1.5rem;}
+  .pf-gallery-grid{grid-template-columns:repeat(2,1fr);}
+  .pf-cta{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="pf-nav">
+  <a class="pf-nav-logo" href="/">
+    <img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI">
+  </a>
+  <a class="pf-nav-back" href="/">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    홈으로
+  </a>
+</nav>
+
+<!-- HERO -->
+<div class="pf-hero">
+  <div class="pf-hero-tag">01 — Artist Profile</div>
+  <h1 class="pf-hero-title">하리</h1>
+  <div class="pf-hero-sub">Virtual Artist · Content Creator · Tech Communicator</div>
+</div>
+
+<!-- MAIN -->
+<div class="pf-main">
+
+  <!-- LEFT: sticky image -->
+  <div class="pf-img-panel">
+    <img src="{% static 'images/hari_image6.png' %}" alt="Hari Profile">
+  </div>
+
+  <!-- RIGHT: info -->
+  <div class="pf-info-panel">
+
+    <div class="pf-section-label">Artist Information</div>
+
+    <div class="pf-name">하리</div>
+    <div class="pf-name-en">HARI — Virtual Artist</div>
+
+    <p class="pf-bio">
+      하리는 테크뉴스를 전달하고 팬들과 실시간으로 소통하는 가상 콘텐츠 크리에이터예요.<br><br>
+      패션, 음악, 기술이 교차하는 지점에서 독자적인 세계관을 만들어가고 있어요.
+      첫 디지털 싱글 「SIGNAL」을 발매하며 글로벌 차트에 진입했고,
+      서울 패션위크 공식 앰배서더로 선정되었어요.<br><br>
+      가상 인간이지만 진짜 감정으로 이야기하는 하리와 함께라면,
+      매일이 새롭고 특별한 순간이 돼요 ✨
+    </p>
+
+    <!-- Stats -->
+    <div class="pf-stats">
+      <div class="pf-stat">
+        <span class="pf-stat-num">1.2M+</span>
+        <span class="pf-stat-lbl">팔로워</span>
+      </div>
+      <div class="pf-stat">
+        <span class="pf-stat-num">84</span>
+        <span class="pf-stat-lbl">콘텐츠</span>
+      </div>
+      <div class="pf-stat">
+        <span class="pf-stat-num">2023</span>
+        <span class="pf-stat-lbl">데뷔</span>
+      </div>
+      <div class="pf-stat">
+        <span class="pf-stat-num">98%</span>
+        <span class="pf-stat-lbl">팬 만족도</span>
+      </div>
+    </div>
+
+    <!-- Keywords -->
+    <div class="pf-keywords">
+      <span class="pf-kw">테크뉴스</span>
+      <span class="pf-kw">패션</span>
+      <span class="pf-kw">음악</span>
+      <span class="pf-kw">가상 인간</span>
+      <span class="pf-kw">서울</span>
+      <span class="pf-kw">lo-fi</span>
+      <span class="pf-kw">indie pop</span>
+      <span class="pf-kw">미니멀</span>
+      <span class="pf-kw">콜라보</span>
+    </div>
+
+    <!-- SNS -->
+    <div class="pf-sns-title">소셜 미디어 / Follow</div>
+    <div class="pf-sns-grid">
+      <a class="pf-sns-item" href="https://instagram.com" target="_blank" rel="noopener">
+        <div class="pf-sns-left">
+          <div class="pf-sns-icon" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" width="16" height="16" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#fff" stroke="none"/></svg>
+          </div>
+          <div>
+            <div class="pf-sns-name">Instagram</div>
+            <div class="pf-sns-handle">@hari.official</div>
+          </div>
+        </div>
+        <span class="pf-sns-arr">↗</span>
+      </a>
+      <a class="pf-sns-item" href="https://tiktok.com" target="_blank" rel="noopener">
+        <div class="pf-sns-left">
+          <div class="pf-sns-icon" style="background:#010101;">
+            <svg viewBox="0 0 24 24" fill="#fff" width="14" height="14"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/></svg>
+          </div>
+          <div>
+            <div class="pf-sns-name">TikTok</div>
+            <div class="pf-sns-handle">@hari.world</div>
+          </div>
+        </div>
+        <span class="pf-sns-arr">↗</span>
+      </a>
+      <a class="pf-sns-item" href="https://youtube.com/@Hari-o5m2r" target="_blank" rel="noopener">
+        <div class="pf-sns-left">
+          <div class="pf-sns-icon" style="background:#FF0000;">
+            <svg viewBox="0 0 24 24" fill="#fff" width="14" height="14"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+          </div>
+          <div>
+            <div class="pf-sns-name">YouTube</div>
+            <div class="pf-sns-handle">Hari Official</div>
+          </div>
+        </div>
+        <span class="pf-sns-arr">↗</span>
+      </a>
+      <a class="pf-sns-item" href="https://threads.net" target="_blank" rel="noopener">
+        <div class="pf-sns-left">
+          <div class="pf-sns-icon" style="background:#101010;">
+            <svg viewBox="0 0 24 24" fill="#fff" width="14" height="14"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.5 12.068c0-3.816 1.063-6.878 3.159-9.1C6.716.727 9.61-.018 12.553 0c2.695.015 5.069.808 6.859 2.293 1.683 1.4 2.703 3.33 2.958 5.578l-2.906.356c-.39-3.187-2.644-5.177-6.93-5.204-2.29-.013-4.229.592-5.762 1.8C5.174 6.094 4.5 8.434 4.5 12.068c0 2.866.658 5.117 1.957 6.69 1.249 1.513 3.183 2.31 5.744 2.328 2.29.016 4.077-.59 5.312-1.8 1.27-1.242 1.916-3.113 1.916-5.564 0-1.146-.18-2.167-.535-3.038-.352-.862-.874-1.556-1.549-2.065-.64-.487-1.399-.796-2.263-.921-.18.108.015.218.015.33 0 1.557-.524 2.886-1.514 3.744-.926.804-2.152 1.21-3.656 1.21h-.082c-1.302-.02-2.396-.41-3.167-1.126-.817-.759-1.232-1.805-1.232-3.029 0-2.782 2.174-4.417 5.845-4.417.488 0 .977.03 1.46.087z"/></svg>
+          </div>
+          <div>
+            <div class="pf-sns-name">Threads</div>
+            <div class="pf-sns-handle">@hari.official</div>
+          </div>
+        </div>
+        <span class="pf-sns-arr">↗</span>
+      </a>
+    </div>
+
+    <!-- Gallery preview -->
+    <div class="pf-gallery-title">
+      <span>갤러리 미리보기</span>
+      <a class="pf-gallery-link" href="/gallery/">모두 보기 →</a>
+    </div>
+    <div class="pf-gallery-grid">
+      <div class="pf-gallery-thumb"><img src="{% static 'images/hari_image1.png' %}" alt=""></div>
+      <div class="pf-gallery-thumb"><img src="{% static 'images/hari_image3.png' %}" alt=""></div>
+      <div class="pf-gallery-thumb"><img src="{% static 'images/hari_image5.png' %}" alt=""></div>
+    </div>
+
+    <!-- CTA -->
+    <div class="pf-cta">
+      {% if user.is_authenticated %}
+      <a class="pf-btn pf-btn-primary" href="/hari-chat/">하리와 대화하기 💬</a>
+      {% else %}
+      <a class="pf-btn pf-btn-primary" href="#" onclick="alert('로그인이 필요합니다.')">하리와 대화하기 💬</a>
+      {% endif %}
+      <a class="pf-btn pf-btn-secondary" href="/gallery/">갤러리 보기 →</a>
+      <a class="pf-btn pf-btn-secondary" href="/video/">비디오 보기 →</a>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
