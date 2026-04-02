@@ -115,13 +115,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         import asyncio
-        user_message = ''
-        ai_response = "아 미안 나 지금 좀 상태가 안 좋아... 잠만 기다려줘"
+
+        # Ignore pings and messages with no text — return before the
+        # try/finally block so we don't accidentally send the fallback.
         try:
             data = json.loads(text_data)
-            user_message = data.get('message', '')
-            if not user_message:
-                return
+        except (json.JSONDecodeError, TypeError):
+            return
+        if data.get('ping') or not data.get('message', '').strip():
+            return
+
+        user_message = data['message'].strip()
+        ai_response = "아 미안 나 지금 좀 상태가 안 좋아... 잠만 기다려줘"
+        try:
 
             # Save user message (non-critical — don't let a DB failure block the reply)
             try:
