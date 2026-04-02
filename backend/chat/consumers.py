@@ -15,13 +15,13 @@ _FIRST_GREETING = '안녕!! 난 하리야. 넌 이름이 뭐야?'
 
 # Returning user greetings — {name} will be replaced with the user's name
 _RETURNING_GREETINGS = [
-    '오 {name} 왔어!! 오늘 뭐 했어?',
-    '{name}!! 보고 싶었어~ 무슨 일이야?',
-    '어 {name}! 오늘 기분 어때?',
-    '{name} 왔네~ 오늘은 무슨 얘기 할까?',
-    '오 {name}~ 요즘 어떻게 지내?',
-    '{name}! 심심했는데 잘 왔어~',
-    '어 왔어 {name}! 나 진짜 심심했거든',
+    '{name}!! 모해ㅐㅐ',
+    '{name}!! 보고 싶어~',
+    '어 {name}! 기분 어때?',
+    '{name} 왔네~ 무슨 얘기 할래?',
+    '오 {name}~ 지금 뭐하고 있어?',
+    '{name}! 나 심심해',
+    '어 왔어 {name}! 나 진짜 심심했거덩',
 ]
 
 # Returning user but name unknown
