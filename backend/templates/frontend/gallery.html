@@ -65,6 +65,13 @@ body{background:var(--bg);color:var(--ink);overflow-x:hidden;}
 #lb-next{right:1rem;}
 #lb-info{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.16em;color:rgba(255,255,255,0.5);}
 
+/* CONTAINER QUERY — 갤러리 그리드 기준 */
+.gl-body { container-type: inline-size; container-name: gl-body; }
+@container gl-body (max-width: 900px) { .gl-grid { columns: 3; } }
+@container gl-body (max-width: 600px) { .gl-grid { columns: 2; padding: 1.5rem; } }
+@container gl-body (max-width: 360px) { .gl-grid { columns: 1; } }
+
+/* MEDIA QUERIES */
 @media(max-width:1200px){.gl-grid{columns:3;}}
 @media(max-width:768px){.gl-grid{columns:2;padding:1.5rem;}.gl-header{flex-direction:column;gap:1.5rem;align-items:flex-start;}.gl-filter-group{flex-wrap:wrap;}}
 @media(max-width:480px){.gl-grid{columns:2;gap:.6rem;}.gl-nav-right .gl-filter-group{display:none;}}
