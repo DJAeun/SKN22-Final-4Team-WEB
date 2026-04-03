@@ -1293,6 +1293,7 @@ function sendMessage() {
   // Clear input
   input.value = '';
   input.style.height = 'auto';
+  isUserTyping = false;
 
   // Handle WebSocket transmission OR Local Fallback
   if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
