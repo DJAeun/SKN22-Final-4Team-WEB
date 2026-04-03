@@ -7,10 +7,12 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import api_view, permission_classes as perm_classes
+from rest_framework.response import Response
 from dj_rest_auth.jwt_auth import JWTCookieAuthentication
-from .models import Message, ChatMemory, HariKnowledge, GeneratedContent, VisitLog
-from .serializers import MessageSerializer, ChatMemorySerializer
+from .models import Message, ChatMemory, HariKnowledge, GeneratedContent, VisitLog, UserPersona
+from .serializers import MessageSerializer, ChatMemorySerializer, UserNameSerializer
 
 
 def _try_jwt_auth(request):
@@ -85,6 +87,45 @@ class ChatMemoryViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return ChatMemory.objects.filter(user=self.request.user).order_by('-ended_at')
+
+
+@api_view(['GET', 'POST'])
+@perm_classes([permissions.IsAuthenticated])
+def user_name_view(request):
+    """GET: return user's name or null.  POST: save/update name."""
+    user = request.user
+
+    if request.method == 'GET':
+        persona = UserPersona.objects.filter(
+            user=user,
+            category='identity',
+            trait_key='name',
+            is_active=True,
+        ).order_by('-importance').first()
+        return Response({'name': persona.trait_value if persona else None})
+
+    serializer = UserNameSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    name = serializer.validated_data['name']
+
+    # Deactivate old name records, then create new one
+    UserPersona.objects.filter(
+        user=user,
+        category='identity',
+        trait_key='name',
+        is_active=True,
+    ).update(is_active=False)
+
+    UserPersona.objects.create(
+        user=user,
+        category='identity',
+        trait_key='name',
+        trait_value=name,
+        importance=9,
+        is_active=True,
+    )
+
+    return Response({'name': name}, status=status.HTTP_200_OK)
 
 
 def login_view(request):
