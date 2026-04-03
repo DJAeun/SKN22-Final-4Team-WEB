@@ -1,10 +1,28 @@
 import uuid
 
 from django.contrib.auth import get_user_model
-from django.contrib.postgres.fields import ArrayField
-from django.contrib.postgres.indexes import GinIndex
 from django.db import models
-from pgvector.django import VectorField
+
+# PostgreSQL 전용 필드 처리 (로컬 SQLite 호환성을 위해 에러 처리 추가)
+try:
+    from django.contrib.postgres.fields import ArrayField
+    from django.contrib.postgres.indexes import GinIndex
+except ImportError:
+    # django.contrib.postgres가 없거나 로컬 DB가 SQLite인 경우를 대비한 더미 클래스
+    class ArrayField(models.Field):
+        def __init__(self, base_field, **kwargs):
+            super().__init__(**kwargs)
+
+    class GinIndex(models.Index):
+        pass
+
+try:
+    from pgvector.django import VectorField
+except ImportError:
+    # pgvector 모듈이 없는 로컬 환경을 위한 더미 VectorField 클래스
+    class VectorField(models.TextField):
+        def __init__(self, dimensions=None, *args, **kwargs):
+            super().__init__(*args, **kwargs)
 
 User = get_user_model()
 
