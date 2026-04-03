@@ -78,11 +78,14 @@
             <div class="c-title">계정 정보</div>
             <div class="info-grid">
               <div class="info-item"><span class="info-lbl">이름</span><input class="info-val-input" type="text" value="{{ user.get_full_name|default:'' }}" placeholder="이름을 입력하세요"></div>
-              <div class="info-item"><span class="info-lbl">닉네임</span><span class="info-val">{{ user.username|default:"—" }}</span></div>
+              <div class="info-item"><span class="info-lbl">닉네임</span><input class="info-val-input" type="text" value="{{ user.username|default:'' }}" placeholder="닉네임을 입력하세요"></div>
               <div class="info-item"><span class="info-lbl">이메일</span><input class="info-val-input" type="email" value="{{ user.email|default:'' }}" placeholder="이메일을 입력하세요"></div>
               <div class="info-item"><span class="info-lbl">로그인</span><span class="info-val">—</span></div>
               <div class="info-item"><span class="info-lbl">가입일</span><span class="info-val">{{ user.date_joined|date:"Y.m.d"|default:"—" }}</span></div>
               <div class="info-item"><span class="info-lbl">멤버십</span><span class="info-val" style="color:var(--acc)">—</span></div>
+            </div>
+            <div style="margin-top:1rem;">
+              <button class="save-btn" onclick="toast('계정 정보가 저장되었어요 ✓')">저장하기 →</button>
             </div>
           </div>
           <div class="card">
