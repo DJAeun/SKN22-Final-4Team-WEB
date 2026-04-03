@@ -6,7 +6,7 @@
     <img src="{% static 'images/bori_logo_none.png' %}?v=2" alt="Bori" style="height:42px; width:auto; object-fit:contain; filter: contrast(110%) brightness(110%); mix-blend-mode: multiply; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'; this.style.opacity='0.8';" onmouseout="this.style.transform='scale(1)'; this.style.opacity='1';">
   </div>
   <div class="tb-center">
-    <div class="tb-greet">안녕하세요, <strong id="tb-name">보리팬01</strong>님 👋</div>
+    <div class="tb-greet">안녕하세요, <strong id="tb-name">{{ user.username|default:"게스트" }}</strong>님 👋</div>
   </div>
   <div class="tb-right">
     <a class="tb-home" href="/">← 메인으로</a>
@@ -19,7 +19,7 @@
       <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
     </button>
     <span class="tb-notif-dot"></span>
-    <div class="tb-av" onclick="navTo('myinfo')">U</div>
+    <div class="tb-av" onclick="navTo('myinfo')">{{ user.username|first|upper|default:"?" }}</div>
   </div>
 </header>
 

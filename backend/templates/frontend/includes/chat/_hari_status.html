@@ -1,0 +1,497 @@
+{% load static %}
+<!--
+  하리 상태창 위젯 — 우측 사이드바 컴포넌트
+  chat.html <aside class="sidebar-right"> 안에 include 하세요:
+    include "frontend/includes/chat/_hari_status.html"
+
+  의존 파일: /static/js/hari_sidebar.js  (mock data)
+  API 연동 시: hari_sidebar.js 하단 주석 참고
+-->
+<script src="{% static 'js/hari_sidebar.js' %}"></script>
+
+<style>
+/* ── 스크롤 래퍼 ── */
+.hs-outer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+.hs-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 14px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,123,138,0.2) transparent;
+}
+.hs-scroll::-webkit-scrollbar { width: 4px; }
+.hs-scroll::-webkit-scrollbar-thumb { background: rgba(255,123,138,0.25); border-radius: 4px; }
+
+/* ── 공통 카드 ── */
+.hs-card {
+  background: #fff;
+  border: 1px solid rgba(255,123,138,0.12);
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 12px rgba(255,123,138,0.06);
+  margin-bottom: 14px;
+}
+.hs-section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--hari-pink);
+  margin-bottom: 8px;
+}
+
+/* ── 위젯 헤더 ── */
+.hs-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 16px 8px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,123,138,0.08);
+  margin-bottom: 14px;
+}
+.hs-header-title {
+  font-family: var(--f-pixel);
+  font-size: 0.72rem;
+  color: var(--text-main);
+}
+.hs-live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--hari-mint);
+  animation: hs-blink 1.8s infinite;
+  margin-left: auto;
+}
+@keyframes hs-blink {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:0.4; transform:scale(0.75); }
+}
+
+/* ── 1. 소개 카드 ── */
+.hs-intro-text {
+  font-size: 0.76rem;
+  color: var(--text-main);
+  line-height: 1.65;
+  white-space: pre-line;
+  margin-bottom: 12px;
+}
+.hs-chip-group { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+.hs-chip-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.46rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.hs-chip {
+  font-size: 0.66rem;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: rgba(255,123,138,0.07);
+  border: 1px solid rgba(255,123,138,0.15);
+  color: var(--text-main);
+}
+.hs-chip.dislike {
+  background: rgba(180,180,180,0.07);
+  border-color: rgba(180,180,180,0.2);
+  color: var(--text-dim);
+}
+
+/* ── 2. 상태 행 ── */
+.hs-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,123,138,0.07);
+}
+.hs-row:last-child { border-bottom: none; padding-bottom: 0; }
+.hs-row:first-child { padding-top: 0; }
+.hs-row-icon { font-size: 0.95rem; width: 18px; text-align: center; flex-shrink: 0; line-height: 1.5; }
+.hs-row-body { flex: 1; min-width: 0; }
+.hs-row-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.46rem;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.hs-row-val { font-size: 0.75rem; color: var(--text-main); line-height: 1.4; }
+
+/* 바쁨 배지 */
+.hs-busy-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.68rem; padding: 2px 9px; border-radius: 20px;
+  font-family: var(--f-pixel);
+}
+.hs-busy-badge.free   { background: rgba(6,214,160,0.1);  color: #06d6a0; border: 1px solid rgba(6,214,160,0.25); }
+.hs-busy-badge.little { background: rgba(255,166,0,0.1);   color: #e6a817; border: 1px solid rgba(255,166,0,0.25); }
+.hs-busy-badge.busy   { background: rgba(255,123,138,0.1); color: var(--hari-pink); border: 1px solid rgba(255,123,138,0.25); }
+.hs-busy-dot { width: 5px; height: 5px; border-radius: 50%; animation: hs-blink 1.8s infinite; }
+.hs-busy-badge.free .hs-busy-dot   { background: #06d6a0; }
+.hs-busy-badge.little .hs-busy-dot { background: #e6a817; }
+.hs-busy-badge.busy .hs-busy-dot   { background: var(--hari-pink); }
+
+/* ── 3. 주제 버튼 ── */
+.hs-topic-btn {
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  margin-bottom: 7px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,123,138,0.18);
+  background: rgba(255,123,138,0.04);
+  color: var(--text-main);
+  font-size: 0.74rem;
+  font-family: var(--f-pixel);
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, transform 0.12s;
+  line-height: 1.4;
+}
+.hs-topic-btn:last-child { margin-bottom: 0; }
+.hs-topic-btn:hover {
+  background: rgba(255,123,138,0.12);
+  border-color: var(--hari-pink);
+  transform: translateX(3px);
+}
+.hs-topic-btn:active { transform: translateX(1px) scale(0.98); }
+
+/* ── 4. FAQ ── */
+.hs-faq-item { margin-bottom: 8px; }
+.hs-faq-item:last-child { margin-bottom: 0; }
+.hs-faq-q {
+  width: 100%; text-align: left;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,123,138,0.15);
+  background: #fff;
+  color: var(--text-main);
+  font-size: 0.73rem;
+  font-family: var(--f-pixel);
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s;
+}
+.hs-faq-q:hover { background: rgba(255,123,138,0.06); border-color: var(--hari-pink); }
+.hs-faq-arrow { font-size: 0.6rem; color: var(--text-dim); transition: transform 0.2s; flex-shrink: 0; }
+.hs-faq-item.open .hs-faq-arrow { transform: rotate(180deg); }
+.hs-faq-a {
+  display: none;
+  margin-top: 6px;
+  padding: 10px 13px;
+  background: linear-gradient(135deg, #fff5f7, #fff);
+  border: 1px solid rgba(255,123,138,0.12);
+  border-radius: 0 12px 12px 12px;
+  font-size: 0.73rem;
+  color: var(--text-main);
+  line-height: 1.6;
+  font-family: var(--f-pixel);
+  position: relative;
+}
+.hs-faq-a::before {
+  content: '';
+  position: absolute; top: -1px; left: 14px;
+  width: 10px; height: 10px;
+  background: #fff5f7;
+  border-top: 1px solid rgba(255,123,138,0.12);
+  border-left: 1px solid rgba(255,123,138,0.12);
+  transform: rotate(45deg) translateY(-50%);
+}
+.hs-faq-item.open .hs-faq-a { display: block; }
+
+/* ── 유저 프로필 카드 ── */
+.hs-user-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hs-user-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--hari-pink), #ffb3bc);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; font-weight: 700; color: #fff;
+  font-family: var(--f-pixel);
+  flex-shrink: 0;
+}
+.hs-user-info { flex: 1; min-width: 0; }
+.hs-user-name {
+  font-size: 0.82rem; font-weight: 600;
+  color: var(--text-main);
+  font-family: var(--f-pixel);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hs-user-tier {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.56rem; padding: 2px 7px; border-radius: 20px;
+  font-family: 'DM Mono', monospace; letter-spacing: 0.08em;
+  margin-top: 4px;
+  background: rgba(255,123,138,0.09);
+  border: 1px solid rgba(255,123,138,0.22);
+  color: var(--hari-pink);
+}
+.hs-user-tier.guest {
+  background: rgba(160,160,160,0.08);
+  border-color: rgba(160,160,160,0.2);
+  color: var(--text-dim);
+}
+
+/* ── 이전 대화 요약 ── */
+.hs-summary-item {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 8px 10px; border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+}
+.hs-summary-item:last-child { margin-bottom: 0; }
+.hs-summary-item:hover {
+  background: rgba(255,123,138,0.06);
+  border-color: rgba(255,123,138,0.15);
+}
+.hs-summary-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(255,123,138,0.3);
+  flex-shrink: 0; margin-top: 5px;
+}
+.hs-summary-body { flex: 1; min-width: 0; }
+.hs-summary-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.46rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-dim);
+  margin-bottom: 2px;
+}
+.hs-summary-preview {
+  font-size: 0.72rem; color: var(--text-main);
+  line-height: 1.4; font-family: var(--f-pixel);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hs-summary-chips { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 5px; }
+.hs-summary-chip {
+  font-size: 0.6rem; padding: 1px 7px; border-radius: 20px;
+  background: rgba(255,123,138,0.06);
+  border: 1px solid rgba(255,123,138,0.13);
+  color: var(--text-dim); font-family: var(--f-pixel);
+}
+
+/* ── 5. 예절 안내 ── */
+.hs-etiquette-item {
+  display: flex; align-items: flex-start; gap: 7px;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,123,138,0.06);
+  font-family: var(--f-pixel);
+}
+.hs-etiquette-item:last-child { border-bottom: none; padding-bottom: 0; }
+.hs-etiquette-item::before { content: "•"; color: var(--hari-pink); flex-shrink: 0; margin-top: 1px; }
+</style>
+
+<div class="hs-outer">
+
+  <!-- 헤더 -->
+  <div class="hs-header">
+    <span style="font-size:1rem;">🌸</span>
+    <span class="hs-header-title">하리 상태창</span>
+    <span class="hs-live-dot" title="실시간 상태"></span>
+  </div>
+
+  <div class="hs-scroll" id="hs-scroll">
+
+    <!-- 0. 유저 프로필 카드 -->
+    <div class="hs-section-label">내 프로필</div>
+    <div class="hs-card">
+      <div class="hs-user-card">
+        <div class="hs-user-avatar" id="hs-user-avatar">?</div>
+        <div class="hs-user-info">
+          <div class="hs-user-name" id="hs-user-name">게스트</div>
+          <div class="hs-user-tier guest" id="hs-user-tier">미로그인</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 0-2. 이전 대화 요약 -->
+    <div class="hs-section-label">이전 대화</div>
+    <div class="hs-card" id="hs-summaries" style="padding: 8px 10px;"></div>
+
+    <!-- 1. 하리 소개 -->
+    <div class="hs-section-label">하리 소개</div>
+    <div class="hs-card">
+      <div class="hs-intro-text" id="hs-intro"></div>
+      <div class="hs-chip-label">좋아하는 것</div>
+      <div class="hs-chip-group" id="hs-likes"></div>
+      <div class="hs-chip-label" style="margin-top:8px;">이런 건 조금 어려워요</div>
+      <div class="hs-chip-group" id="hs-dislikes"></div>
+    </div>
+
+
+    <!-- 4. 자주 묻는 질문 -->
+    <div class="hs-section-label">자주 묻는 질문</div>
+    <div class="hs-card" id="hs-faq"></div>
+
+    <!-- 5. 대화 예절 -->
+    <div class="hs-section-label">대화 예절 안내</div>
+    <div class="hs-card" id="hs-etiquette"></div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  /* ── 입력창에 텍스트를 채우는 헬퍼 ── */
+  function fillInput(text) {
+    const el = document.getElementById('messageInput');
+    if (!el) return;
+    el.value = text;
+    el.dispatchEvent(new Event('input'));  // onTextareaInput 트리거
+    el.focus();
+  }
+
+  /* ── FAQ 아코디언 토글 ── */
+  function toggleFaq(item) {
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.hs-faq-item.open').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  /* ── 바쁨 레벨 → 배지 클래스 ── */
+  function busyClass(level) {
+    if (level === '여유') return 'free';
+    if (level === '조금 바빠요') return 'little';
+    return 'busy';
+  }
+
+  /* ── 날짜 문자열 → 화면 날짜 텍스트와 매칭해 스크롤 ── */
+  function scrollToDate(dateStr) {
+    const dividers = document.querySelectorAll('.date-divider-text');
+    for (const el of dividers) {
+      if (el.textContent.trim() === dateStr) {
+        el.closest('.date-divider').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+    }
+    // 매칭 없으면 채팅창 맨 위로 이동
+    const chatBody = document.querySelector('.chat-body') || document.getElementById('chatBody');
+    if (chatBody) chatBody.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ── 유저 프로필 카드 렌더 ── */
+  function renderUserCard() {
+    const data = window.djangoData || {};
+    const isAuth = !!data.isAuthenticated;
+    const name = data.userName || '게스트';
+
+    const avatarEl = document.getElementById('hs-user-avatar');
+    const nameEl   = document.getElementById('hs-user-name');
+    const tierEl   = document.getElementById('hs-user-tier');
+
+    if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
+    if (nameEl)   nameEl.textContent   = isAuth ? name : '게스트';
+
+    if (tierEl) {
+      if (!isAuth) {
+        tierEl.textContent = '미로그인';
+        tierEl.className = 'hs-user-tier guest';
+      } else {
+        /* mock 티어 — API 연동 시 실제 tier 값으로 교체 */
+        tierEl.textContent = '✦ FAN 멤버';
+        tierEl.className = 'hs-user-tier';
+      }
+    }
+  }
+
+  /* ── 렌더링 ── */
+  function render(d) {
+    /* 0. 유저 카드 */
+    renderUserCard();
+
+    /* 0-2. 이전 대화 요약 */
+    const summariesEl = document.getElementById('hs-summaries');
+    if (summariesEl && d.chatSummaries) {
+      if (d.chatSummaries.length === 0) {
+        summariesEl.innerHTML = '<div style="font-size:0.72rem;color:var(--text-dim);font-family:var(--f-pixel);text-align:center;padding:8px 0;">아직 대화 기록이 없어요 💬</div>';
+      } else {
+        d.chatSummaries.forEach(s => {
+          const item = document.createElement('div');
+          item.className = 'hs-summary-item';
+
+          const chips = s.topics.map(t => `<span class="hs-summary-chip">${t}</span>`).join('');
+          item.innerHTML = `
+            <div class="hs-summary-dot"></div>
+            <div class="hs-summary-body">
+              <div class="hs-summary-label">${s.label}</div>
+              <div class="hs-summary-preview">${s.preview}</div>
+              <div class="hs-summary-chips">${chips}</div>
+            </div>`;
+
+          item.addEventListener('click', () => scrollToDate(s.label));
+          summariesEl.appendChild(item);
+        });
+      }
+    }
+
+    /* 1. 소개 */
+    document.getElementById('hs-intro').textContent = d.profile.intro;
+
+    const likesEl = document.getElementById('hs-likes');
+    d.profile.likes.forEach(t => {
+      const s = document.createElement('span');
+      s.className = 'hs-chip'; s.textContent = t;
+      likesEl.appendChild(s);
+    });
+
+    const dislikesEl = document.getElementById('hs-dislikes');
+    d.profile.dislikes.forEach(t => {
+      const s = document.createElement('span');
+      s.className = 'hs-chip dislike'; s.textContent = t;
+      dislikesEl.appendChild(s);
+    });
+
+    /* 4. FAQ */
+    const faqEl = document.getElementById('hs-faq');
+    d.faq.forEach(item => {
+      const wrap = document.createElement('div');
+      wrap.className = 'hs-faq-item';
+
+      const qBtn = document.createElement('button');
+      qBtn.className = 'hs-faq-q';
+      qBtn.innerHTML = `<span>${item.question}</span><span class="hs-faq-arrow">▼</span>`;
+      qBtn.addEventListener('click', () => toggleFaq(wrap));
+
+      const aDiv = document.createElement('div');
+      aDiv.className = 'hs-faq-a';
+      aDiv.textContent = item.answer;
+
+      wrap.appendChild(qBtn);
+      wrap.appendChild(aDiv);
+      faqEl.appendChild(wrap);
+    });
+
+    /* 5. 예절 */
+    const etiqEl = document.getElementById('hs-etiquette');
+    d.etiquette.forEach(msg => {
+      const div = document.createElement('div');
+      div.className = 'hs-etiquette-item';
+      div.textContent = msg;
+      etiqEl.appendChild(div);
+    });
+  }
+
+  /* ── 초기화: HARI_DATA가 로드됐을 때 실행 ── */
+  if (typeof HARI_DATA !== 'undefined') {
+    render(HARI_DATA);
+  } else {
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof HARI_DATA !== 'undefined') render(HARI_DATA);
+    });
+  }
+})();
+</script>

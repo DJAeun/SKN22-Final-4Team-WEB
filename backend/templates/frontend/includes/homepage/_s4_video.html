@@ -1,40 +1,40 @@
 {% load static %}
 <style>
-  #s4 { 
-    background: #ffffff; 
-    padding: 5rem 3%; 
-    position: relative; 
+  #s4 {
+    background: #ffffff;
+    position: relative;
   }
-  
+
   .s4-header {
-    display: flex; 
-    justify-content: space-between; 
-    align-items: flex-end; 
-    margin-bottom: 4rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 123, 138, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 2.5rem 2.5rem 1.5rem;
+    border-bottom: 0.5px solid var(--bdr);
   }
-  
-  .s4-title { 
-    font-family: 'Bebas Neue', sans-serif; 
-    font-size: 6.5rem; 
-    font-weight: 400; 
-    color: #2a2420; 
-    line-height: 0.8; 
-    letter-spacing: 0.02em;
+
+  .s4-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1;
     margin: 0;
   }
-  
-  .s4-more { 
-    font-family: var(--f-pixel);
-    font-size: 0.75rem; 
-    color: #ff7b8a; 
-    text-decoration: none; 
-    transition: opacity 0.2s; 
-    padding-bottom: 0.2rem;
+
+  .s4-more {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--acc);
+    text-decoration: none;
+    border-bottom: 0.5px solid var(--acc);
+    padding-bottom: 1px;
     white-space: nowrap;
+    transition: color 0.2s;
   }
-  .s4-more:hover { opacity: 0.7; }
+  .s4-more:hover { color: var(--ink); }
 
   /* Swiper 재구성 및 Custom CSS */
   .swiper-video { /* container if we decide to re-init swiper */
