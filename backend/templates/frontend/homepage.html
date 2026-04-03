@@ -1209,14 +1209,13 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
   letter-spacing:.06em; color:var(--dim); margin-top:.6rem; line-height:1.6;
 }
 
+/* 중복 900px 쿼리 통합 */
 @media(max-width:900px){
   #s-sub { padding:0; }
   .mem-hero { grid-template-columns:1fr; gap:2.5rem; padding:3rem 1.5rem; }
   .mem-stats { grid-template-columns:repeat(3,1fr); }
   .mem-plans { grid-template-columns:1fr; padding:0 1.5rem 3rem; }
   .mem-faq { grid-template-columns:1fr; gap:1.5rem; padding:2.5rem 1.5rem; }
-}
-@media(max-width:900px){
   .hero-inner{grid-template-columns:1fr;}
   .hero-right{display:none;}
   #s2,#s6{grid-template-columns:1fr;}
@@ -1233,6 +1232,20 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
   .ft-logo-area,.ft-nav-area,.ft-sns-area{border-bottom:0.5px solid var(--bdr);min-height:auto;padding:2.5rem;}
   .cf-row{grid-template-columns:1fr;}
 }
+
+/* CONTAINER QUERIES — 섹션 내부 컴포넌트용 */
+/* 갤러리 그리드 컨테이너 */
+#s3 { container-type: inline-size; container-name: s3; }
+@container s3 (max-width: 600px) {
+  .gal-grid { grid-template-columns: 1fr 1fr; grid-auto-rows: 150px; }
+  .gal-item { grid-column: span 1 !important; grid-row: span 1 !important; }
+}
+/* 채팅 쇼케이스 컨테이너 */
+#s6 { container-type: inline-size; container-name: s6; }
+@container s6 (max-width: 700px) {
+  .chat-showcase { grid-template-columns: 1fr; }
+  .chat-left { border-right: none; border-bottom: 0.5px solid var(--bdr); }
+}
 </style>
 </head>
 <body>
@@ -1246,10 +1259,6 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 {% include "frontend/includes/homepage/_s3_gallery.html" %}
 
 {% include "frontend/includes/homepage/_s4_video.html" %}
-
-{% include "frontend/includes/homepage/_s5_news.html" %}
-
-{% include "frontend/includes/homepage/_s6_membership.html" %}
 
 {% include "frontend/includes/homepage/_s7_contact.html" %}
 

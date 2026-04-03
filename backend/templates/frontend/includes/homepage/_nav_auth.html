@@ -13,14 +13,6 @@
       {% else %}
       <a href="#" onclick="openAuth('login'); return false;" style="color:var(--acc);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:0.3rem;white-space:nowrap;">하리와 대화하기 <span style="font-size:1rem;">💬</span></a>
       {% endif %}
-      <a href="#s2" style="color:var(--ink);text-decoration:none;transition:opacity 0.2s;white-space:nowrap;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">Profile</a>
-      <a href="#s3" style="color:var(--ink);text-decoration:none;transition:opacity 0.2s;white-space:nowrap;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">Gallery</a>
-      <a href="#s4" style="color:var(--ink);text-decoration:none;transition:opacity 0.2s;white-space:nowrap;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">Video</a>
-      <a href="#s-sub" class="nav-item-secondary" style="color:var(--ink);text-decoration:none;transition:opacity 0.2s;white-space:nowrap;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">Membership</a>
-      <a href="#s5" class="nav-item-secondary" style="color:var(--ink);text-decoration:none;transition:opacity 0.2s;white-space:nowrap;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">News</a>
-      <a href="#s6" class="nav-item-secondary" style="color:var(--ink);text-decoration:none;transition:opacity 0.2s;white-space:nowrap;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">Contact</a>
-      <a href="#s7" class="nav-item-secondary" style="color:var(--ink);text-decoration:none;transition:opacity 0.2s;white-space:nowrap;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">SNS</a>
-      
       <!-- CTA 버튼 -->
       <a href="/fanpage/" style="display:flex;align-items:center;gap:0.3rem;background:var(--acc);color:#fff;padding:0.4rem 0.7rem;text-decoration:none;font-family:var(--f-neo);font-size:0.75rem;letter-spacing:0;font-weight:500;margin-left:0.5rem;transition:background 0.2s;white-space:nowrap;" onmouseover="this.style.background='#ff4c6c'" onmouseout="this.style.background='var(--acc)'">마이페이지 ↗</a>
       <a href="/membership/" style="display:flex;align-items:center;gap:0.3rem;background:var(--acc);color:#fff;padding:0.4rem 0.7rem;text-decoration:none;font-family:var(--f-neo);font-size:0.75rem;letter-spacing:0;font-weight:500;transition:background 0.2s;white-space:nowrap;" onmouseover="this.style.background='#ff4c6c'" onmouseout="this.style.background='var(--acc)'">멤버십 가입하기 ↗</a>
@@ -53,21 +45,18 @@
 
 <div id="drawer-bd" onclick="closeDrawer()"></div>
 <div id="drawer">
-  <div class="drawer-label">Navigation</div>
+  <div class="drawer-label">Menu</div>
   <ul>
-    {% if user.is_authenticated %}
-    <li><a href="/hari-chat/" onclick="closeDrawer()"><span style="color:var(--acc);font-weight:600;">하리와 대화하기</span></a></li>
-    {% else %}
-    <li><a href="#" onclick="closeDrawer(); openAuth('login'); return false;"><span style="color:var(--acc);font-weight:600;">하리와 대화하기</span></a></li>
-    {% endif %}
-    <!-- 사이드바 메뉴: 클릭 시 해당 전용 페이지로 이동 (/profile.html 페이지 등) -->
     <li><a href="/profile/" onclick="closeDrawer()"><span>Profile</span></a></li>
     <li><a href="/gallery/" onclick="closeDrawer()"><span>Gallery</span></a></li>
     <li><a href="/video/" onclick="closeDrawer()"><span>Video</span></a></li>
-    <li><a href="/news/" onclick="closeDrawer()"><span>News</span></a></li>
+    {% if user.is_authenticated %}
+    <li><a href="/hari-chat/" onclick="closeDrawer()"><span style="color:var(--acc);font-weight:600;">Chat 💬</span></a></li>
+    {% else %}
+    <li><a href="#" onclick="closeDrawer(); openAuth('login'); return false;"><span style="color:var(--acc);font-weight:600;">Chat 💬</span></a></li>
+    {% endif %}
     <li><a href="/membership/" onclick="closeDrawer()"><span>Membership</span></a></li>
     <li><a href="#s6" onclick="closeDrawer()"><span>Contact</span></a></li>
-    <li><a href="#s7" onclick="closeDrawer()"><span>SNS</span></a></li>
   </ul>
   <div class="drawer-sub-cta">
     <a href="/fanpage/">

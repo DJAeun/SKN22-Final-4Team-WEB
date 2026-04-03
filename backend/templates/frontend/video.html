@@ -103,129 +103,64 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;over
 /* ── VIDEO GRID ── */
 .vd-grid{
   padding:2.5rem;
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:1.5rem;
+  overflow:hidden;
+}
+.vd-grid-inner{
+  display:flex;
+  flex-wrap:wrap;
+  gap:24px;
 }
 
-/* ── VIDEO CARD ── */
-.vd-card{
-  border:.5px solid var(--bdr);overflow:hidden;
-  transition:border-color .25s,transform .25s,box-shadow .25s;
-  cursor:pointer;
-  animation:cardIn .5s ease both;
+/* ── YT CARD (메인과 동일) ── */
+.yt-card{
+  display:flex;flex-direction:column;align-items:flex-start;
+  max-width:340px;width:100%;margin:0;
 }
-.vd-card:hover{
-  border-color:var(--acc);
-  transform:translateY(-4px);
-  box-shadow:0 12px 40px rgba(255,123,138,0.15);
+.yt-thumb-wrap{
+  position:relative;width:100%;padding-bottom:177.78%;
+  background:#000;border-radius:4px;overflow:hidden;
+  box-shadow:0 10px 20px rgba(0,0,0,0.1);
 }
-@keyframes cardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.vd-card:nth-child(1){animation-delay:.05s}
-.vd-card:nth-child(2){animation-delay:.1s}
-.vd-card:nth-child(3){animation-delay:.15s}
-.vd-card:nth-child(4){animation-delay:.2s}
-.vd-card:nth-child(5){animation-delay:.25s}
-.vd-card:nth-child(6){animation-delay:.3s}
-.vd-card[data-type="full"]{grid-column:span 2;}
-
-/* 세로형 Shorts */
-.vd-frame-shorts{position:relative;padding-bottom:177.78%;height:0;overflow:hidden;background:#0a0a0a;}
-.vd-frame-shorts img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;}
-.vd-frame-shorts .vd-play-overlay{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,0.25);transition:background .2s;
+.yt-thumb-wrap iframe{
+  position:absolute;top:0;left:0;width:100%;height:100%;border:none;
 }
-.vd-card:hover .vd-play-overlay{background:rgba(0,0,0,0.4);}
-.vd-play-btn{
-  width:52px;height:52px;border-radius:50%;
-  background:rgba(255,255,255,0.95);
-  display:flex;align-items:center;justify-content:center;
-  transition:transform .2s,background .2s;
+.yt-shorts-badge{
+  position:absolute;bottom:10px;right:10px;
+  background:#ff0000;color:#fff;font-size:.7rem;font-weight:700;
+  padding:2px 6px;border-radius:4px;
+  display:flex;align-items:center;font-family:sans-serif;
+  pointer-events:none;
 }
-.vd-card:hover .vd-play-btn{transform:scale(1.1);background:#fff;}
-.vd-play-btn svg{width:20px;height:20px;fill:var(--acc);margin-left:2px;}
-
-/* 가로형 Full */
-.vd-frame-full{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;background:#0a0a0a;}
-.vd-frame-full img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;}
-.vd-frame-full .vd-play-overlay{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,0.25);transition:background .2s;
+.yt-info{text-align:left;margin-top:1rem;width:100%;padding:0 4px;}
+.yt-title{font-family:var(--f-neo);font-size:1.05rem;font-weight:500;color:#222;line-height:1.3;margin-bottom:.4rem;}
+.yt-meta span{font-family:var(--f-pixel);font-size:.75rem;color:var(--dim);display:inline-block;margin-bottom:.8rem;}
+.yt-link{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:.8rem;color:#555;text-decoration:none;font-weight:500;transition:color .2s;
 }
-.vd-card:hover .vd-frame-full .vd-play-overlay{background:rgba(0,0,0,0.4);}
-
-.vd-badge{
-  position:absolute;top:.6rem;left:.6rem;
-  font-family:'DM Mono',monospace;font-size:.46rem;
-  letter-spacing:.12em;text-transform:uppercase;
-  padding:3px 9px;pointer-events:none;z-index:2;
-}
-.vd-badge.shorts{background:var(--acc);color:#fff;}
-.vd-badge.full{background:var(--ink);color:#fff;}
-
-.vd-info{padding:1.1rem 1.2rem;}
-.vd-info-title{font-size:.88rem;color:var(--ink);line-height:1.5;margin-bottom:.3rem;font-weight:400;}
-.vd-info-meta{font-family:'DM Mono',monospace;font-size:.5rem;letter-spacing:.1em;color:var(--dim);margin-bottom:.7rem;}
-.vd-info-link{
-  font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--acc);text-decoration:none;
-  display:inline-flex;align-items:center;gap:.3rem;
-  border-bottom:.5px solid var(--acc);padding-bottom:1px;transition:color .2s;
-}
-.vd-info-link:hover{color:var(--ink);}
+.yt-link:hover{color:#ff7b8a;}
 
 /* ── EMPTY STATE ── */
 .vd-empty{
-  grid-column:1/-1;padding:5rem 2.5rem;
-  text-align:center;color:var(--dim);display:none;
+  padding:5rem 2.5rem;text-align:center;color:var(--dim);display:none;
 }
 .vd-empty p{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:1rem;}
 .vd-empty a{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);text-decoration:none;border-bottom:.5px solid var(--acc);}
 
-/* ── YT MODAL ── */
-#vd-modal-overlay{
-  position:fixed;inset:0;z-index:600;
-  background:rgba(42,36,32,0.85);
-  backdrop-filter:blur(8px);
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;pointer-events:none;
-  transition:opacity .3s;
+/* CONTAINER QUERY — 비디오 그리드 기준 */
+.vd-grid { container-type: inline-size; container-name: vd-grid; }
+@container vd-grid (max-width: 640px) {
+  .vd-grid-inner { justify-content: center; }
+  .yt-card { max-width: 280px; }
 }
-#vd-modal-overlay.show{opacity:1;pointer-events:all;}
-#vd-modal-box{
-  position:relative;
-  transform:translateY(24px) scale(.97);
-  transition:transform .38s cubic-bezier(.77,0,.18,1);
+@container vd-grid (max-width: 400px) {
+  .yt-card { max-width: 100%; }
+  .yt-title { font-size: 0.92rem; }
 }
-#vd-modal-overlay.show #vd-modal-box{transform:translateY(0) scale(1);}
-#vd-modal-iframe-wrap{
-  position:relative;width:100%;
-  background:#000;
+
+@media(max-width:768px){
+  .vd-grid-inner{justify-content:center;}
 }
-#vd-modal-iframe-wrap iframe{
-  position:absolute;inset:0;width:100%;height:100%;border:none;
-}
-#vd-modal-info{
-  padding:.85rem 1rem .7rem;
-  background:var(--s7-bg);
-  display:flex;align-items:center;justify-content:space-between;gap:1rem;
-}
-#vd-modal-title{font-size:.86rem;color:rgba(255,245,246,0.9);line-height:1.5;flex:1;}
-#vd-modal-yt-link{
-  font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--acc);text-decoration:none;
-  border-bottom:.5px solid var(--acc);padding-bottom:1px;white-space:nowrap;transition:color .2s;
-}
-#vd-modal-yt-link:hover{color:#fff;}
-#vd-modal-close{
-  flex-shrink:0;
-  background:transparent;border:.5px solid rgba(255,245,246,.22);
-  color:rgba(255,245,246,.9);font-family:'DM Mono',monospace;
-  font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;
-  padding:5px 14px;cursor:pointer;transition:background .2s;white-space:nowrap;
-}
-#vd-modal-close:hover{background:var(--acc);border-color:var(--acc);}
 
 /* ── FOOTER ── */
 .vd-footer{
@@ -301,57 +236,56 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;over
 
 <!-- VIDEO GRID -->
 <div class="vd-grid" id="vd-grid">
+  <div class="vd-grid-inner">
 
-  <!-- Shorts 1 -->
-  <div class="vd-card" data-type="shorts" onclick="openModal('7Ytd-ZDlO0c','&lt;테크뉴스&gt; 초파리 뇌의 비밀','https://www.youtube.com/shorts/7Ytd-ZDlO0c',true)">
-    <div class="vd-frame-shorts" style="position:relative;">
-      <img src="https://img.youtube.com/vi/7Ytd-ZDlO0c/hqdefault.jpg" alt="초파리 뇌의 비밀" loading="lazy">
-      <span class="vd-badge shorts">▶ Shorts</span>
-      <div class="vd-play-overlay">
-        <div class="vd-play-btn">
-          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        </div>
+    <!-- 영상 1 -->
+    <div class="yt-card">
+      <div class="yt-thumb-wrap">
+        <iframe src="https://www.youtube.com/embed/7Ytd-ZDlO0c?mute=1&loop=1&playlist=7Ytd-ZDlO0c"
+          title="YouTube Shorts" frameborder="0"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen>
+        </iframe>
+        <span class="yt-shorts-badge">▶ Shorts</span>
+      </div>
+      <div class="yt-info">
+        <div class="yt-title">&lt;테크뉴스&gt; 초파리 뇌의 비밀</div>
+        <div class="yt-meta"><span>최근 소식</span></div>
+        <a class="yt-link" href="https://www.youtube.com/shorts/7Ytd-ZDlO0c" target="_blank" rel="noopener">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
+          YouTube 앱에서 보기 ↗
+        </a>
       </div>
     </div>
-    <div class="vd-info">
-      <div class="vd-info-title">&lt;테크뉴스&gt; 초파리 뇌의 비밀</div>
-      <div class="vd-info-meta">최근 소식 · Shorts</div>
-      <a class="vd-info-link" href="https://www.youtube.com/shorts/7Ytd-ZDlO0c" target="_blank" rel="noopener" onclick="event.stopPropagation()">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"/></svg>
-        YouTube에서 보기
-      </a>
-    </div>
-  </div>
 
-  <!-- Shorts 2 -->
-  <div class="vd-card" data-type="shorts" onclick="openModal('LFBHDLvL2Yw','&lt;테크뉴스&gt; 구글 Stitch','https://www.youtube.com/shorts/LFBHDLvL2Yw',true)">
-    <div class="vd-frame-shorts" style="position:relative;">
-      <img src="https://img.youtube.com/vi/LFBHDLvL2Yw/hqdefault.jpg" alt="구글 Stitch" loading="lazy">
-      <span class="vd-badge shorts">▶ Shorts</span>
-      <div class="vd-play-overlay">
-        <div class="vd-play-btn">
-          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        </div>
+    <!-- 영상 2 -->
+    <div class="yt-card">
+      <div class="yt-thumb-wrap">
+        <iframe src="https://www.youtube.com/embed/LFBHDLvL2Yw?mute=1&loop=1&playlist=LFBHDLvL2Yw"
+          title="YouTube Shorts" frameborder="0"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen>
+        </iframe>
+        <span class="yt-shorts-badge">▶ Shorts</span>
+      </div>
+      <div class="yt-info">
+        <div class="yt-title">&lt;테크뉴스&gt; 구글 Stitch</div>
+        <div class="yt-meta"><span>최근 소식</span></div>
+        <a class="yt-link" href="https://www.youtube.com/shorts/LFBHDLvL2Yw" target="_blank" rel="noopener">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
+          YouTube 앱에서 보기 ↗
+        </a>
       </div>
     </div>
-    <div class="vd-info">
-      <div class="vd-info-title">&lt;테크뉴스&gt; 구글 Stitch</div>
-      <div class="vd-info-meta">최근 소식 · Shorts</div>
-      <a class="vd-info-link" href="https://www.youtube.com/shorts/LFBHDLvL2Yw" target="_blank" rel="noopener" onclick="event.stopPropagation()">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"/></svg>
-        YouTube에서 보기
-      </a>
+
+    <div class="vd-empty" id="vd-empty">
+      <p>해당 카테고리에 영상이 없어요</p>
+      <a href="https://www.youtube.com/@Hari-o5m2r" target="_blank" rel="noopener">YouTube 채널 방문하기 ↗</a>
     </div>
+
   </div>
-
-
-
-  <!-- Empty state (보이는 카드가 없을 때) -->
-  <div class="vd-empty" id="vd-empty">
-    <p>해당 카테고리에 영상이 없어요</p>
-    <a href="https://www.youtube.com/@Hari-o5m2r" target="_blank" rel="noopener">YouTube 채널 방문하기 ↗</a>
-  </div>
-
 </div>
 
 <!-- FOOTER -->
@@ -364,110 +298,9 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;over
   </div>
 </footer>
 
-<!-- YT MODAL -->
-<div id="vd-modal-overlay" onclick="if(event.target===this)closeModal()">
-  <div id="vd-modal-box">
-    <div id="vd-modal-iframe-wrap">
-      <iframe id="vd-modal-iframe" src="" allowfullscreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-      </iframe>
-    </div>
-    <div id="vd-modal-info">
-      <div id="vd-modal-title"></div>
-      <a id="vd-modal-yt-link" href="#" target="_blank" rel="noopener">채널 방문 ↗</a>
-      <button id="vd-modal-close" onclick="closeModal()">닫기 ✕</button>
-    </div>
-  </div>
-</div>
-
 <script>
-/* ── Filter ── */
-let currentFilter = 'all';
-
-function filterVideos(type, btn) {
-  currentFilter = type;
-
-  // 모든 버튼 off
-  document.querySelectorAll('.vd-filter-btn').forEach(b => b.classList.remove('on'));
-  // 클릭된 버튼 그룹의 같은 타입 버튼들 on
-  document.querySelectorAll('.vd-filter-btn').forEach(b => {
-    if ((b.textContent.trim().toLowerCase() === type) ||
-        (type === 'all' && b.textContent.trim() === 'All')) {
-      b.classList.add('on');
-    }
-  });
-  if (type === 'all') {
-    document.querySelectorAll('.vd-filter-btn').forEach(b => {
-      if (b.textContent.trim() === 'All') b.classList.add('on');
-    });
-  }
-
-  let visible = 0;
-  document.querySelectorAll('.vd-card').forEach(card => {
-    const show = (type === 'all' || card.dataset.type === type);
-    card.style.display = show ? '' : 'none';
-    if (show) visible++;
-  });
-
-  const empty = document.getElementById('vd-empty');
-  if (empty) empty.style.display = visible === 0 ? 'block' : 'none';
-
-  // span 컬럼 조정 — 필터 시 full 카드 span 유지
-  updateSpan();
-}
-
-function updateSpan() {
-  document.querySelectorAll('.vd-card[data-type="full"]').forEach(card => {
-    card.style.gridColumn = card.style.display === 'none' ? '' : 'span 2';
-  });
-}
-
-/* ── Modal ── */
-let currentYtUrl = '#';
-
-function openModal(vid, title, ytUrl, isShorts) {
-  const overlay = document.getElementById('vd-modal-overlay');
-  const iframe  = document.getElementById('vd-modal-iframe');
-  const titleEl = document.getElementById('vd-modal-title');
-  const ytLink  = document.getElementById('vd-modal-yt-link');
-  const box     = document.getElementById('vd-modal-box');
-  const wrap    = document.getElementById('vd-modal-iframe-wrap');
-
-  currentYtUrl = ytUrl;
-  ytLink.href  = ytUrl;
-
-  const decoded = title.replace(/&lt;/g,'<').replace(/&gt;/g,'>');
-  titleEl.textContent = decoded;
-
-  if (isShorts) {
-    box.style.maxWidth     = '380px';
-    wrap.style.aspectRatio = '9/16';
-    iframe.src = `https://www.youtube.com/embed/${vid}?rel=0&autoplay=1&loop=1&playlist=${vid}`;
-  } else {
-    box.style.maxWidth     = '900px';
-    wrap.style.aspectRatio = '16/9';
-    iframe.src = `https://www.youtube.com/embed/${vid}?rel=0&autoplay=1`;
-  }
-
-  overlay.classList.add('show');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal() {
-  const overlay = document.getElementById('vd-modal-overlay');
-  const iframe  = document.getElementById('vd-modal-iframe');
-  overlay.classList.remove('show');
-  document.body.style.overflow = '';
-  setTimeout(() => { iframe.src = ''; }, 350);
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeModal();
-});
-
-/* ── video count ── */
 document.addEventListener('DOMContentLoaded', () => {
-  const total = document.querySelectorAll('.vd-card').length;
+  const total = document.querySelectorAll('.yt-card').length;
   const el = document.getElementById('video-total-count');
   if (el) el.textContent = total;
 });
