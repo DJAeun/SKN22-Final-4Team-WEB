@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-import random
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.db import connection
@@ -9,28 +8,6 @@ from django.utils import timezone
 from .models import Message, ChatMemory
 
 logger = logging.getLogger(__name__)
-
-# First-time greeting (no name known yet)
-_FIRST_GREETING = '안녕!! 난 하리야. 넌 이름이 뭐야?'
-
-# Returning user greetings — {name} will be replaced with the user's name
-_RETURNING_GREETINGS = [
-    '{name}!! 모해ㅐㅐ',
-    '{name}!! 보고 싶어~',
-    '어 {name}! 기분 어때?',
-    '{name} 왔네~ 무슨 얘기 할래?',
-    '오 {name}~ 지금 뭐하고 있어?',
-    '{name}! 나 심심해',
-    '어 왔어 {name}! 나 진짜 심심했거덩',
-]
-
-# Returning user but name unknown
-_RETURNING_NO_NAME_GREETINGS = [
-    '어 왔어!! 근데 너 이름이 뭐였지?',
-    '오 또 왔네~ 좋아! 미안한데... 이름을 까먹었어...',
-    '왔어?? 나 심심했는데 잘 왔어~ 갑자기 네 이름이 헷갈리네.. 뭐였지?',
-    '어 반가워! 나 심심한데, 재밌는 썰 풀어주라~ 그건 그렇고 네 이름을 말해준 적이 있었나??',
-]
 
 # Trigger Hari persona enrichment every N completed conversations per user
 PERSONA_UPDATE_INTERVAL = 20
@@ -74,12 +51,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     self.message_count = 0
 
             logger.info(f"WS connected: thread={self.thread_id}, message_count={self.message_count}")
-
-            greeting = await self._pick_greeting()
-            await self.send(text_data=json.dumps({
-                'message': greeting,
-                'sender': 'hari',
-            }))
 
         except Exception as e:
             logger.error(f"WS connect error: {e}", exc_info=True)
@@ -182,42 +153,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     await self.save_message(sender_type=False, content=ai_response)
                 except Exception as e:
                     logger.error(f"Failed to save Hari response: {e}", exc_info=True)
-
-    # ------------------------------------------------------------------ #
-    #  Greeting logic                                                    #
-    # ------------------------------------------------------------------ #
-
-    async def _pick_greeting(self) -> str:
-        """Choose a greeting based on whether this is a new or returning user."""
-        is_new = self.message_count == 0
-        if is_new:
-            return _FIRST_GREETING
-
-        name = await self._get_user_name()
-        if name:
-            return random.choice(_RETURNING_GREETINGS).format(name=name)
-        return random.choice(_RETURNING_NO_NAME_GREETINGS)
-
-    @database_sync_to_async
-    def _get_user_name(self):
-        """Look up the user's name/nickname from user_persona."""
-        with connection.cursor() as cur:
-            cur.execute(
-                """
-                SELECT trait_value FROM user_persona
-                WHERE user_id = %s
-                  AND (
-                      trait_key IN ('name', 'nickname', 'real_name', 'user_name')
-                      OR category = 'identity'
-                  )
-                  AND is_active = TRUE
-                ORDER BY importance DESC
-                LIMIT 1
-                """,
-                [self.user_id],
-            )
-            row = cur.fetchone()
-            return row[0] if row else None
 
     # ------------------------------------------------------------------ #
     #  DB helpers (run in thread pool via database_sync_to_async)         #

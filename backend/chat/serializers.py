@@ -14,3 +14,7 @@ class ChatMemorySerializer(serializers.ModelSerializer):
         model = ChatMemory
         fields = ['memory_id', 'user', 'summary', 'keywords', 'ended_at']
         read_only_fields = ['memory_id']
+
+
+class UserNameSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100)
