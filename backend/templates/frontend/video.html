@@ -147,10 +147,20 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;over
 .vd-empty p{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:1rem;}
 .vd-empty a{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);text-decoration:none;border-bottom:.5px solid var(--acc);}
 
+/* CONTAINER QUERY — 비디오 그리드 기준 */
+.vd-grid { container-type: inline-size; container-name: vd-grid; }
+@container vd-grid (max-width: 640px) {
+  .vd-grid-inner { justify-content: center; }
+  .yt-card { max-width: 280px; }
+}
+@container vd-grid (max-width: 400px) {
+  .yt-card { max-width: 100%; }
+  .yt-title { font-size: 0.92rem; }
+}
+
 @media(max-width:768px){
   .vd-grid-inner{justify-content:center;}
 }
-
 
 /* ── FOOTER ── */
 .vd-footer{

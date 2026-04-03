@@ -189,6 +189,16 @@
     }
     .back-btn:hover { background-color: #e2e2e2; }
 
+    /* CONTAINER QUERY — 플랜 카드 래퍼 기준 */
+    .plans-wrapper { container-type: inline-size; container-name: plans; }
+    @container plans (max-width: 700px) {
+      /* plans-wrapper 자체가 container라 내부 grid 재정의 불가 — 아래 미디어로 처리 */
+    }
+
+    @media (max-width: 1024px) {
+      .plans-wrapper { gap: 16px; }
+      .plan-card { padding: 24px 20px; }
+    }
     @media (max-width: 768px) {
       .plans-wrapper { grid-template-columns: 1fr; }
       .main-title { font-size: 26px; }
@@ -197,6 +207,11 @@
       .cta-inner { flex-direction: column; }
       .back-btn { order: 2; height: 50px; font-size: 16px; }
       .next-btn { order: 1; height: 60px; font-size: 20px; }
+    }
+    @media (max-width: 480px) {
+      .main-title { font-size: 22px; }
+      .plan-price { font-size: 28px; }
+      .plan-card { padding: 20px 16px; }
     }
   </style>
 </head>

@@ -1030,24 +1030,46 @@ html, body {
 
 
 /* ═══════════════════════════════════════
-   RESPONSIVE
+   CONTAINER QUERIES — chat-main 기준
    ═══════════════════════════════════════ */
-@media (max-width: 1200px) {
+.chat-main { container-type: inline-size; container-name: chat-main; }
+
+/* chat-main 너비 600px 이하: 버블 넓게 */
+@container chat-main (max-width: 600px) {
+  .msg-content { max-width: 90%; }
+  .chat-container { padding: 10px 12px; }
+}
+/* chat-main 너비 400px 이하: 모바일 밀집 */
+@container chat-main (max-width: 400px) {
+  .msg-bubble { font-size: 0.88rem; padding: 9px 13px; }
+  .input-area { padding: 6px 10px; }
+}
+
+/* ═══════════════════════════════════════
+   MEDIA QUERIES
+   ═══════════════════════════════════════ */
+/* 1280px: 우측 사이드바 숨김 */
+@media (max-width: 1280px) {
   .sidebar-right { display: none; }
 }
-
+/* 1024px: 레이아웃 풀너비 */
 @media (max-width: 1024px) {
   .app-container { width: 100vw; }
+  .sidebar-left { width: 260px; }
 }
-
+/* 768px: 태블릿 — 좌측 사이드바 숨김 */
 @media (max-width: 768px) {
   .sidebar-left { display: none; }
   .chat-main { width: 100%; }
-  .msg-content { max-width: 85%; }
   .header { padding: 12px 16px; }
-  .chat-container { padding: 12px; }
-  .input-area { padding: 8px 12px; }
   .quick-replies { padding: 8px 12px; }
+}
+/* 480px: 모바일 */
+@media (max-width: 480px) {
+  .header { padding: 10px 14px; }
+  .header-profile .profile-name { font-size: 0.9rem; }
+  .input-area { padding: 6px 10px; }
+  .quick-reply-btn { font-size: 0.72rem; padding: 6px 12px; }
 }
 </style>
 </head>
