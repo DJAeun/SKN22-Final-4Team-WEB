@@ -39,7 +39,7 @@ services:
       - "6379:6379"
 
   db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     restart: always
     environment:
       POSTGRES_DB: hari1-db

@@ -1304,13 +1304,24 @@ function flushMessageBuffer() {
     return;
   }
 
-  // Join all buffered messages and send as one payload
-  const combined = userMessageBuffer.join('\n');
+  const messages = [...userMessageBuffer];
   userMessageBuffer = [];
-  
+
   showTyping();
   if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-    chatSocket.send(JSON.stringify({ 'message': combined }));
+    // Save each message as a separate DB record (no AI call)
+    messages.forEach(msg => {
+      chatSocket.send(JSON.stringify({
+        'message': msg,
+        'save_only': true
+      }));
+    });
+    // Send combined text to AI engine (no DB save — already saved individually above)
+    const combined = messages.join('\n');
+    chatSocket.send(JSON.stringify({
+      'message': combined,
+      'skip_save': true
+    }));
   }
 }
 

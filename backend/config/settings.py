@@ -65,8 +65,12 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     
+    # PostgreSQL extensions
+    'django.contrib.postgres',
+
     # Local apps
     'chat',
+    'rpg',
     
     # Auth apps
     'rest_framework.authtoken',

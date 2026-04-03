@@ -126,14 +126,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return
 
         user_message = data['message'].strip()
-        ai_response = "아 미안 나 지금 좀 상태가 안 좋아... 잠만 기다려줘"
-        try:
 
-            # Save user message (non-critical — don't let a DB failure block the reply)
+        # save_only: just persist individual message to DB, no AI response
+        if data.get('save_only'):
             try:
                 await self.save_message(sender_type=True, content=user_message)
             except Exception as e:
                 logger.error(f"Failed to save user message: {e}", exc_info=True)
+            return
+
+        skip_save = data.get('skip_save', False)
+
+        ai_response = "아 미안 나 지금 좀 상태가 안 좋아... 잠만 기다려줘"
+        try:
+
+            # Save user message (skip if individual messages were already saved)
+            if not skip_save:
+                try:
+                    await self.save_message(sender_type=True, content=user_message)
+                except Exception as e:
+                    logger.error(f"Failed to save user message: {e}", exc_info=True)
 
             # Get AI response
             from .engine import engine
