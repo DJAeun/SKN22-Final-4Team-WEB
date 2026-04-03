@@ -1091,15 +1091,9 @@ html, body {
     </div>
   </main>
 
-  <!-- RIGHT SIDEBAR (Blank for now) -->
+  <!-- RIGHT SIDEBAR: 지금 하리는... 위젯 -->
   <aside class="sidebar-right">
-    <!-- Reserved for future features -->
-    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 40px; text-align:center;">
-      <div style="font-size: 32px; margin-bottom: 12px; opacity: 0.1;">⚡</div>
-      <div style="color: var(--text-time); font-size: 13px; font-family: 'DM Mono'; font-weight: 400; letter-spacing: 0.05em; text-transform: uppercase;">
-        COMMING SOON
-      </div>
-    </div>
+    {% include "frontend/includes/chat/_hari_status.html" %}
   </aside>
 </div>
 
