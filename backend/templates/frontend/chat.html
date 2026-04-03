@@ -1247,7 +1247,7 @@ function connectWebSocket(sessionId = null) {
       }
 
       if (isBubbleAnimating) {
-        const newSegments = splitMessage(data.message);
+        const newSegments = splitMessage(sanitizeHari(data.message));
         if (newSegments.length > 0) {
           if (bubbleQueue.length > 0) {
             bubbleQueue[bubbleQueue.length - 1].isLast = false;
@@ -1303,7 +1303,7 @@ function sendMessage() {
 
     // Start max wait timer only on the FIRST buffered message
     if (!maxWaitTimer) {
-      maxWaitTimer = setTimeout(flushMessageBuffer, MAX_WAIT_DELAY);
+      maxWaitTimer = setTimeout(tryFlush, MAX_WAIT_DELAY);
     }
   } else {
     // Local Fallback Simulation
@@ -1318,7 +1318,13 @@ function sendMessage() {
 
 function tryFlush() {
   const input = document.getElementById('messageInput');
-  if (input && input.value.trim().length > 0) return; // user has unsent text
+  if ((input && input.value.trim().length > 0) || isUserTyping) {
+    // Still typing — retry later
+    if (userMessageBuffer.length > 0) {
+      debounceTimer = setTimeout(tryFlush, IDLE_FLUSH_DELAY);
+    }
+    return;
+  }
   if (userMessageBuffer.length === 0) return;
   flushMessageBuffer();
 }
@@ -1360,9 +1366,14 @@ function flushMessageBuffer() {
 }
 
 // UI Rendering for Hari (Multi-bubble support)
+function sanitizeHari(text) {
+  if (!text) return text;
+  return text.replace(/`{1,3}/g, '').replace(/\*{1,2}/g, '').replace(/^#{1,3}\s/gm, '');
+}
+
 function splitMessage(text) {
   if (!text) return [];
-  return text.split(/\n\n+/).filter(s => s.trim().length > 0);
+  return text.split(/\n+/).filter(s => s.trim().length > 0);
 }
 
 function renderSingleHariBubble(text, options = {}) {
@@ -1393,7 +1404,7 @@ function renderSingleHariBubble(text, options = {}) {
 }
 
 function appendHariMessage(text, isHistory = false, timestamp = null) {
-  const segments = splitMessage(text);
+  const segments = splitMessage(sanitizeHari(text));
   if (segments.length === 0) return;
 
   if (isHistory) {
