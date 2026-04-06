@@ -189,11 +189,19 @@ class MainEngine:
 
             from .tasks import run_embedding_task, run_hypermemory_task
             
-            run_embedding_task.delay(new_log.id)
+            try:
+                run_embedding_task.delay(new_log.id)
+            except Exception as e:
+                import logging
+                logging.warning(f"[Roleplay] Celery embedding task failed (non-critical): {e}")
             
             # If tokens cross threshold, update memory and reset counter
             if self.session.total_tokens > 200:
-                run_hypermemory_task.delay(str(self.session.id))
+                try:
+                    run_hypermemory_task.delay(str(self.session.id))
+                except Exception as e:
+                    import logging
+                    logging.warning(f"[Roleplay] Celery hypermemory task failed (non-critical): {e}")
                 self.session.total_tokens = 0
                 self.session.save(update_fields=['total_tokens'])
 
