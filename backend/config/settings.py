@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     # Local apps
     'chat',
     'rpg',
+    'roleplay',
     
     # Auth apps
     'rest_framework.authtoken',
@@ -318,6 +319,12 @@ LOGGING = {
         },
     },
 }
+
+# Celery Configuration
+_celery_redis_host = os.environ.get('REDIS_HOST', 'localhost')
+CELERY_BROKER_URL = f'redis://{_celery_redis_host}:6379/1'
+CELERY_RESULT_BACKEND = f'redis://{_celery_redis_host}:6379/1'
+CELERY_TIMEZONE = 'Asia/Seoul'
 
 # Load local_settings if it exists (useful for local host machine development)
 try:
