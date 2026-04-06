@@ -19,12 +19,15 @@
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { overflow-x: hidden; }
     body {
       background-color: var(--bg-white);
       color: var(--text-main);
       font-family: 'Noto Sans KR', sans-serif;
       line-height: 1.4;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      max-width: 100vw;
     }
 
     /* HEADER */
@@ -212,6 +215,17 @@
       .main-title { font-size: 22px; }
       .plan-price { font-size: 28px; }
       .plan-card { padding: 20px 16px; }
+      header { height: 60px; padding: 0 1rem; }
+      .header-logo { height: 28px; }
+      .header-right a { font-size: 15px; }
+      .header-right { gap: 12px; }
+    }
+    @media (max-width: 360px) {
+      .main-title { font-size: 18px; }
+      .plan-price { font-size: 24px; }
+      .plan-card { padding: 16px 12px; }
+      header { height: 54px; }
+      .header-right a { font-size: 13px; }
     }
   </style>
 </head>
