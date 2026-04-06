@@ -39,6 +39,7 @@ urlpatterns = [
     path('membership/', membership_page, name='membership'),
     path('hari-chat/', frontend_chat, name='frontend_chat'),
     path('health/', health_check, name='health_check'),
+    path('roleplay/', include('roleplay.page_urls')),
     path('admin/', admin.site.urls),
     path('admin-panel/', admin_dashboard, name='admin_panel'),
     path('admin-panel/content/<int:content_id>/toggle/', admin_toggle_content, name='admin_toggle_content'),

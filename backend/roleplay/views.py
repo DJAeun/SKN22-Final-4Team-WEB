@@ -7,6 +7,10 @@ from django.contrib.auth.decorators import login_required
 @login_required
 def roleplay_test(request):
     return render(request, 'roleplay/test.html')
+
+@login_required
+def roleplay_page(request):
+    return render(request, 'roleplay/roleplay.html')
 from .models import RpgSession, RpgChatLog
 from .serializers import RpgSessionSerializer, RpgChatLogSerializer
 
