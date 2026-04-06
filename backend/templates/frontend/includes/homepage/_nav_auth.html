@@ -14,7 +14,7 @@
       <a href="#" onclick="openAuth('login'); return false;" style="color:var(--acc);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:0.3rem;white-space:nowrap;">하리와 대화하기 <span style="font-size:1rem;">💬</span></a>
       {% endif %}
       <!-- CTA 버튼 -->
-      <a href="/fanpage/" style="display:flex;align-items:center;gap:0.3rem;background:var(--acc);color:#fff;padding:0.4rem 0.7rem;text-decoration:none;font-family:var(--f-neo);font-size:0.75rem;letter-spacing:0;font-weight:500;margin-left:0.5rem;transition:background 0.2s;white-space:nowrap;" onmouseover="this.style.background='#ff4c6c'" onmouseout="this.style.background='var(--acc)'">마이페이지 ↗</a>
+      <a href="/mypage/" style="display:flex;align-items:center;gap:0.3rem;background:var(--acc);color:#fff;padding:0.4rem 0.7rem;text-decoration:none;font-family:var(--f-neo);font-size:0.75rem;letter-spacing:0;font-weight:500;margin-left:0.5rem;transition:background 0.2s;white-space:nowrap;" onmouseover="this.style.background='#ff4c6c'" onmouseout="this.style.background='var(--acc)'">마이페이지 ↗</a>
       <a href="/membership/" style="display:flex;align-items:center;gap:0.3rem;background:var(--acc);color:#fff;padding:0.4rem 0.7rem;text-decoration:none;font-family:var(--f-neo);font-size:0.75rem;letter-spacing:0;font-weight:500;transition:background 0.2s;white-space:nowrap;" onmouseover="this.style.background='#ff4c6c'" onmouseout="this.style.background='var(--acc)'">멤버십 가입하기 ↗</a>
     </div>
 
@@ -28,7 +28,7 @@
     <div class="auth-user-wrap" id="user-menu-wrap">
       <button id="auth-btn" class="logged-in" onclick="toggleUserMenu()">{{ user.username }} ▾</button>
       <div class="user-dropdown" id="user-dropdown">
-        <a href="/fanpage/">마이페이지</a>
+        <a href="/mypage/">마이페이지</a>
         <button class="logout-btn" onclick="doLogout()">로그아웃</button>
       </div>
     </div>
@@ -59,7 +59,7 @@
     <li><a href="#s6" onclick="closeDrawer()"><span>Contact</span></a></li>
   </ul>
   <div class="drawer-sub-cta">
-    <a href="/fanpage/">
+    <a href="/mypage/">
       <span>마이페이지</span>
       <span>↗</span>
     </a>
