@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG Roleplay Test</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        #chat-box { height: 400px; border: 1px solid #ccc; overflow-y: scroll; padding: 10px; margin-bottom: 10px; }
+        .msg { margin-bottom: 8px; }
+        .msg.user { color: blue; text-align: right; }
+        .msg.npc { color: green; text-align: left; }
+        #controls { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>RPG Roleplay Feature Test</h1>
+    
+    <div id="controls">
+        <input type="text" id="nickname" placeholder="Your Nickname" value="Player1">
+        <button onclick="createSession()">1. Create Session</button>
+        <button onclick="fetchSessions()">Load Existing</button>
+        <select id="session-select" onchange="connectExisting()"><option value="">--Select Session--</option></select>
+        <span id="session-status" style="color:red;">No Session</span>
+    </div>
+
+    <div id="chat-box"></div>
+
+    <div style="display:flex; gap:10px;">
+        <input type="text" id="chat-input" placeholder="Enter your action or dialogue..." style="flex:1;" disabled>
+        <button id="send-btn" onclick="sendMessage()" disabled>Send (WS)</button>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+        let ws = null;
+
+        // helper to get csrf cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        async function fetchSessions() {
+            const res = await fetch('/api/roleplay/sessions/', {
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const sel = document.getElementById('session-select');
+                sel.innerHTML = '<option value="">--Select Session--</option>';
+                data.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.innerText = s.created_at.substring(0,16) + ' | ' + s.user_nickname;
+                    sel.appendChild(opt);
+                });
+            }
+        }
+
+        async function connectExisting() {
+            const sel = document.getElementById('session-select');
+            if (sel.value) {
+                currentSessionId = sel.value;
+                document.getElementById('session-status').innerText = 'Session Active: ' + currentSessionId;
+                document.getElementById('session-status').style.color = 'green';
+                
+                // Fetch existing logs
+                const res = await fetch('/api/roleplay/sessions/' + currentSessionId + '/history/');
+                if (res.ok) {
+                    const data = await res.json();
+                    const box = document.getElementById('chat-box');
+                    box.innerHTML = ''; // clear chat
+                    if (Array.isArray(data)) {
+                        data.forEach(msg => {
+                            appendMessage(msg.role === 'Player1' || msg.role === 'User' ? 'user' : 'npc', msg.content);
+                        });
+                    }
+                }
+                
+                connectWebSocket(currentSessionId);
+            }
+        }
+
+        async function createSession() {
+            const nickname = document.getElementById('nickname').value;
+            const res = await fetch('/api/roleplay/sessions/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    user_nickname: nickname,
+                    status_window_enabled: true
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                currentSessionId = data.id;
+                document.getElementById('session-status').innerText = 'Session Active: ' + currentSessionId;
+                document.getElementById('session-status').style.color = 'green';
+                
+                // Connect WebSocket
+                connectWebSocket(currentSessionId);
+            } else {
+                alert("Failed to create session. Are you logged in?");
+            }
+        }
+
+        function connectWebSocket(sessionId) {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}/ws/roleplay/${sessionId}/`);
+
+            ws.onopen = () => {
+                appendMessage('system', 'Connected to WebSocket Engine.');
+                document.getElementById('chat-input').disabled = false;
+                document.getElementById('send-btn').disabled = false;
+            };
+
+            ws.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                if (data.type === 'status') {
+                    appendMessage('system', data.message);
+                } else if (data.type === 'chat_message') {
+                    // Remove "processing" status if it's the last one
+                    const box = document.getElementById('chat-box');
+                    if (box.lastChild && box.lastChild.innerText.includes('processing')) {
+                        box.removeChild(box.lastChild);
+                    }
+                    appendMessage('npc', data.message);
+                }
+            };
+
+            ws.onerror = (e) => {
+                appendMessage('system', 'WebSocket Errored.');
+            };
+
+            ws.onclose = () => {
+                appendMessage('system', 'WebSocket Closed.');
+                document.getElementById('chat-input').disabled = true;
+                document.getElementById('send-btn').disabled = true;
+            };
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if(!msg || !ws) return;
+
+            appendMessage('user', msg);
+            ws.send(JSON.stringify({ message: msg }));
+            input.value = '';
+        }
+
+        function appendMessage(role, text) {
+            const box = document.getElementById('chat-box');
+            const div = document.createElement('div');
+            div.className = 'msg ' + role;
+            div.innerText = `[${role}] ${text}`;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // Allow pressing Enter to send
+        document.getElementById('chat-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
