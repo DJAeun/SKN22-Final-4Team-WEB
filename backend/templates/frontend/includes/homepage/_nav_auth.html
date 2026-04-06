@@ -1,44 +1,161 @@
 {% load static %}
+
+<style>
+/* ── NAV GNB 스타일 ── */
+.nav-center {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+.nav-desktop-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  margin-left: 2rem;
+}
+.nav-gnb-item {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-decoration: none;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.18s, background 0.18s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  line-height: 1;
+  border-radius: 0;
+}
+.nav-gnb-item:hover {
+  color: var(--ink);
+  background: rgba(255,123,138,0.06);
+}
+/* 하리와 대화하기 — 핑크 강조 */
+.nav-gnb-chat {
+  color: var(--acc);
+}
+.nav-gnb-chat:hover {
+  color: var(--acc);
+  background: rgba(255,123,138,0.1);
+}
+/* 하리와 롤플레잉 — 테두리 버튼 */
+.nav-gnb-roleplay {
+  border: 0.5px solid var(--bdr2) !important;
+  color: var(--ink);
+}
+.nav-gnb-roleplay:hover {
+  border-color: var(--acc) !important;
+  color: var(--acc);
+  background: rgba(255,123,138,0.05);
+}
+.nav-gnb-soon {
+  font-size: 0.42rem;
+  letter-spacing: 0.1em;
+  background: var(--acc2);
+  color: var(--ink);
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+/* 구분선 */
+.nav-gnb-sep {
+  display: inline-block;
+  width: 0.5px;
+  height: 13px;
+  background: var(--bdr2);
+  margin: 0 0.3rem;
+  flex-shrink: 0;
+}
+@media (max-width: 1200px) {
+  .nav-desktop-menu { margin-left: 1rem; }
+  .nav-gnb-item { padding: 6px 7px; font-size: 0.56rem; }
+}
+@media (max-width: 1000px) {
+  /* 롤플레잉 버튼과 인접 구분선 숨김 */
+  .nav-gnb-roleplay,
+  .nav-gnb-sep-roleplay { display: none !important; }
+}
+@media (max-width: 768px) {
+  .nav-desktop-menu { display: none !important; }
+}
+</style>
+
 <nav id="nav">
   <a class="nav-logo" href="/" aria-label="HARI">
     <img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI Logo" style="height:48px; width:auto; object-fit:contain; mix-blend-mode:multiply;">
   </a>
 
-  <!-- 중앙 오른쪽: 언어 + 시간 + 메뉴 -->
   <div class="nav-center">
-    <!-- 상단 GNB 메뉴: 메인 페이지 내 섹션 이동 (앵커) -->
-    <div class="nav-desktop-menu" style="display:flex; align-items:center; gap:1.1rem; margin-right:auto; margin-left:2rem; font-family:var(--f-playful); font-size:0.85rem; letter-spacing:0.01em; text-transform:uppercase;">
-      <a href="/profile/" style="color:var(--ink); text-decoration:none; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.6" onmouseout="this.style.opacity=1">Profile</a>
-      <a href="/gallery/" style="color:var(--ink); text-decoration:none; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.6" onmouseout="this.style.opacity=1">Gallery</a>
-      <a href="/video/" style="color:var(--ink); text-decoration:none; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.6" onmouseout="this.style.opacity=1">Video</a>
-      <a href="#s6" style="color:var(--ink); text-decoration:none; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.6" onmouseout="this.style.opacity=1">Contact</a>
+    <div class="nav-desktop-menu">
 
-      <!-- 로그인/유저 버튼 -->
+      <!-- 01. 하리와 대화하기 -->
       {% if user.is_authenticated %}
-      <div class="auth-user-wrap" id="user-menu-wrap" style="margin-left:0.5rem; margin-right:0.5rem;">
-        <button id="auth-btn" class="logged-in" onclick="toggleUserMenu()">{{ user.username }} ▾</button>
+      <a href="/hari-chat/" class="nav-gnb-item nav-gnb-chat">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        하리와 대화하기
+      </a>
+      {% else %}
+      <a href="#" onclick="openAuth('login'); return false;" class="nav-gnb-item nav-gnb-chat">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        하리와 대화하기
+      </a>
+      {% endif %}
+
+      <span class="nav-gnb-sep"></span>
+
+      <!-- 02. About Me -->
+      <a href="#s2" class="nav-gnb-item">About Me</a>
+
+      <!-- 03. 갤러리 -->
+      <a href="#s3" class="nav-gnb-item">갤러리</a>
+
+      <!-- 04. 비디오 -->
+      <a href="#s4" class="nav-gnb-item">비디오</a>
+
+      <!-- 05. Contact -->
+      <a href="#s6" class="nav-gnb-item">Contact</a>
+
+      <span class="nav-gnb-sep nav-gnb-sep-roleplay"></span>
+
+      <!-- 06. 하리와 롤플레잉 (버튼만, 별도 페이지 없음) -->
+      <button class="nav-gnb-item nav-gnb-roleplay" onclick="alert('하리와 롤플레잉 — 곧 공개됩니다! 🎭')">
+        하리와 롤플레잉
+        <span class="nav-gnb-soon">SOON</span>
+      </button>
+
+      <span class="nav-gnb-sep"></span>
+
+      <!-- 07. 내 정보 (로그인 시) -->
+      {% if user.is_authenticated %}
+      <div class="auth-user-wrap" id="user-menu-wrap">
+        <button id="auth-btn" class="logged-in" onclick="toggleUserMenu()">
+          {{ user.username }} ▾
+        </button>
         <div class="user-dropdown" id="user-dropdown">
           <a href="/mypage/">마이페이지</a>
+          <a href="/membership/">멤버십 구독하기</a>
           <button class="logout-btn" onclick="doLogout()">로그아웃</button>
         </div>
       </div>
-      {% else %}
-      <button id="auth-btn" onclick="openAuth('login')" style="margin-left:0.5rem; margin-right:0.5rem;">로그인</button>
       {% endif %}
 
-      {% if user.is_authenticated %}
-      <a href="/hari-chat/" style="color:var(--acc);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:0.3rem;white-space:nowrap;">하리와 대화하기 <span style="font-size:1rem;">💬</span></a>
-      {% else %}
-      <a href="#" onclick="openAuth('login'); return false;" style="color:var(--acc);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:0.3rem;white-space:nowrap;">하리와 대화하기 <span style="font-size:1rem;">💬</span></a>
+      <!-- 08. 로그인 (비로그인 시) -->
+      {% if not user.is_authenticated %}
+      <button id="auth-btn" onclick="openAuth('login')">로그인</button>
       {% endif %}
-      <!-- CTA 버튼 -->
-      <a href="/mypage/" style="display:flex;align-items:center;gap:0.3rem;background:var(--acc);color:#fff;padding:0.4rem 0.7rem;text-decoration:none;font-family:var(--f-neo);font-size:0.75rem;letter-spacing:0;font-weight:500;margin-left:0.5rem;transition:background 0.2s;white-space:nowrap;" onmouseover="this.style.background='#ff4c6c'" onmouseout="this.style.background='var(--acc)'">마이페이지 ↗</a>
-      <a href="/membership/" style="display:flex;align-items:center;gap:0.3rem;background:var(--acc);color:#fff;padding:0.4rem 0.7rem;text-decoration:none;font-family:var(--f-neo);font-size:0.75rem;letter-spacing:0;font-weight:500;transition:background 0.2s;white-space:nowrap;" onmouseover="this.style.background='#ff4c6c'" onmouseout="this.style.background='var(--acc)'">멤버십 구독하기 ↗</a>
+
     </div>
 
     <!-- 로컬 전용 관리자 링크 -->
     {% if debug %}
-    <a href="/admin-panel/" style="margin-left:1rem; font-family:'DM Mono',monospace; font-size:.6rem; letter-spacing:.12em; text-transform:uppercase; color:var(--acc2); border:0.5px solid var(--acc2); padding:5px 12px; text-decoration:none; transition:background .2s;" onmouseover="this.style.background='rgba(255,209,102,0.15)'" onmouseout="this.style.background='transparent'">Admin ⚙</a>
+    <a href="/admin-panel/" style="margin-left:1rem; font-family:'DM Mono',monospace; font-size:.6rem; letter-spacing:.12em; text-transform:uppercase; color:var(--acc2); border:0.5px solid var(--acc2); padding:5px 12px; text-decoration:none; transition:background .2s; flex-shrink:0;" onmouseover="this.style.background='rgba(255,209,102,0.15)'" onmouseout="this.style.background='transparent'">Admin ⚙</a>
     {% endif %}
 
     <!-- 햄버거 메뉴 -->
@@ -50,33 +167,59 @@
 
 <div id="drawer-bd" onclick="closeDrawer()"></div>
 <div id="drawer">
-  <div class="drawer-label">Menu</div>
+  <div class="drawer-label">Navigation</div>
   <ul>
-    <li><a href="/profile/" onclick="closeDrawer()"><span>Profile</span></a></li>
-    <li><a href="/gallery/" onclick="closeDrawer()"><span>Gallery</span></a></li>
-    <li><a href="/video/" onclick="closeDrawer()"><span>Video</span></a></li>
-    {% if user.is_authenticated %}
-    <li><a href="/hari-chat/" onclick="closeDrawer()"><span style="color:var(--acc);font-weight:600;">Chat 💬</span></a></li>
-    {% else %}
-    <li><a href="#" onclick="closeDrawer(); openAuth('login'); return false;"><span style="color:var(--acc);font-weight:600;">Chat 💬</span></a></li>
-    {% endif %}
-    <li><a href="/membership/" onclick="closeDrawer()"><span>Membership</span></a></li>
-    <li><a href="#s6" onclick="closeDrawer()"><span>Contact</span></a></li>
+    <li>
+      <a href="/mypage/" onclick="closeDrawer()">
+        <span>마이페이지</span>
+        <span class="d-num">01</span>
+      </a>
+    </li>
+    <li>
+      <a href="/membership/" onclick="closeDrawer()">
+        <span>멤버십 구독하기</span>
+        <span class="d-num">02</span>
+      </a>
+    </li>
+    <li>
+      <a href="/profile/" onclick="closeDrawer()">
+        <span>About Me</span>
+        <span class="d-num">03</span>
+      </a>
+    </li>
+    <li>
+      <a href="/gallery/" onclick="closeDrawer()">
+        <span>갤러리</span>
+        <span class="d-num">04</span>
+      </a>
+    </li>
+    <li>
+      <a href="/video/" onclick="closeDrawer()">
+        <span>비디오</span>
+        <span class="d-num">05</span>
+      </a>
+    </li>
+    <li>
+      <a href="#s6" onclick="closeDrawer()">
+        <span>Contact</span>
+        <span class="d-num">06</span>
+      </a>
+    </li>
   </ul>
+
   <div class="drawer-sub-cta">
-    <a href="/mypage/">
-      <span>마이페이지</span>
-      <span>↗</span>
-    </a>
-    <a href="/membership/" onclick="closeDrawer()" style="display:flex;align-items:center;justify-content:space-between;padding:.7rem .9rem;background:var(--acc);color:var(--ink);font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;margin-top:.5rem;transition:background .2s;">
-      <span>멤버십 가입하기</span><span>↗</span>
-    </a>
     {% if user.is_authenticated %}
-    <button onclick="doLogout()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.7rem .9rem;background:transparent;border:0.5px solid rgba(255,123,138,0.3);color:var(--acc);font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;margin-top:.5rem;transition:background .2s;" onmouseover="this.style.background='rgba(255,123,138,0.1)'" onmouseout="this.style.background='transparent'">
+    <div style="font-family:'DM Mono',monospace; font-size:0.52rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--dim); padding:0.3rem 0; margin-bottom:0.4rem;">
+      {{ user.username }} 님
+    </div>
+    <button onclick="doLogout()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.7rem .9rem;background:transparent;border:0.5px solid rgba(255,123,138,0.3);color:var(--acc);font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:background .2s;" onmouseover="this.style.background='rgba(255,123,138,0.08)'" onmouseout="this.style.background='transparent'">
       <span>로그아웃</span><span>→</span>
     </button>
+    {% else %}
+    <button onclick="closeDrawer(); openAuth('login');" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.7rem .9rem;background:var(--acc);color:#fff;font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;border:none;transition:background .2s;" onmouseover="this.style.background='#ff4c6c'" onmouseout="this.style.background='var(--acc)'">
+      <span>로그인 / 회원가입</span><span>→</span>
+    </button>
     {% endif %}
-    <p>하리 팬클럽 —<br>더 가깝게, 더 특별하게</p>
   </div>
 </div>
 
