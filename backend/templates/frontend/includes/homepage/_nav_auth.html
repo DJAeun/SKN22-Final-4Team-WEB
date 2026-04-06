@@ -106,13 +106,13 @@
       <div class="auth-divider">또는 이메일로</div>
 
       <div class="auth-field">
-        <label class="auth-label">이메일</label>
-        <input class="auth-inp" type="email" placeholder="hello@hari.kr">
+        <label class="auth-label" for="loginEmail">이메일</label>
+        <input class="auth-inp" id="loginEmail" name="loginEmail" type="email" placeholder="hello@hari.kr">
       </div>
       <div class="auth-field">
-        <label class="auth-label">비밀번호</label>
+        <label class="auth-label" for="login-pw">비밀번호</label>
         <div class="pw-wrap">
-          <input class="auth-inp" id="login-pw" type="password" placeholder="••••••••">
+          <input class="auth-inp" id="login-pw" name="login-pw" type="password" placeholder="••••••••">
           <button class="pw-toggle" type="button" onclick="togglePw('login-pw',this)">표시</button>
         </div>
       </div>
@@ -142,22 +142,22 @@
 
       <div class="auth-inp-row">
         <div class="auth-field">
-          <label class="auth-label">이름</label>
-          <input class="auth-inp" type="text" placeholder="홍길동">
+          <label class="auth-label" for="signupName">이름</label>
+          <input class="auth-inp" id="signupName" name="signupName" type="text" placeholder="홍길동">
         </div>
         <div class="auth-field">
-          <label class="auth-label">닉네임</label>
-          <input class="auth-inp" type="text" placeholder="bori_fan">
+          <label class="auth-label" for="signupNick">닉네임</label>
+          <input class="auth-inp" id="signupNick" name="signupNick" type="text" placeholder="bori_fan">
         </div>
       </div>
       <div class="auth-field">
-        <label class="auth-label">이메일</label>
-        <input class="auth-inp" type="email" placeholder="hello@hari.kr">
+        <label class="auth-label" for="signupEmail">이메일</label>
+        <input class="auth-inp" id="signupEmail" name="signupEmail" type="email" placeholder="hello@hari.kr">
       </div>
       <div class="auth-field">
-        <label class="auth-label">비밀번호</label>
+        <label class="auth-label" for="signup-pw">비밀번호</label>
         <div class="pw-wrap">
-          <input class="auth-inp" id="signup-pw" type="password" placeholder="8자 이상" oninput="checkStrength(this)">
+          <input class="auth-inp" id="signup-pw" name="signup-pw" type="password" placeholder="8자 이상" oninput="checkStrength(this)">
           <button class="pw-toggle" type="button" onclick="togglePw('signup-pw',this)">표시</button>
         </div>
         <div class="pw-strength" id="pw-bars">
@@ -167,12 +167,12 @@
         </div>
       </div>
 
-      <label class="auth-check">
-        <input type="checkbox" required>
+      <label class="auth-check" for="signup-terms">
+        <input type="checkbox" id="signup-terms" name="signup-terms" required>
         <a href="#" onclick="closeAuth()">이용약관</a> 및 <a href="#" onclick="closeAuth()">개인정보처리방침</a>에 동의합니다.
       </label>
-      <label class="auth-check">
-        <input type="checkbox">
+      <label class="auth-check" for="signup-news">
+        <input type="checkbox" id="signup-news" name="signup-news">
         하리의 소식 및 멤버십 알림 수신에 동의합니다. (선택)
       </label>
 
@@ -186,8 +186,8 @@
       <p class="auth-sub">가입한 이메일 주소를 입력하시면<br>재설정 링크를 보내드려요.</p>
 
       <div class="auth-field">
-        <label class="auth-label">이메일</label>
-        <input class="auth-inp" type="email" placeholder="hello@hari.kr">
+        <label class="auth-label" for="forgotEmail">이메일</label>
+        <input class="auth-inp" id="forgotEmail" name="forgotEmail" type="email" placeholder="hello@hari.kr">
       </div>
 
       <button class="auth-submit" onclick="doForgot()">재설정 링크 보내기 →</button>
