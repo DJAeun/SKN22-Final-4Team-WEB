@@ -34,6 +34,14 @@ class Lorebook(models.Model):
         help_text="Lorebook trigger keywords",
     )
     lorebook = models.TextField(help_text="Lorebook prompt content")
+    priority = models.IntegerField(
+        default=50,
+        help_text="Priority for evaluating this lorebook rule"
+    )
+    is_constant = models.BooleanField(
+        default=False,
+        help_text="If True, always injected into the prompt"
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -65,6 +73,14 @@ class Session(models.Model):
     total_tokens = models.IntegerField(
         default=0,
         help_text="Running cumulative token count for hypermemory trigger",
+    )
+    stress = models.IntegerField(
+        default=0,
+        help_text="User's stress level in the game"
+    )
+    crack_stage = models.IntegerField(
+        default=0,
+        help_text="World crack stage"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
