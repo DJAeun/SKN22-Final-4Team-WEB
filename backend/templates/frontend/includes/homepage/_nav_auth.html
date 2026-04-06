@@ -8,6 +8,24 @@
   <div class="nav-center">
     <!-- 상단 GNB 메뉴: 메인 페이지 내 섹션 이동 (앵커) -->
     <div class="nav-desktop-menu" style="display:flex; align-items:center; gap:1.1rem; margin-right:auto; margin-left:2rem; font-family:var(--f-playful); font-size:0.85rem; letter-spacing:0.01em; text-transform:uppercase;">
+      <a href="/profile/" style="color:var(--ink); text-decoration:none; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.6" onmouseout="this.style.opacity=1">Profile</a>
+      <a href="/gallery/" style="color:var(--ink); text-decoration:none; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.6" onmouseout="this.style.opacity=1">Gallery</a>
+      <a href="/video/" style="color:var(--ink); text-decoration:none; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.6" onmouseout="this.style.opacity=1">Video</a>
+      <a href="#s6" style="color:var(--ink); text-decoration:none; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.6" onmouseout="this.style.opacity=1">Contact</a>
+
+      <!-- 로그인/유저 버튼 -->
+      {% if user.is_authenticated %}
+      <div class="auth-user-wrap" id="user-menu-wrap" style="margin-left:0.5rem; margin-right:0.5rem;">
+        <button id="auth-btn" class="logged-in" onclick="toggleUserMenu()">{{ user.username }} ▾</button>
+        <div class="user-dropdown" id="user-dropdown">
+          <a href="/mypage/">마이페이지</a>
+          <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+        </div>
+      </div>
+      {% else %}
+      <button id="auth-btn" onclick="openAuth('login')" style="margin-left:0.5rem; margin-right:0.5rem;">로그인</button>
+      {% endif %}
+
       {% if user.is_authenticated %}
       <a href="/hari-chat/" style="color:var(--acc);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:0.3rem;white-space:nowrap;">하리와 대화하기 <span style="font-size:1rem;">💬</span></a>
       {% else %}
@@ -15,25 +33,12 @@
       {% endif %}
       <!-- CTA 버튼 -->
       <a href="/mypage/" style="display:flex;align-items:center;gap:0.3rem;background:var(--acc);color:#fff;padding:0.4rem 0.7rem;text-decoration:none;font-family:var(--f-neo);font-size:0.75rem;letter-spacing:0;font-weight:500;margin-left:0.5rem;transition:background 0.2s;white-space:nowrap;" onmouseover="this.style.background='#ff4c6c'" onmouseout="this.style.background='var(--acc)'">마이페이지 ↗</a>
-      <a href="/membership/" style="display:flex;align-items:center;gap:0.3rem;background:var(--acc);color:#fff;padding:0.4rem 0.7rem;text-decoration:none;font-family:var(--f-neo);font-size:0.75rem;letter-spacing:0;font-weight:500;transition:background 0.2s;white-space:nowrap;" onmouseover="this.style.background='#ff4c6c'" onmouseout="this.style.background='var(--acc)'">멤버십 가입하기 ↗</a>
+      <a href="/membership/" style="display:flex;align-items:center;gap:0.3rem;background:var(--acc);color:#fff;padding:0.4rem 0.7rem;text-decoration:none;font-family:var(--f-neo);font-size:0.75rem;letter-spacing:0;font-weight:500;transition:background 0.2s;white-space:nowrap;" onmouseover="this.style.background='#ff4c6c'" onmouseout="this.style.background='var(--acc)'">멤버십 구독하기 ↗</a>
     </div>
 
     <!-- 로컬 전용 관리자 링크 -->
     {% if debug %}
     <a href="/admin-panel/" style="margin-left:1rem; font-family:'DM Mono',monospace; font-size:.6rem; letter-spacing:.12em; text-transform:uppercase; color:var(--acc2); border:0.5px solid var(--acc2); padding:5px 12px; text-decoration:none; transition:background .2s;" onmouseover="this.style.background='rgba(255,209,102,0.15)'" onmouseout="this.style.background='transparent'">Admin ⚙</a>
-    {% endif %}
-
-    <!-- 로그인/유저 버튼 -->
-    {% if user.is_authenticated %}
-    <div class="auth-user-wrap" id="user-menu-wrap">
-      <button id="auth-btn" class="logged-in" onclick="toggleUserMenu()">{{ user.username }} ▾</button>
-      <div class="user-dropdown" id="user-dropdown">
-        <a href="/mypage/">마이페이지</a>
-        <button class="logout-btn" onclick="doLogout()">로그아웃</button>
-      </div>
-    </div>
-    {% else %}
-    <button id="auth-btn" onclick="openAuth('login')">로그인</button>
     {% endif %}
 
     <!-- 햄버거 메뉴 -->
