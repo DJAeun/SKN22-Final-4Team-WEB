@@ -124,11 +124,16 @@
 
       <span class="nav-gnb-sep nav-gnb-sep-roleplay"></span>
 
-      <!-- 06. 하리와 롤플레잉 (버튼만, 별도 페이지 없음) -->
-      <button class="nav-gnb-item nav-gnb-roleplay" onclick="alert('하리와 롤플레잉 — 곧 공개됩니다! 🎭')">
+      <!-- 06. 하리와 롤플레잉 -->
+      {% if user.is_authenticated %}
+      <a href="/roleplay/test/" class="nav-gnb-item nav-gnb-roleplay">
         하리와 롤플레잉
-        <span class="nav-gnb-soon">SOON</span>
-      </button>
+      </a>
+      {% else %}
+      <a href="#" onclick="openAuth('login'); return false;" class="nav-gnb-item nav-gnb-roleplay">
+        하리와 롤플레잉
+      </a>
+      {% endif %}
 
       <span class="nav-gnb-sep"></span>
 
