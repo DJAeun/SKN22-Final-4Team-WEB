@@ -1,7 +1,7 @@
 # version attribute is obsolete and removed to avoid confusion
 services:
   web:
-    build: .
+    image: 939213667098.dkr.ecr.ap-northeast-2.amazonaws.com/hari-backend:latest
     command: sh -c "python manage.py migrate --noinput && python manage.py collectstatic --noinput && daphne -b 0.0.0.0 -p 8000 config.asgi:application"
     volumes:
       - .:/app
@@ -35,7 +35,7 @@ services:
       - db
 
   celery:
-    build: .
+    image: 939213667098.dkr.ecr.ap-northeast-2.amazonaws.com/hari-backend:latest
     command: sh -c "export PYTHONPATH=$PYTHONPATH:/app && celery -A config worker --loglevel=info --concurrency=2"
     env_file:
       - .env
