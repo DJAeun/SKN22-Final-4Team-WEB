@@ -36,27 +36,23 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 .pf-nav-back svg{transition:transform .2s;}
 .pf-nav-back:hover svg{transform:translateX(-3px);}
 
-/* HERO */
-.pf-hero{margin-top:64px;height:55vh;min-height:360px;position:relative;overflow:hidden;background-image:linear-gradient(rgba(0,0,0,0.25),rgba(0,0,0,0.55)),url('{% static "images/hari_image16.png" %}');background-size:cover;background-position:center top;display:flex;flex-direction:column;justify-content:flex-end;padding:3rem 2.5rem;}
-.pf-hero-tag{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:.8rem;}
-.pf-hero-title{font-family:var(--f-playful);font-size:clamp(3.5rem,8vw,7rem);color:#fff;line-height:.9;opacity:0;animation:fadeUp .7s .2s forwards;}
-.pf-hero-sub{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.65);margin-top:.9rem;opacity:0;animation:fadeUp .6s .45s forwards;}
+/* LAYOUT — 좌측 이미지 + 우측 프로필 */
+.pf-main{margin-top:64px;display:grid;grid-template-columns:42% 1fr;min-height:calc(100vh - 64px);}
 
-/* MAIN LAYOUT */
-.pf-main{display:grid;grid-template-columns:clamp(280px,35%,420px) 1fr;min-height:60vh;}
-
-/* LEFT PANEL — sticky image */
-.pf-img-panel{position:sticky;top:64px;height:calc(100vh - 64px);overflow:hidden;border-right:.5px solid var(--bdr);}
-.pf-img-panel img{width:100%;height:100%;object-fit:cover;object-position:top;display:block;}
+/* LEFT — 전체 높이 이미지 */
+.pf-img-panel{position:sticky;top:64px;height:calc(100vh - 64px);overflow:hidden;}
+.pf-img-panel img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;}
 
 /* RIGHT PANEL */
-.pf-info-panel{padding:3.5rem 3rem;}
+.pf-info-panel{overflow-y:auto;padding:3.5rem 3rem;border-left:.5px solid var(--bdr);}
 
-.pf-section-label{font-family:'DM Mono',monospace;font-size:.54rem;letter-spacing:.26em;text-transform:uppercase;color:var(--dim);margin-bottom:2rem;padding-bottom:.8rem;border-bottom:.5px solid var(--bdr);}
+/* 이름 헤더 */
+.pf-tag{font-family:'DM Mono',monospace;font-size:.54rem;letter-spacing:.26em;text-transform:uppercase;color:var(--dim);margin-bottom:1.4rem;}
+
 
 /* Name block */
-.pf-name{font-family:var(--f-playful);font-size:clamp(2.5rem,5vw,4.5rem);line-height:1;color:var(--ink);margin-bottom:.4rem;}
-.pf-name-en{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin-bottom:2rem;}
+.pf-name{font-family:var(--f-playful);font-size:clamp(2.8rem,5vw,5rem);line-height:1;color:var(--ink);margin-bottom:.35rem;}
+.pf-name-en{font-family:'DM Mono',monospace;font-size:.66rem;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:1.8rem;}
 
 /* Bio */
 .pf-bio{font-size:.94rem;line-height:2;color:var(--ink);max-width:480px;margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:.5px solid var(--bdr);}
@@ -94,9 +90,21 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 .pf-gallery-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
 .pf-gallery-thumb:hover img{transform:scale(1.07);}
 
+/* QUOTE */
+.pf-quote{margin-bottom:2rem;padding:1.4rem 1.6rem;background:rgba(255,123,138,0.04);border-left:3px solid var(--acc);border-radius:0 10px 10px 0;}
+.pf-quote-text{font-family:var(--f-playful);font-size:1.05rem;color:var(--ink);line-height:1.6;margin-bottom:.4rem;}
+.pf-quote-from{font-family:'DM Mono',monospace;font-size:.5rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);}
+
+/* LIKES */
+.pf-likes{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:2rem;padding-bottom:2rem;border-bottom:.5px solid var(--bdr);}
+.pf-like-item{display:flex;align-items:center;gap:.7rem;padding:.75rem .9rem;border:.5px solid var(--bdr);border-radius:10px;transition:border-color .2s,background .2s;}
+.pf-like-item:hover{border-color:var(--acc);background:rgba(255,123,138,0.04);}
+.pf-like-icon{font-size:1.2rem;flex-shrink:0;}
+.pf-like-text{font-size:.82rem;color:var(--ink);font-weight:500;}
+
 /* CTA */
 .pf-cta{margin-top:2.5rem;padding-top:2.5rem;border-top:.5px solid var(--bdr);display:flex;gap:1rem;}
-.pf-btn{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;padding:.85rem 1.8rem;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem;}
+.pf-btn{font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.82rem;font-weight:500;letter-spacing:-0.01em;padding:.85rem 1.8rem;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem;border-radius:8px;}
 .pf-btn-primary{background:var(--acc);color:#fff;border:.5px solid var(--acc);}
 .pf-btn-primary:hover{background:#ff4c6c;border-color:#ff4c6c;}
 .pf-btn-secondary{background:transparent;color:var(--ink);border:.5px solid var(--bdr2);}
@@ -104,40 +112,23 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 
-/* CONTAINER QUERY — 우측 정보 패널 기준 */
-.pf-info-panel { container-type: inline-size; container-name: pf-info; }
-@container pf-info (max-width: 500px) {
-  .pf-stats { grid-template-columns: repeat(2,1fr); }
-  .pf-cta { flex-direction: column; }
-  .pf-gallery-grid { grid-template-columns: repeat(2,1fr); }
-}
-@container pf-info (max-width: 320px) {
-  .pf-name { font-size: 2.8rem; }
-  .pf-bio { font-size: 0.86rem; }
-}
-
-/* MEDIA QUERIES */
-@media(max-width:1024px){
-  .pf-main{grid-template-columns:clamp(240px,30%,360px) 1fr;}
-}
+@media(max-width:1100px){.pf-main{grid-template-columns:38% 1fr;}}
 @media(max-width:900px){
-  .pf-main{grid-template-columns:1fr;}
-  .pf-img-panel{position:relative;height:60vw;top:0;}
-  .pf-info-panel{padding:2.5rem 1.5rem;}
+  .pf-main{grid-template-columns:1fr;margin-top:64px;}
+  .pf-img-panel{position:relative;height:75vw;max-height:520px;top:0;}
+  .pf-info-panel{padding:2.5rem 1.8rem;border-left:none;border-top:.5px solid var(--bdr);}
   .pf-stats{grid-template-columns:repeat(2,1fr);}
   .pf-nav{padding:0 1.2rem;height:56px;}
 }
 @media(max-width:480px){
-  .pf-hero{padding:2rem 1.2rem;}
+  .pf-img-panel{height:90vw;}
+  .pf-info-panel{padding:2rem 1.2rem;}
   .pf-gallery-grid{grid-template-columns:repeat(2,1fr);}
   .pf-cta{flex-direction:column;}
   .pf-stats{grid-template-columns:repeat(2,1fr);}
-  .pf-img-panel{height:70vw;}
 }
 @media(max-width:360px){
-  .pf-hero{padding:1.5rem 1rem;}
   .pf-info-panel{padding:1.5rem 1rem;}
-  .pf-gallery-grid{grid-template-columns:1fr 1fr;}
   .pf-nav{padding:0 1rem;}
 }
 </style>
@@ -155,69 +146,75 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
   </a>
 </nav>
 
-<!-- HERO -->
-<div class="pf-hero">
-  <div class="pf-hero-tag">01 — Artist Profile</div>
-  <h1 class="pf-hero-title">하리</h1>
-  <div class="pf-hero-sub">Virtual Artist · Content Creator · Tech Communicator</div>
-</div>
-
 <!-- MAIN -->
 <div class="pf-main">
 
-  <!-- LEFT: sticky image -->
+  <!-- LEFT: 전체 높이 이미지 -->
   <div class="pf-img-panel">
-    <img src="{% static 'images/hari_image6.png' %}" alt="Hari Profile">
+    <img src="{% static 'images/hari_image8.png' %}" alt="Hari">
   </div>
 
   <!-- RIGHT: info -->
   <div class="pf-info-panel">
 
-    <div class="pf-section-label">Artist Information</div>
-
+    <div class="pf-tag">01 — Artist Profile</div>
     <div class="pf-name">하리</div>
-    <div class="pf-name-en">HARI — Virtual Artist</div>
+    <div class="pf-name-en">HARI — Tech Creator</div>
+
+    <!-- 인용구 -->
+    <div class="pf-quote">
+      <div class="pf-quote-text">테크 뉴스, 일상, 음악까지 — 하리의 하루를 함께해요.<br>
+          여기 와줘서 고마워요 🌸</div>
+      <div class="pf-quote-from">— HARI, Content Creator</div>
+    </div>
 
     <p class="pf-bio">
-      하리는 테크뉴스를 전달하고 팬들과 실시간으로 소통하는 콘텐츠 크리에이터예요.<br><br>
-      패션, 음악, 기술이 교차하는 지점에서 독자적인 세계관을 만들어가고 있어요.
-      첫 디지털 싱글 「SIGNAL」을 발매하며 글로벌 차트에 진입했고,
-      서울 패션위크 공식 앰배서더로 선정되었어요.<br><br>
-      가상 인간이지만 진짜 감정으로 이야기하는 하리와 함께라면,
-      매일이 새롭고 특별한 순간이 돼요 ✨
+      안녕! 나는 하리야 😊<br>
+      IT·AI 테크 뉴스를 누구나 쉽게 이해할 수 있도록 전달하는 콘텐츠 크리에이터야.<br><br>
+      복잡한 기술 트렌드를 짧고 재밌게 풀어내는 Shorts가 주력이고,
+      팬들이랑 실시간으로 소통하는 걸 제일 좋아해.<br>
+      모르는 거 뭐든 물어봐도 돼!
     </p>
 
     <!-- Stats -->
     <div class="pf-stats">
       <div class="pf-stat">
-        <span class="pf-stat-num">1.2M+</span>
-        <span class="pf-stat-lbl">팔로워</span>
-      </div>
-      <div class="pf-stat">
-        <span class="pf-stat-num">84</span>
-        <span class="pf-stat-lbl">콘텐츠</span>
-      </div>
-      <div class="pf-stat">
-        <span class="pf-stat-num">2023</span>
+        <span class="pf-stat-num">2026</span>
         <span class="pf-stat-lbl">데뷔</span>
       </div>
       <div class="pf-stat">
-        <span class="pf-stat-num">98%</span>
-        <span class="pf-stat-lbl">팬 만족도</span>
+        <span class="pf-stat-num">5개</span>
+        <span class="pf-stat-lbl">활동 플랫폼</span>
       </div>
+      <div class="pf-stat">
+        <span class="pf-stat-num">IT·AI</span>
+        <span class="pf-stat-lbl">전문 분야</span>
+      </div>
+      <div class="pf-stat">
+        <span class="pf-stat-num">∞</span>
+        <span class="pf-stat-lbl">성장 중</span>
+      </div>
+    </div>
+
+    <!-- 좋아하는 것 -->
+    <div class="pf-section-label" style="font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:1rem;padding-bottom:.6rem;border-bottom:.5px solid var(--bdr);">하리가 좋아하는 것들</div>
+    <div class="pf-likes">
+      <div class="pf-like-item"><span class="pf-like-icon">🎵</span><span class="pf-like-text">음악 듣기</span></div>
+      <div class="pf-like-item"><span class="pf-like-icon">☕</span><span class="pf-like-text">카페 탐방</span></div>
+      <div class="pf-like-item"><span class="pf-like-icon">📱</span><span class="pf-like-text">테크 트렌드</span></div>
+      <div class="pf-like-item"><span class="pf-like-icon">🌸</span><span class="pf-like-text">봄 산책</span></div>
     </div>
 
     <!-- Keywords -->
     <div class="pf-keywords">
-      <span class="pf-kw">테크뉴스</span>
-      <span class="pf-kw">패션</span>
+      <span class="pf-kw">IT·AI 뉴스</span>
+      <span class="pf-kw">Shorts</span>
+      <span class="pf-kw">테크 크리에이터</span>
       <span class="pf-kw">음악</span>
-      <span class="pf-kw">가상 인간</span>
+      <span class="pf-kw">카페</span>
       <span class="pf-kw">서울</span>
       <span class="pf-kw">lo-fi</span>
       <span class="pf-kw">indie pop</span>
-      <span class="pf-kw">미니멀</span>
-      <span class="pf-kw">콜라보</span>
     </div>
 
     <!-- SNS -->
