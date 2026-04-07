@@ -32,7 +32,6 @@ services:
       - REDIS_HOST=redis
     depends_on:
       - redis
-      - db
 
   celery:
     image: 939213667098.dkr.ecr.ap-northeast-2.amazonaws.com/hari-backend:latest
@@ -61,24 +60,8 @@ services:
       - REDIS_HOST=redis
     depends_on:
       - redis
-      - db
 
   redis:
     image: redis:alpine
     ports:
       - "6379:6379"
-
-  db:
-    image: pgvector/pgvector:pg15
-    restart: always
-    environment:
-      POSTGRES_DB: hari1-db
-      POSTGRES_USER: postgres_hari
-      POSTGRES_PASSWORD: localpassword
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
