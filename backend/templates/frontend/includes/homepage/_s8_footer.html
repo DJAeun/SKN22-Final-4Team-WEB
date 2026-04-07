@@ -1,4 +1,12 @@
-  {% load static %}
+{% load static %}
+
+<!-- ====================================================
+     FOOTER v2 (현재 사용 중 — 4컬럼 구조)
+     원복하려면: v2 블록 전체를 주석 처리하고
+                 FOOTER_V1_START/END 주석을 해제하세요.
+     ==================================================== -->
+
+<!-- FOOTER_V1_START
 <div class="ft-logo-area">
     <div class="ft-big-logo">
       <img src="{% static 'images/hari_logo_none.png' %}" alt="HARI" style="height: 120px; width: auto; filter: brightness(0) invert(1);">
@@ -12,8 +20,9 @@
     <ul class="ft-nav-list">
       <li><a href="/abouthari/">About Hari</a></li>
       <li><a href="/gallery/">Gallery</a></li>
-      <li><a href="/video/">Video</a></li>
-      <li><a href="/hari-chat/">Chat</a></li>
+      <li><a href="/video/">Videos</a></li>
+      <li><a href="/hari-chat/">하리와 채팅하기</a></li>
+      <li><a href="/api/roleplay/test/">하리와 롤플레잉</a></li>
       <li><a href="/membership/">Membership</a></li>
       <li><a href="#s6">Contact</a></li>
     </ul>
@@ -22,12 +31,62 @@
   <div class="ft-sns-area">
     <div class="ft-sns-lbl">Follow Hari</div>
     <ul class="sns-list">
-      <li class="sns-item"><a class="sns-link" href="https://youtube.com" target="_blank" rel="noopener"><span class="sns-ko">유튜브</span><span class="sns-en">YouTube</span><span class="sns-arr">↗</span></a></li>
-      <li class="sns-item"><a class="sns-link" href="https://instagram.com" target="_blank" rel="noopener"><span class="sns-ko">인스타그램</span><span class="sns-en">Instagram</span><span class="sns-arr">↗</span></a></li>
-      <li class="sns-item"><a class="sns-link" href="https://tiktok.com" target="_blank" rel="noopener"><span class="sns-ko">틱톡</span><span class="sns-en">TikTok</span><span class="sns-arr">↗</span></a></li>
-      <li class="sns-item"><a class="sns-link" href="https://threads.net" target="_blank" rel="noopener"><span class="sns-ko">스레드</span><span class="sns-en">Threads</span><span class="sns-arr">↗</span></a></li>
+      <li class="sns-item"><a class="sns-link" href="https://www.instagram.com/jeondal__hari/" target="_blank" rel="noopener"><span class="sns-ko">인스타그램</span><span class="sns-en">Instagram</span><span class="sns-arr">↗</span></a></li>
+      <li class="sns-item"><a class="sns-link" href="https://www.youtube.com/@Hari-o5m2r" target="_blank" rel="noopener"><span class="sns-ko">유튜브</span><span class="sns-en">YouTube</span><span class="sns-arr">↗</span></a></li>
+      <li class="sns-item"><a class="sns-link" href="https://www.facebook.com/profile.php?id=61572342625141" target="_blank" rel="noopener"><span class="sns-ko">페이스북</span><span class="sns-en">Facebook</span><span class="sns-arr">↗</span></a></li>
+      <li class="sns-item"><a class="sns-link" href="https://www.tiktok.com/@coding__hari" target="_blank" rel="noopener"><span class="sns-ko">틱톡</span><span class="sns-en">TikTok</span><span class="sns-arr">↗</span></a></li>
+      <li class="sns-item"><a class="sns-link" href="https://www.threads.com/@jeondal__hari" target="_blank" rel="noopener"><span class="sns-ko">스레드</span><span class="sns-en">Threads</span><span class="sns-arr">↗</span></a></li>
     </ul>
     <div class="ft-note">하리의 모든 SNS 채널을 팔로우하고<br>최신 소식을 가장 먼저 받아보세요.</div>
   </div>
 </section>
+FOOTER_V1_END -->
 
+<!-- FOOTER_V2_START -->
+<!-- 컬럼 1: 브랜드 -->
+<div class="ft-logo-area">
+  <div class="ft-big-logo">
+    <img src="{% static 'images/hari_logo_none.png' %}" alt="HARI" style="height: 100px; width: auto; filter: brightness(0) invert(1);">
+  </div>
+  <p class="ft-tagline">아티스트 하리와 함께하는<br>소중하고 특별한 공간입니다.</p>
+  <div class="ft-copy">© 2026 Hari. All rights reserved.</div>
+</div>
+<div class="ft-div"></div>
+
+<!-- 컬럼 2: 하리 알아가기 -->
+<div class="ft-nav-area">
+  <div class="ft-nav-lbl">하리 알아가기</div>
+  <ul class="ft-nav-list">
+    <li><a href="/abouthari/">About Hari</a></li>
+    <li><a href="/gallery/">Gallery</a></li>
+    <li><a href="/video/">Videos</a></li>
+    <li><a href="#s6">Contact</a></li>
+  </ul>
+</div>
+<div class="ft-div"></div>
+
+<!-- 컬럼 3: 하리와 함께하기 -->
+<div class="ft-engage-area">
+  <div class="ft-engage-lbl">하리와 함께하기</div>
+  <ul class="ft-engage-list">
+    <li><a class="ft-chat-link" href="/hari-chat/">Chat</a></li>
+    <li><a href="/api/roleplay/test/">RPG</a></li>
+    <li><a href="/membership/">Membership</a></li>
+  </ul>
+</div>
+<div class="ft-div"></div>
+
+<!-- 컬럼 4: SNS -->
+<div class="ft-sns-area">
+  <div class="ft-sns-lbl">Follow Hari</div>
+  <ul class="sns-list">
+    <li class="sns-item"><a class="sns-link" href="https://www.instagram.com/jeondal__hari/" target="_blank" rel="noopener"><span class="sns-ko">인스타그램</span><span class="sns-en">Instagram</span><span class="sns-arr">↗</span></a></li>
+    <li class="sns-item"><a class="sns-link" href="https://www.youtube.com/@Hari-o5m2r" target="_blank" rel="noopener"><span class="sns-ko">유튜브</span><span class="sns-en">YouTube</span><span class="sns-arr">↗</span></a></li>
+    <li class="sns-item"><a class="sns-link" href="https://www.facebook.com/profile.php?id=61572342625141" target="_blank" rel="noopener"><span class="sns-ko">페이스북</span><span class="sns-en">Facebook</span><span class="sns-arr">↗</span></a></li>
+    <li class="sns-item"><a class="sns-link" href="https://www.tiktok.com/@coding__hari" target="_blank" rel="noopener"><span class="sns-ko">틱톡</span><span class="sns-en">TikTok</span><span class="sns-arr">↗</span></a></li>
+    <li class="sns-item"><a class="sns-link" href="https://www.threads.com/@jeondal__hari" target="_blank" rel="noopener"><span class="sns-ko">스레드</span><span class="sns-en">Threads</span><span class="sns-arr">↗</span></a></li>
+  </ul>
+  <div class="ft-note">하리의 모든 SNS 채널을 팔로우하고<br>최신 소식을 가장 먼저 받아보세요.</div>
+</div>
+</section>
+<!-- FOOTER_V2_END -->

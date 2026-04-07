@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
+from django.core.mail import send_mail
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view, permission_classes as perm_classes
 from rest_framework.response import Response
@@ -262,3 +263,29 @@ def admin_toggle_knowledge(request, persona_id):
         return JsonResponse({'ok': True, 'is_active': k.is_active})
     except HariKnowledge.DoesNotExist:
         return JsonResponse({'ok': False}, status=404)
+
+
+@require_POST
+def contact_form(request):
+    name = request.POST.get('contactName', '').strip()
+    email = request.POST.get('contactEmail', '').strip()
+    company = request.POST.get('contactCompany', '').strip()
+    inquiry_type = request.POST.get('contactType', '').strip()
+    message = request.POST.get('contactMessage', '').strip()
+
+    if not name or not email or not message:
+        return JsonResponse({'ok': False, 'error': '필수 항목을 입력해주세요.'}, status=400)
+
+    subject = f'[Hari 문의] {inquiry_type or "기타"} — {name}'
+    body = f"""이름: {name}
+이메일: {email}
+회사: {company or '-'}
+문의 유형: {inquiry_type or '-'}
+
+{message}
+"""
+    try:
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [settings.CONTACT_EMAIL])
+        return JsonResponse({'ok': True})
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': str(e)}, status=500)
