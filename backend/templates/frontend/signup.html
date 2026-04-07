@@ -6,95 +6,105 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="안녕! 드디어 나랑 편하게 대화할 수 있는 우리만의 공간이 생겼어. SNS에선 못 했던 솔직한 이야기들, 여기서 다 들려줄게! 지금 로그인하고 들어오면 하리가 먼저 말을 걸어줄지도 몰라. 우리 여기서 만날까?">
 <meta property="og:title" content="Hari — 회원가입">
-<meta property="og:description" content="안녕! 드디어 나랑 편하게 대화할 수 있는 우리만의 공간이 생겼어. SNS에선 못 했던 솔직한 이야기들, 여기서 다 들려줄게! 지금 로그인하고 들어오면 하리가 먼저 말을 걸어줄지도 몰라. 우리 여기서 만날까?">
+<meta property="og:description" content="안녕! 드디어 나랑 편하게 대화할 수 있는 우리만의 공간이 생겼어.">
 <meta property="og:type" content="website">
 <title>Hari — 회원가입</title>
 <link rel="icon" type="image/png" href="{% static 'images/hari_favicon.png' %}?v=2">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/NeoDunggeunmo.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSSaemmul.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --f-pixel:'DOSSaemmul',sans-serif;
-  --f-neo:'NeoDunggeunmo',sans-serif;
-  --bg:#ffffff;--ink:#2a2420;--acc:#ff7b8a;--dim:#9e9490;
-  --bdr:rgba(255,123,138,0.12);--bdr2:rgba(255,123,138,0.22);
-  --grn:#06d6a0;
+  --f-serif:'Gowun Batang',serif;
+  --f-mono:'DM Mono',monospace;
+  --bg:#fdfcfb;--ink:#1e1a18;--acc:#e8637a;--dim:#a09890;
+  --bdr:rgba(232,99,122,0.14);--bdr2:rgba(232,99,122,0.25);
+  --surface:#ffffff;--grn:#06d6a0;
 }
 html,body{height:100%;overflow-x:hidden;}
-body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;display:flex;flex-direction:column;min-height:100vh;max-width:100vw;}
+body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100vh;}
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-thumb{background:var(--acc);border-radius:3px;}
 
-/* LAYOUT */
 .auth-wrap{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:100vh;}
 
-/* LEFT — 이미지 패널 */
-.auth-left{position:relative;overflow:hidden;background-image:linear-gradient(rgba(0,0,0,0.2),rgba(0,0,0,0.5)),url('{% static "images/hari_image4.png" %}');background-size:cover;background-position:center;display:flex;flex-direction:column;justify-content:space-between;padding:2.5rem;}
-.auth-left-logo img{height:48px;width:auto;filter:brightness(0) invert(1);}
-.auth-left-title{font-family:var(--f-neo);font-size:clamp(2rem,4vw,3.5rem);color:#fff;line-height:1.1;margin-bottom:.8rem;}
-.auth-left-sub{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,0.65);}
+.auth-left{position:relative;overflow:hidden;background-image:linear-gradient(160deg,rgba(0,0,0,0.15) 0%,rgba(0,0,0,0.6) 100%),url('{% static "images/hari_image4.png" %}');background-size:cover;background-position:center top;display:flex;flex-direction:column;justify-content:space-between;padding:2.8rem;}
+.auth-left-logo{position:relative;z-index:1;}
+.auth-left-logo img{height:44px;width:auto;filter:brightness(0) invert(1);opacity:.9;}
+.auth-left-bottom{position:relative;z-index:1;}
+.auth-left-title{font-family:var(--f-serif);font-size:clamp(2rem,4vw,3.6rem);font-weight:700;color:#fff;line-height:1.15;margin-bottom:.9rem;letter-spacing:-0.01em;text-shadow:0 2px 20px rgba(0,0,0,0.3);}
+.auth-left-sub{font-family:var(--f-mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,0.6);}
 
-/* RIGHT — 폼 패널 */
-.auth-right{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:4rem 3rem;background:#fff;}
+.auth-right{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:3.5rem 3rem;background:var(--surface);}
 .auth-form-wrap{width:100%;max-width:400px;}
 
-.auth-form-title{font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:1.6rem;font-weight:600;color:var(--ink);margin-bottom:.4rem;}
-.auth-form-sub{font-size:.85rem;color:var(--dim);margin-bottom:2rem;line-height:1.6;}
+.auth-form-eyebrow{font-family:var(--f-mono);font-size:.56rem;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);margin-bottom:.7rem;}
+.auth-form-title{font-family:var(--f-serif);font-size:2rem;font-weight:700;color:var(--ink);margin-bottom:.5rem;line-height:1.2;}
+.auth-form-sub{font-size:.84rem;color:var(--dim);margin-bottom:2rem;line-height:1.65;}
 
-/* Social */
-.social-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1.5rem;}
-.social-btn{display:flex;align-items:center;justify-content:center;gap:.7rem;width:100%;padding:.75rem;border:.5px solid var(--bdr2);background:#fff;color:var(--ink);font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.85rem;cursor:pointer;transition:border-color .2s,background .2s;}
-.social-btn:hover{border-color:var(--acc);background:rgba(255,123,138,0.04);}
+.social-row{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-bottom:1.4rem;}
+.social-btn{display:flex;align-items:center;justify-content:center;gap:.65rem;width:100%;padding:.78rem;border:1px solid var(--bdr2);border-radius:6px;background:#fff;color:var(--ink);font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.83rem;font-weight:500;cursor:pointer;transition:border-color .2s,background .2s,box-shadow .2s;}
+.social-btn:hover{border-color:var(--acc);background:rgba(232,99,122,0.03);box-shadow:0 2px 8px rgba(232,99,122,0.1);}
 .social-btn.naver{background:#03C75A;border-color:#03C75A;color:#fff;}
-.social-btn.naver:hover{background:#02b350;border-color:#02b350;}
+.social-btn.naver:hover{background:#02b350;border-color:#02b350;box-shadow:0 2px 8px rgba(3,199,90,0.25);}
 
-/* Divider */
-.auth-divider{display:flex;align-items:center;gap:.8rem;margin:1.2rem 0;font-family:'DM Mono',monospace;font-size:.54rem;letter-spacing:.14em;color:var(--dim);}
+.auth-divider{display:flex;align-items:center;gap:.8rem;margin:1.2rem 0;font-family:var(--f-mono);font-size:.52rem;letter-spacing:.14em;color:var(--dim);}
 .auth-divider::before,.auth-divider::after{content:'';flex:1;height:.5px;background:var(--bdr);}
 
-/* Fields */
-.auth-field{display:flex;flex-direction:column;margin-bottom:1rem;}
-.auth-label{font-family:'DM Mono',monospace;font-size:.54rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:.3rem;}
-.auth-inp{background:transparent;border:.5px solid var(--bdr2);color:var(--ink);font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.88rem;padding:.75rem .9rem;outline:none;width:100%;transition:border-color .2s;}
-.auth-inp::placeholder{color:var(--dim);}
-.auth-inp:focus{border-color:var(--acc);}
-
-.auth-inp-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+.auth-field{display:flex;flex-direction:column;margin-bottom:.9rem;}
+.auth-label{font-family:var(--f-mono);font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:.35rem;}
+.auth-inp{background:#fafaf9;border:1px solid #ece8e5;border-radius:6px;color:var(--ink);font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.88rem;padding:.78rem 1rem;outline:none;width:100%;transition:border-color .2s,background .2s,box-shadow .2s;}
+.auth-inp::placeholder{color:#c5bdb8;}
+.auth-inp:focus{border-color:var(--acc);background:#fff;box-shadow:0 0 0 3px rgba(232,99,122,0.1);}
+.auth-inp-row{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;}
 
 .pw-wrap{position:relative;}
-.pw-toggle{position:absolute;right:.8rem;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;color:var(--dim);font-size:.7rem;font-family:'DM Mono',monospace;letter-spacing:.08em;}
+.pw-toggle{position:absolute;right:.9rem;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;color:var(--dim);font-size:.62rem;font-family:var(--f-mono);letter-spacing:.08em;transition:color .2s;}
+.pw-toggle:hover{color:var(--ink);}
 
-/* Strength Bars */
 .pw-strength{display:flex;gap:3px;margin-top:.4rem;}
-.pw-bar{flex:1;height:2px;background:var(--bdr2);transition:background .3s;}
+.pw-bar{flex:1;height:2px;background:var(--bdr2);border-radius:2px;transition:background .3s;}
 .pw-bar.weak{background:#ff7b8a;}
 .pw-bar.ok{background:#ffd166;}
 .pw-bar.strong{background:#06d6a0;}
 
-/* Error */
-.auth-error{background:rgba(255,123,138,0.08);border:.5px solid rgba(255,123,138,0.3);color:var(--acc);font-size:.78rem;padding:.65rem .9rem;margin-bottom:1rem;display:none;}
+.auth-error{background:rgba(232,99,122,0.07);border:1px solid rgba(232,99,122,0.25);border-radius:6px;color:var(--acc);font-size:.78rem;padding:.7rem 1rem;margin-bottom:1rem;display:none;line-height:1.5;}
 .auth-error.show{display:block;}
 
-/* Terms */
-.auth-check{display:flex;align-items:flex-start;gap:.6rem;font-size:.75rem;color:var(--dim);cursor:pointer;line-height:1.6;margin-bottom:1.5rem;}
-.auth-check input{accent-color:var(--acc);margin-top:3px;flex-shrink:0;}
-.auth-check a{color:var(--acc);text-decoration:none;border-bottom:.5px solid var(--acc);}
+.auth-check{display:flex;align-items:flex-start;gap:.6rem;font-size:.75rem;color:var(--dim);cursor:pointer;line-height:1.7;margin-bottom:1.4rem;}
+.auth-check input{accent-color:var(--acc);margin-top:4px;flex-shrink:0;}
+.auth-check a{color:var(--acc);text-decoration:none;font-weight:500;border-bottom:.5px solid rgba(232,99,122,0.4);cursor:pointer;transition:color .2s;}
+.auth-check a:hover{color:var(--ink);}
 
-/* Submit */
-.auth-submit{background:var(--acc);border:none;color:#fff;font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;padding:.9rem;cursor:pointer;width:100%;transition:background .2s;margin-bottom:1.2rem;}
-.auth-submit:hover{background:#ff4c6c;}
-.auth-submit:disabled{opacity:.6;cursor:not-allowed;}
+.auth-submit{background:linear-gradient(135deg,var(--acc) 0%,#d44f65 100%);border:none;border-radius:6px;color:#fff;font-family:var(--f-mono);font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;padding:.95rem;cursor:pointer;width:100%;transition:opacity .2s,box-shadow .2s,transform .1s;margin-bottom:1.3rem;box-shadow:0 4px 14px rgba(232,99,122,0.35);}
+.auth-submit:hover{opacity:.92;box-shadow:0 6px 20px rgba(232,99,122,0.45);}
+.auth-submit:active{transform:translateY(1px);}
+.auth-submit:disabled{opacity:.55;cursor:not-allowed;box-shadow:none;}
 
-/* Switch */
 .auth-switch{text-align:center;font-size:.8rem;color:var(--dim);}
-.auth-switch a{color:var(--acc);text-decoration:none;border-bottom:.5px solid var(--acc);}
+.auth-switch a{color:var(--acc);text-decoration:none;font-weight:500;border-bottom:.5px solid rgba(232,99,122,0.4);transition:color .2s;}
 .auth-switch a:hover{color:var(--ink);}
 
-/* Home link */
-.auth-home{display:block;text-align:center;margin-top:1.5rem;font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);text-decoration:none;transition:color .2s;}
+.auth-home{display:block;text-align:center;margin-top:1.6rem;font-family:var(--f-mono);font-size:.54rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);text-decoration:none;transition:color .2s;}
 .auth-home:hover{color:var(--acc);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(20,16,14,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-card{background:#fff;border-radius:12px;width:100%;max-width:540px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,0.2);transform:translateY(10px);transition:transform .25s;}
+.modal-overlay.open .modal-card{transform:translateY(0);}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:1.4rem 1.6rem 1rem;border-bottom:1px solid #f0ecea;}
+.modal-head-title{font-family:var(--f-serif);font-size:1.15rem;font-weight:700;color:var(--ink);}
+.modal-close{background:transparent;border:none;cursor:pointer;color:var(--dim);font-size:1.2rem;line-height:1;padding:.2rem;transition:color .2s;}
+.modal-close:hover{color:var(--ink);}
+.modal-body{overflow-y:auto;padding:1.4rem 1.6rem 1.8rem;font-size:.82rem;color:#4a4440;line-height:1.85;}
+.modal-body h3{font-family:var(--f-serif);font-size:.95rem;font-weight:700;color:var(--ink);margin:1.2rem 0 .4rem;}
+.modal-body h3:first-child{margin-top:0;}
+.modal-body p{margin-bottom:.7rem;}
+.modal-body ul{padding-left:1.2rem;margin-bottom:.7rem;}
+.modal-body ul li{margin-bottom:.3rem;}
 
 @media(max-width:768px){
   .auth-wrap{grid-template-columns:1fr;}
@@ -104,24 +114,18 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 }
 @media(max-width:480px){
   .auth-right{padding:2rem 1.2rem;}
-  .auth-form-title{font-size:1.3rem;}
+  .auth-form-title{font-size:1.6rem;}
   .social-row{grid-template-columns:1fr;}
-  .social-btn{padding:.65rem;}
   .auth-inp-row{grid-template-columns:1fr;}
-  .auth-inp{font-size:.82rem;padding:.65rem .8rem;}
-  .auth-submit{padding:.8rem;font-size:.62rem;}
-}
-@media(max-width:360px){
-  .auth-right{padding:1.5rem 1rem;}
-  .auth-form-title{font-size:1.15rem;}
-  .auth-form-sub{font-size:.78rem;}
+  .auth-inp{font-size:.85rem;padding:.7rem .9rem;}
+  .auth-submit{padding:.85rem;font-size:.62rem;}
 }
 </style>
 </head>
 <body>
 
 <div class="auth-wrap">
-  <!-- LEFT: 이미지 -->
+  <!-- LEFT -->
   <div class="auth-left">
     <a class="auth-left-logo" href="/">
       <img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI">
@@ -132,16 +136,17 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
     </div>
   </div>
 
-  <!-- RIGHT: 폼 -->
+  <!-- RIGHT -->
   <div class="auth-right">
     <div class="auth-form-wrap">
+      <div class="auth-form-eyebrow">Create account</div>
       <div class="auth-form-title">회원가입</div>
       <p class="auth-form-sub">하리와의 특별한 대화, 지금 시작해보세요 🌸</p>
 
       <!-- Social -->
       <div class="social-row">
         <button class="social-btn" type="button" onclick="socialLogin('google')">
-          <svg viewBox="0 0 24 24" width="16" height="16">
+          <svg viewBox="0 0 24 24" width="15" height="15">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
@@ -150,7 +155,7 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
           Google
         </button>
         <button class="social-btn naver" type="button" onclick="socialLogin('naver')">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M16.27 12.96L7.4 0H0v24h7.73V11.04L16.6 24H24V0h-7.73z"/></svg>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M16.27 12.96L7.4 0H0v24h7.73V11.04L16.6 24H24V0h-7.73z"/></svg>
           Naver
         </button>
       </div>
@@ -190,7 +195,7 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 
       <label class="auth-check">
         <input type="checkbox" id="reg-agree" required>
-        <span><a href="#">이용약관</a> 및 <a href="#">개인정보처리방침</a>에 동의합니다.</span>
+        <span><a onclick="openModal('terms');return false;">이용약관</a> 및 <a onclick="openModal('privacy');return false;">개인정보처리방침</a>에 동의합니다.</span>
       </label>
 
       <button class="auth-submit" id="reg-btn" type="button" onclick="doSignup()">가입하기 →</button>
@@ -200,6 +205,92 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
       </div>
 
       <a class="auth-home" href="/">← 홈으로 돌아가기</a>
+    </div>
+  </div>
+</div>
+
+<!-- 이용약관 모달 -->
+<div class="modal-overlay" id="modal-terms" onclick="closeOnBg(event,'modal-terms')">
+  <div class="modal-card">
+    <div class="modal-head">
+      <span class="modal-head-title">이용약관</span>
+      <button class="modal-close" onclick="closeModal('modal-terms')">✕</button>
+    </div>
+    <div class="modal-body">
+      <h3>제1조 (목적)</h3>
+      <p>본 약관은 Hari 서비스(이하 "서비스")를 제공하는 보리 팬클럽(이하 "회사")과 이용자 간의 권리·의무 및 책임사항을 규정함을 목적으로 합니다.</p>
+
+      <h3>제2조 (서비스 이용)</h3>
+      <p>서비스는 회원가입 후 이용 가능합니다. 이용자는 본 약관에 동의함으로써 서비스를 이용할 수 있으며, 만 14세 미만은 가입이 제한됩니다.</p>
+
+      <h3>제3조 (회원의 의무)</h3>
+      <ul>
+        <li>타인의 정보를 도용하거나 허위 정보를 등록하지 않습니다.</li>
+        <li>서비스를 통해 타인의 명예를 훼손하거나 불법적인 행위를 하지 않습니다.</li>
+        <li>계정 및 비밀번호를 타인과 공유하거나 양도하지 않습니다.</li>
+        <li>서비스의 정상적인 운영을 방해하는 행위를 하지 않습니다.</li>
+      </ul>
+
+      <h3>제4조 (서비스 제공 및 변경)</h3>
+      <p>회사는 서비스의 내용 및 이용 방법을 변경할 수 있으며, 서비스 운영상 필요한 경우 사전 고지 후 서비스를 중단할 수 있습니다.</p>
+
+      <h3>제5조 (지식재산권)</h3>
+      <p>서비스 내 모든 콘텐츠(텍스트, 이미지, AI 응답 등)의 지식재산권은 회사 또는 원저작자에게 귀속됩니다. 이용자는 서비스 내 콘텐츠를 무단으로 복제·배포·수정할 수 없습니다.</p>
+
+      <h3>제6조 (면책조항)</h3>
+      <p>회사는 AI 응답의 정확성·완전성을 보장하지 않습니다. 서비스 이용으로 인한 손해에 대해 회사의 고의 또는 중과실이 없는 한 책임을 지지 않습니다.</p>
+
+      <h3>제7조 (약관의 변경)</h3>
+      <p>본 약관은 관련 법령 또는 서비스 정책 변경 시 개정될 수 있으며, 변경 시 서비스 내 공지를 통해 안내합니다.</p>
+
+      <p style="margin-top:1.2rem;color:#a09890;font-size:.76rem;">시행일: 2025년 1월 1일</p>
+    </div>
+  </div>
+</div>
+
+<!-- 개인정보처리방침 모달 -->
+<div class="modal-overlay" id="modal-privacy" onclick="closeOnBg(event,'modal-privacy')">
+  <div class="modal-card">
+    <div class="modal-head">
+      <span class="modal-head-title">개인정보처리방침</span>
+      <button class="modal-close" onclick="closeModal('modal-privacy')">✕</button>
+    </div>
+    <div class="modal-body">
+      <h3>1. 수집하는 개인정보 항목</h3>
+      <p>회사는 서비스 제공을 위해 다음과 같은 개인정보를 수집합니다.</p>
+      <ul>
+        <li><strong>필수:</strong> 이메일 주소, 이름, 닉네임, 암호화된 비밀번호</li>
+        <li><strong>소셜 로그인:</strong> Google·Naver 계정의 이메일, 프로필 이름</li>
+        <li><strong>자동 수집:</strong> 서비스 이용 기록, 접속 IP, 기기 정보</li>
+      </ul>
+
+      <h3>2. 개인정보의 수집 및 이용 목적</h3>
+      <ul>
+        <li>회원 식별 및 서비스 제공</li>
+        <li>AI 대화 서비스의 개인화 및 품질 개선</li>
+        <li>서비스 관련 공지 및 고객 지원</li>
+        <li>부정 이용 방지 및 보안 강화</li>
+      </ul>
+
+      <h3>3. 개인정보 보유 및 이용 기간</h3>
+      <p>회원 탈퇴 시까지 보유하며, 탈퇴 후 즉시 파기합니다. 단, 관계 법령에 따라 일정 기간 보관이 필요한 경우 해당 기간 동안 보관합니다.</p>
+
+      <h3>4. 개인정보의 제3자 제공</h3>
+      <p>회사는 이용자의 동의 없이 개인정보를 제3자에게 제공하지 않습니다. 단, 법령에 의한 요청이 있는 경우는 예외로 합니다.</p>
+
+      <h3>5. 개인정보 처리 위탁</h3>
+      <p>회사는 서비스 운영을 위해 AWS(서버 호스팅), OpenAI(AI 응답 생성) 등에 일부 처리를 위탁할 수 있으며, 위탁 시 안전한 처리를 위한 계약을 체결합니다.</p>
+
+      <h3>6. 이용자의 권리</h3>
+      <p>이용자는 언제든지 자신의 개인정보 조회·수정·삭제를 요청할 수 있으며, 회원 탈퇴를 통해 개인정보 처리에 대한 동의를 철회할 수 있습니다.</p>
+
+      <h3>7. 쿠키(Cookie) 사용</h3>
+      <p>서비스는 로그인 상태 유지 등을 위해 쿠키를 사용합니다. 브라우저 설정을 통해 쿠키 사용을 거부할 수 있으나, 일부 서비스 이용이 제한될 수 있습니다.</p>
+
+      <h3>8. 문의</h3>
+      <p>개인정보 처리에 관한 문의는 서비스 내 고객센터를 통해 접수해주세요.</p>
+
+      <p style="margin-top:1.2rem;color:#a09890;font-size:.76rem;">시행일: 2025년 1월 1일</p>
     </div>
   </div>
 </div>
@@ -222,14 +313,10 @@ function checkStrength(inp){
   if(v.length >= 8) s++;
   if(/[A-Z]/.test(v) || /[0-9]/.test(v)) s++;
   if(/[^A-Za-z0-9]/.test(v)) s++;
-  
   const bars = [document.getElementById('bar1'), document.getElementById('bar2'), document.getElementById('bar3')];
   bars.forEach(b => b.className = 'pw-bar');
-  
   const cls = ['', 'weak', 'ok', 'strong'];
-  for(let i=0; i<s; i++){
-    bars[i].classList.add(cls[s]);
-  }
+  for(let i=0; i<s; i++) bars[i].classList.add(cls[s]);
 }
 
 function showError(msg){
@@ -245,6 +332,26 @@ function socialLogin(provider){
   window.location.href = '/accounts/' + provider + '/login/?process=login';
 }
 
+function openModal(type){
+  document.getElementById('modal-' + type).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeOnBg(e, id){
+  if(e.target === document.getElementById(id)) closeModal(id);
+}
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    document.querySelectorAll('.modal-overlay.open').forEach(m => {
+      m.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  }
+});
+
 function doSignup(){
   const name = document.getElementById('reg-name').value.trim();
   const nick = document.getElementById('reg-nick').value.trim();
@@ -255,35 +362,17 @@ function doSignup(){
 
   hideError();
 
-  if(!email || !pw || !name || !nick){
-    showError('모든 필드를 입력해주세요.');
-    return;
-  }
-  if(pw.length < 8){
-    showError('비밀번호는 8자 이상이어야 합니다.');
-    return;
-  }
-  if(!agree){
-    showError('이용약관에 동의해주세요.');
-    return;
-  }
+  if(!email || !pw || !name || !nick){ showError('모든 필드를 입력해주세요.'); return; }
+  if(pw.length < 8){ showError('비밀번호는 8자 이상이어야 합니다.'); return; }
+  if(!agree){ showError('이용약관에 동의해주세요.'); return; }
 
   btn.textContent = '가입 중...';
   btn.disabled = true;
 
   fetch('/api/auth/registration/', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': getCookie('csrftoken'),
-    },
-    body: JSON.stringify({
-      username: nick,
-      email: email,
-      password1: pw,
-      password2: pw,
-      first_name: name
-    }),
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+    body: JSON.stringify({ username: nick, email: email, password1: pw, password2: pw, first_name: name }),
   })
   .then(r => {
     if(!r.ok) return r.json().then(d => { throw d; });
