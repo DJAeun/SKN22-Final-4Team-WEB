@@ -33,13 +33,13 @@ def homepage(request):
     return render(request, 'frontend/homepage.html')
 
 
-def fanpage(request):
-    return render(request, 'frontend/fanpage.html')
+def mypage(request):
+    return render(request, 'frontend/mypage.html')
 
 
-def profile_page(request):
+def abouthari_page(request):
     _try_jwt_auth(request)
-    return render(request, 'frontend/profile.html')
+    return render(request, 'frontend/abouthari.html')
 
 
 def gallery_page(request):

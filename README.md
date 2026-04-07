@@ -1,4 +1,4 @@
-# 🎥 HARI: The AI Virtual Influencer.
+# 🎥 HARI: The AI Virtual Influencer
 > **"AI 에이전트 시대, 팬 경험을 스케일링하는 새로운 테크 크리에이터"**
 
 <p align="center">
@@ -109,7 +109,7 @@ SKN22-Final-4Team-WEB/
 │   │   └── wsgi.py                # WSGI 엔트리포인트
 │   │
 │   ├── chat/                      # 핵심 Django 앱 (채팅 기능 + 프론트엔드 뷰 통합)
-│   │   ├── views.py               # 모든 페이지 뷰 함수 (homepage, fanpage, chat 포함)
+│   │   ├── views.py               # 모든 페이지 뷰 함수 (homepage, mypage, chat 포함)
 │   │   ├── models.py              # Message, ChatMemory DB 모델
 │   │   ├── consumers.py           # WebSocket Consumer (Django Channels)
 │   │   ├── engine.py              # LangChain 기반 대화 엔진 (하리 페르소나 + 메모리)
@@ -123,7 +123,7 @@ SKN22-Final-4Team-WEB/
 │   ├── templates/                 # Django 템플릿 루트
 │   │   └── frontend/              # 하리 프론트엔드 HTML 템플릿
 │   │       ├── homepage.html      # 홈페이지 (랜딩 · 갤러리 · 뉴스 · 멤버십)
-│   │       ├── fanpage.html       # 팬클럽 대시보드 (랭킹 · 샵 · 프로필)
+│   │       ├── mypage.html       # 팬클럽 대시보드 (랭킹 · 샵 · 프로필)
 │   │       ├── chat.html          # 하리 채팅 UI (단독 페이지)
 │   │       └── includes/          # 페이지별 분리된 섹션 컴포넌트
 │   │           ├── homepage/
@@ -136,7 +136,7 @@ SKN22-Final-4Team-WEB/
 │   │           │   ├── _s6_membership.html  # 멤버십 CTA 섹션
 │   │           │   ├── _s7_contact.html     # 문의 섹션
 │   │           │   └── _s8_footer.html      # 푸터
-│   │           ├── fanpage/
+│   │           ├── mypage/
 │   │           │   ├── _topbar.html         # 상단 바
 │   │           │   ├── _sidebar.html        # 사이드 내비게이션
 │   │           │   ├── _profile.html        # 유저 프로필 카드
@@ -182,7 +182,7 @@ SKN22-Final-4Team-WEB/
 |---|---|---|
 | `/` | `chat_index` | 채팅 메인 (로그인 필요) |
 | `/homepage/` | `homepage` | 하리 랜딩 홈페이지 |
-| `/fanpage/` | `fanpage` | 팬클럽 대시보드 |
+| `/mypage/` | `mypage` | 팬클럽 대시보드 |
 | `/hari-chat/` | `frontend_chat` | 하리 채팅 전용 UI |
 | `/health/` | `health_check` | 서버 헬스체크 (EB 모니터링) |
 | `/admin/` | Django Admin | 관리자 페이지 |

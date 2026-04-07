@@ -33,8 +33,8 @@
   --sw:    230px;
   --th:    58px;
 }
-html,body{height:100%;overflow:hidden;}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-pixel);font-size: 1.15rem; line-height: 1.5; font-weight:400;display:flex;flex-direction:column;}
+html,body{height:100%;overflow:hidden;overflow-x:hidden;}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-pixel);font-size: 1.15rem; line-height: 1.5; font-weight:400;display:flex;flex-direction:column;max-width:100vw;}
 ::-webkit-scrollbar{width:3px;height:3px;}
 ::-webkit-scrollbar-thumb{background:var(--bdr2);}
 a{text-decoration:none;color:inherit;}
@@ -253,7 +253,7 @@ button{cursor:pointer;font-family:inherit;}
 /* MEDIA QUERIES */
 @media(max-width:1024px){
   #sidebar{ width:200px; }
-  --sw: 200px;
+  :root { --sw: 200px; }
 }
 @media(max-width:800px){
   #sidebar{ display:none; }
@@ -268,26 +268,26 @@ button{cursor:pointer;font-family:inherit;}
 <body>
 
 
-{% include "frontend/includes/fanpage/_topbar.html" %}
+{% include "frontend/includes/mypage/_topbar.html" %}
 
 <div id="layout">
 
-{% include "frontend/includes/fanpage/_sidebar.html" %}
+{% include "frontend/includes/mypage/_sidebar.html" %}
 
   <main id="main">
 
-  {% include "frontend/includes/fanpage/_profile.html" %}
+  {% include "frontend/includes/mypage/_abouthari.html" %}
 
-  {% include "frontend/includes/fanpage/_ranking.html" %}
+  {% include "frontend/includes/mypage/_ranking.html" %}
 
-  {% include "frontend/includes/fanpage/_shop.html" %}
+  {% include "frontend/includes/mypage/_shop.html" %}
 
-  {% include "frontend/includes/fanpage/_myinfo.html" %}
+  {% include "frontend/includes/mypage/_myinfo.html" %}
 
   </main>
 </div>
 
-{% include "frontend/includes/fanpage/_buymodal.html" %}
+{% include "frontend/includes/mypage/_buymodal.html" %}
 <script>
 let pts = 3250, pending = null, checkedIn = false;
 

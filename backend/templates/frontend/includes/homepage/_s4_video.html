@@ -9,14 +9,13 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    padding: 2.5rem 2.5rem 1.5rem;
+    padding: 2rem 2.5rem 0.5rem;
     border-bottom: 0.5px solid var(--bdr);
   }
 
   .s4-title {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2.5rem, 5vw, 5rem);
-    font-weight: 400;
+    font-size: clamp(2.2rem, 4vw, 3.5rem);
     color: var(--ink);
     line-height: 1;
     margin: 0;
@@ -36,109 +35,109 @@
   }
   .s4-more:hover { color: var(--ink); }
 
-  /* Swiper 재구성 및 Custom CSS */
-  .swiper-video { /* container if we decide to re-init swiper */
-    overflow: hidden;
-  }
-  /* 만약 Swiper JS가 없더라도 두 개 띄우기용 (왼쪽 정렬 적용) */
-  .swiper-wrapper.static-view {
-    display: flex !important;
-    justify-content: flex-start; /* 화면 왼쪽부터 나란히 배치 */
-    gap: 24px; /* 영상 간격 */
-    transform: none !important;
+  /* Premium Grid Layout */
+  .premium-video-grid {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2rem;
+    padding: 2rem 2.5rem 3rem;
+    flex-wrap: wrap;
   }
 
-  .yt-card {
+  .premium-vid-card {
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* 텍스트도 왼쪽 언저리로 자연스럽게 */
-    max-width: 340px; /* Shorts가 예쁘게 보이는 크기 */
     width: 100%;
-    margin: 0; /* 중앙 강제 정렬 해제 */
+    max-width: 220px; /* 창 100%일 때 세로 잘림 막기 위해 확 줄임 */
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .premium-vid-card:hover {
+    transform: translateY(-10px);
   }
 
-  /* 9:16 Shorts 비율 썸네일(iframe) 래퍼 */
-  .yt-thumb-wrap {
+  /* 9:16 Shorts Wrapper */
+  .premium-vid-thumb {
     position: relative;
     width: 100%;
-    padding-bottom: 177.78%; /* 16:9 역방향 9:16 */
-    background: #000;
-    border-radius: 4px;
+    padding-bottom: 177.78%; 
+    background: #111;
+    border-radius: 18px; /* 둥근 모서리로 더 부드럽고 세련되게 */
     overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 16px 36px rgba(0,0,0,0.14); /* 고급스러운 그림자 */
+    margin-bottom: 1.4rem;
   }
 
-  /* 꽉 차게 유튜브 iframe 임베드 */
-  .yt-thumb-wrap iframe {
+  .premium-vid-thumb iframe {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     border: none;
   }
 
-  /* Shorts Badge - 우측 하단 */
-  .yt-shorts-badge {
+  /* Shorts Badge Overlap */
+  .premium-shorts-badge {
     position: absolute; 
-    bottom: 10px; 
-    right: 10px;
-    background: #ff0000; 
+    bottom: 16px; 
+    right: 16px;
+    background: rgba(255, 0, 0, 0.9); 
     color: #fff; 
-    font-size: 0.7rem; 
+    font-size: 0.75rem; 
     font-weight: 700;
-    padding: 2px 6px; 
-    border-radius: 4px; 
+    padding: 5px 12px; 
+    border-radius: 20px; 
     display: flex; 
     align-items: center; 
-    font-family: sans-serif;
-    pointer-events: none; /* iframe 클릭 방해 방지 */
+    gap: 4px;
+    font-family: 'Apple SD Gothic Neo', sans-serif;
+    pointer-events: none;
+    box-shadow: 0 4px 10px rgba(255,0,0,0.3);
   }
 
-  .yt-info { 
-    text-align: left; /* 중앙 정렬에서 왼쪽 정렬로 변경 (요청사항 매칭) */
-    margin-top: 1rem; 
+  .premium-vid-info {
+    text-align: left; 
     width: 100%;
-    padding: 0 4px;
+    padding: 0 0.5rem;
   }
   
-  .yt-title { 
-    font-family: var(--f-neo);
+  .premium-vid-title { 
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
     font-size: 1.05rem; 
-    font-weight: 500; 
-    color: #222; 
+    font-weight: 700; 
+    color: var(--ink); 
     line-height: 1.3;
     margin-bottom: 0.4rem;
+    letter-spacing: -0.01em;
+    word-break: keep-all;
   }
   
-  .yt-meta span {
-    font-family: var(--f-pixel);
-    font-size: 0.75rem; 
-    color: var(--dim);
-    display: inline-block;
-    margin-bottom: 0.8rem;
+  .premium-vid-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; 
+    color: #888;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.7rem;
+    text-transform: uppercase;
   }
 
-  .yt-link {
+  .premium-vid-link {
     display: inline-flex;
     align-items: center;
-    justify-content: flex-start;
     gap: 6px;
-    font-size: 0.8rem;
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+    font-size: 0.9rem;
     color: #555;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
     transition: color 0.2s;
   }
-  .yt-link:hover {
-    color: #ff7b8a;
-  }
-  .yt-link svg {
-    margin-top: -1px;
+  .premium-vid-link:hover {
+    color: var(--acc);
   }
 
-  @media (max-width: 768px) {
-    .s4-title { font-size: 4rem; }
-    .swiper-wrapper.static-view { 
-      grid-template-columns: 1fr; 
-      gap: 3rem; 
+  @media (max-width: 900px) {
+    .premium-video-grid {
+      gap: 2rem;
+      padding: 2rem 1.5rem 4rem;
     }
   }
 </style>
@@ -146,47 +145,64 @@
 <section id="s4">
   <div class="s4-header">
     <h2 class="s4-title">VIDEOS</h2>
-    <a class="s4-more" href="/video/">모두 보기 ↗</a>
+    <a class="s4-more" href="/video/">VIEW ALL ↗</a>
   </div>
 
-  <!-- 전달해주신 코드 원형 적용 -->
-  <div class="swiper-video">
-    <div class="swiper-wrapper static-view" id="swiper-wrapper-46a1b4e65be38254" aria-live="polite" style="transform: translate3d(0px, 0px, 0px);">
+  <div class="premium-video-grid">
 
-      <!-- 영상 1 -->
-      <div class="swiper-slide yt-card swiper-slide-active" role="group" aria-label="1 / 2" style="margin-right: 16px;">
-        <div class="yt-thumb-wrap">
-          <iframe src="https://www.youtube.com/embed/7Ytd-ZDlO0c?mute=1&amp;loop=1&amp;playlist=7Ytd-ZDlO0c" title="YouTube Shorts" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="">
-          </iframe>
-          <span class="yt-shorts-badge">▶ Shorts</span>
-        </div>
-        <div class="yt-info">
-          <div class="yt-title">&lt;테크뉴스&gt; 초파리 뇌의 비밀</div>
-          <div class="yt-meta"><span>최근 소식</span></div>
-          <a class="yt-link" href="https://www.youtube.com/shorts/7Ytd-ZDlO0c" target="_blank" rel="noopener">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
-            YouTube 앱에서 보기 ↗
-          </a>
-        </div>
+    <!-- Video 1 -->
+    <article class="premium-vid-card">
+      <div class="premium-vid-thumb">
+        <iframe src="https://www.youtube.com/embed/TdvvozjmKJQ?mute=1&amp;loop=1&amp;playlist=TdvvozjmKJQ" title="YouTube Shorts" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+        <span class="premium-shorts-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
+          Shorts
+        </span>
       </div>
-
-      <!-- 영상 2 -->
-      <div class="swiper-slide yt-card swiper-slide-next" role="group" aria-label="2 / 2" style="margin-right: 16px;">
-        <div class="yt-thumb-wrap">
-          <iframe src="https://www.youtube.com/embed/LFBHDLvL2Yw?mute=1&amp;loop=1&amp;playlist=LFBHDLvL2Yw" title="YouTube Shorts" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="">
-          </iframe>
-          <span class="yt-shorts-badge">▶ Shorts</span>
-        </div>
-        <div class="yt-info">
-          <div class="yt-title">&lt;테크뉴스&gt; 구글 Stitch</div>
-          <div class="yt-meta"><span>최근 소식</span></div>
-          <a class="yt-link" href="https://www.youtube.com/shorts/LFBHDLvL2Yw" target="_blank" rel="noopener">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
-            YouTube 앱에서 보기 ↗
-          </a>
-        </div>
+      <div class="premium-vid-info">
+        <div class="premium-vid-title">&lt;테크뉴스&gt; 구글 딥마인드의 비장의 무기</div>
+        <div class="premium-vid-meta">Tech Issue</div>
+        <a class="premium-vid-link" href="https://www.youtube.com/shorts/TdvvozjmKJQ" target="_blank" rel="noopener">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg> YouTube 앱에서 보기 ↗
+        </a>
       </div>
+    </article>
 
-    </div>
+    <!-- Video 2 -->
+    <article class="premium-vid-card">
+      <div class="premium-vid-thumb">
+        <iframe src="https://www.youtube.com/embed/LFBHDLvL2Yw?mute=1&amp;loop=1&amp;playlist=LFBHDLvL2Yw" title="YouTube Shorts" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+        <span class="premium-shorts-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
+          Shorts
+        </span>
+      </div>
+      <div class="premium-vid-info">
+        <div class="premium-vid-title">&lt;테크뉴스&gt; 구글 stitch의 변신</div>
+        <div class="premium-vid-meta">Review &amp; Update</div>
+        <a class="premium-vid-link" href="https://www.youtube.com/shorts/LFBHDLvL2Yw" target="_blank" rel="noopener">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg> YouTube 앱에서 보기 ↗
+        </a>
+      </div>
+    </article>
+
+    <!-- Video 3 -->
+    <article class="premium-vid-card">
+      <div class="premium-vid-thumb">
+        <iframe src="https://www.youtube.com/embed/7Ytd-ZDlO0c?mute=1&amp;loop=1&amp;playlist=7Ytd-ZDlO0c" title="YouTube Shorts" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+        <span class="premium-shorts-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
+          Shorts
+        </span>
+      </div>
+      <div class="premium-vid-info">
+        <div class="premium-vid-title">&lt;테크뉴스&gt; 아무도 몰랐던 초파리 뇌의 비밀</div>
+        <div class="premium-vid-meta">Science Note</div>
+        <a class="premium-vid-link" href="https://www.youtube.com/shorts/7Ytd-ZDlO0c" target="_blank" rel="noopener">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg> YouTube 앱에서 보기 ↗
+        </a>
+      </div>
+    </article>
+
   </div>
 </section>

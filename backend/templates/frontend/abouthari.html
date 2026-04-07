@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hari — Profile</title>
+<title>Hari — About Me</title>
 <link rel="icon" type="image/png" href="{% static 'images/hari_favicon.png' %}?v=2">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/NeoDunggeunmo.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSSaemmul.css">
@@ -22,8 +22,8 @@
   --bg:#ffffff;--ink:#2a2420;--acc:#ff7b8a;--acc2:#ffd166;--acc3:#06d6a0;
   --dim:#9e9490;--bdr:rgba(255,123,138,0.12);--bdr2:rgba(255,123,138,0.22);
 }
-html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-thin);overflow-x:hidden;}
+html{scroll-behavior:smooth;overflow-x:hidden;}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-thin);overflow-x:hidden;max-width:100vw;}
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-thumb{background:var(--acc);border-radius:3px;}
 
@@ -42,7 +42,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-thin);overflow-x:
 .pf-hero-sub{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.65);margin-top:.9rem;opacity:0;animation:fadeUp .6s .45s forwards;}
 
 /* MAIN LAYOUT */
-.pf-main{display:grid;grid-template-columns:420px 1fr;min-height:60vh;}
+.pf-main{display:grid;grid-template-columns:clamp(280px,35%,420px) 1fr;min-height:60vh;}
 
 /* LEFT PANEL — sticky image */
 .pf-img-panel{position:sticky;top:64px;height:calc(100vh - 64px);overflow:hidden;border-right:.5px solid var(--bdr);}
@@ -117,18 +117,27 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-thin);overflow-x:
 
 /* MEDIA QUERIES */
 @media(max-width:1024px){
-  .pf-main{grid-template-columns:360px 1fr;}
+  .pf-main{grid-template-columns:clamp(240px,30%,360px) 1fr;}
 }
 @media(max-width:900px){
   .pf-main{grid-template-columns:1fr;}
   .pf-img-panel{position:relative;height:60vw;top:0;}
   .pf-info-panel{padding:2.5rem 1.5rem;}
   .pf-stats{grid-template-columns:repeat(2,1fr);}
+  .pf-nav{padding:0 1.2rem;height:56px;}
 }
 @media(max-width:480px){
-  .pf-hero{padding:2rem 1.5rem;}
+  .pf-hero{padding:2rem 1.2rem;}
   .pf-gallery-grid{grid-template-columns:repeat(2,1fr);}
   .pf-cta{flex-direction:column;}
+  .pf-stats{grid-template-columns:repeat(2,1fr);}
+  .pf-img-panel{height:70vw;}
+}
+@media(max-width:360px){
+  .pf-hero{padding:1.5rem 1rem;}
+  .pf-info-panel{padding:1.5rem 1rem;}
+  .pf-gallery-grid{grid-template-columns:1fr 1fr;}
+  .pf-nav{padding:0 1rem;}
 }
 </style>
 </head>

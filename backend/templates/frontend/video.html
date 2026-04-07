@@ -20,8 +20,8 @@
   --dim:#9e9490;--bdr:rgba(255,123,138,0.12);--bdr2:rgba(255,123,138,0.22);
   --grn:#06d6a0;--s7-bg:#2a2420;
 }
-html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+html{scroll-behavior:smooth;overflow-x:hidden;}
+body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;overflow-x:hidden;max-width:100vw;}
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-thumb{background:var(--acc);border-radius:3px;}
 
@@ -111,34 +111,93 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;over
   gap:24px;
 }
 
-/* ── YT CARD (메인과 동일) ── */
-.yt-card{
-  display:flex;flex-direction:column;align-items:flex-start;
-  max-width:340px;width:100%;margin:0;
+/* ── PREMIUM VIDEO CARD (메인 페이지 동기화) ── */
+.premium-vid-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 260px; /* 전체 페이지이므로 메인보다 살짝 크게 여유있게 배치 */
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.yt-thumb-wrap{
-  position:relative;width:100%;padding-bottom:177.78%;
-  background:#000;border-radius:4px;overflow:hidden;
-  box-shadow:0 10px 20px rgba(0,0,0,0.1);
+.premium-vid-card:hover {
+  transform: translateY(-8px);
 }
-.yt-thumb-wrap iframe{
-  position:absolute;top:0;left:0;width:100%;height:100%;border:none;
+
+.premium-vid-thumb {
+  position: relative;
+  width: 100%;
+  padding-bottom: 177.78%; 
+  background: #111;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 16px 36px rgba(0,0,0,0.14);
+  margin-bottom: 1.4rem;
 }
-.yt-shorts-badge{
-  position:absolute;bottom:10px;right:10px;
-  background:#ff0000;color:#fff;font-size:.7rem;font-weight:700;
-  padding:2px 6px;border-radius:4px;
-  display:flex;align-items:center;font-family:sans-serif;
-  pointer-events:none;
+
+.premium-vid-thumb iframe {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  border: none;
 }
-.yt-info{text-align:left;margin-top:1rem;width:100%;padding:0 4px;}
-.yt-title{font-family:var(--f-neo);font-size:1.05rem;font-weight:500;color:#222;line-height:1.3;margin-bottom:.4rem;}
-.yt-meta span{font-family:var(--f-pixel);font-size:.75rem;color:var(--dim);display:inline-block;margin-bottom:.8rem;}
-.yt-link{
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:.8rem;color:#555;text-decoration:none;font-weight:500;transition:color .2s;
+
+.premium-shorts-badge {
+  position: absolute; 
+  bottom: 16px; 
+  right: 16px;
+  background: rgba(255, 0, 0, 0.9); 
+  color: #fff; 
+  font-size: 0.75rem; 
+  font-weight: 700;
+  padding: 5px 12px; 
+  border-radius: 20px; 
+  display: flex; 
+  align-items: center; 
+  gap: 4px;
+  font-family: 'Apple SD Gothic Neo', sans-serif;
+  pointer-events: none;
+  box-shadow: 0 4px 10px rgba(255,0,0,0.3);
 }
-.yt-link:hover{color:#ff7b8a;}
+
+.premium-vid-info {
+  text-align: left; 
+  width: 100%;
+  padding: 0 0.5rem;
+}
+
+.premium-vid-title { 
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+  font-size: 1.05rem; 
+  font-weight: 700; 
+  color: var(--ink); 
+  line-height: 1.3;
+  margin-bottom: 0.4rem;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+}
+
+.premium-vid-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem; 
+  color: #888;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+}
+
+.premium-vid-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+  font-size: 0.85rem;
+  color: #555;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+.premium-vid-link:hover {
+  color: var(--acc);
+}
 
 /* ── EMPTY STATE ── */
 .vd-empty{
@@ -151,11 +210,11 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;over
 .vd-grid { container-type: inline-size; container-name: vd-grid; }
 @container vd-grid (max-width: 640px) {
   .vd-grid-inner { justify-content: center; }
-  .yt-card { max-width: 280px; }
+  .premium-vid-card { max-width: 280px; }
 }
 @container vd-grid (max-width: 400px) {
-  .yt-card { max-width: 100%; }
-  .yt-title { font-size: 0.92rem; }
+  .premium-vid-card { max-width: 100%; }
+  .premium-vid-title { font-size: 0.95rem; }
 }
 
 @media(max-width:768px){
@@ -186,6 +245,12 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;over
   .vd-grid{grid-template-columns:1fr;padding:1rem;}
   .vd-card[data-type="full"]{grid-column:span 1;}
   .vd-footer{flex-direction:column;gap:1rem;text-align:center;}
+  .vd-header{padding:2.5rem 1.2rem 1.5rem;}
+}
+@media(max-width:360px){
+  .vd-nav{padding:0 1rem;height:52px;}
+  .premium-vid-card{max-width:100%;}
+  .vd-title{font-size:3rem;}
 }
 </style>
 </head>
@@ -238,47 +303,59 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;over
 <div class="vd-grid" id="vd-grid">
   <div class="vd-grid-inner">
 
-    <!-- 영상 1 -->
-    <div class="yt-card">
-      <div class="yt-thumb-wrap">
-        <iframe src="https://www.youtube.com/embed/7Ytd-ZDlO0c?mute=1&loop=1&playlist=7Ytd-ZDlO0c"
-          title="YouTube Shorts" frameborder="0"
-          referrerpolicy="strict-origin-when-cross-origin"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowfullscreen>
-        </iframe>
-        <span class="yt-shorts-badge">▶ Shorts</span>
+    <!-- Video 1 -->
+    <article class="premium-vid-card">
+      <div class="premium-vid-thumb">
+        <iframe src="https://www.youtube.com/embed/TdvvozjmKJQ?mute=1&amp;loop=1&amp;playlist=TdvvozjmKJQ" title="YouTube Shorts" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+        <span class="premium-shorts-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
+          Shorts
+        </span>
       </div>
-      <div class="yt-info">
-        <div class="yt-title">&lt;테크뉴스&gt; 초파리 뇌의 비밀</div>
-        <div class="yt-meta"><span>최근 소식</span></div>
-        <a class="yt-link" href="https://www.youtube.com/shorts/7Ytd-ZDlO0c" target="_blank" rel="noopener">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
-          YouTube 앱에서 보기 ↗
+      <div class="premium-vid-info">
+        <div class="premium-vid-title">&lt;테크뉴스&gt; 구글 딥마인드의 비장의 무기</div>
+        <div class="premium-vid-meta">Tech Issue</div>
+        <a class="premium-vid-link" href="https://www.youtube.com/shorts/TdvvozjmKJQ" target="_blank" rel="noopener">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg> YouTube 앱에서 보기 ↗
         </a>
       </div>
-    </div>
+    </article>
 
-    <!-- 영상 2 -->
-    <div class="yt-card">
-      <div class="yt-thumb-wrap">
-        <iframe src="https://www.youtube.com/embed/LFBHDLvL2Yw?mute=1&loop=1&playlist=LFBHDLvL2Yw"
-          title="YouTube Shorts" frameborder="0"
-          referrerpolicy="strict-origin-when-cross-origin"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowfullscreen>
-        </iframe>
-        <span class="yt-shorts-badge">▶ Shorts</span>
+    <!-- Video 2 -->
+    <article class="premium-vid-card">
+      <div class="premium-vid-thumb">
+        <iframe src="https://www.youtube.com/embed/LFBHDLvL2Yw?mute=1&amp;loop=1&amp;playlist=LFBHDLvL2Yw" title="YouTube Shorts" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+        <span class="premium-shorts-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
+          Shorts
+        </span>
       </div>
-      <div class="yt-info">
-        <div class="yt-title">&lt;테크뉴스&gt; 구글 Stitch</div>
-        <div class="yt-meta"><span>최근 소식</span></div>
-        <a class="yt-link" href="https://www.youtube.com/shorts/LFBHDLvL2Yw" target="_blank" rel="noopener">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
-          YouTube 앱에서 보기 ↗
+      <div class="premium-vid-info">
+        <div class="premium-vid-title">&lt;테크뉴스&gt; 구글 stitch의 변신</div>
+        <div class="premium-vid-meta">Review &amp; Update</div>
+        <a class="premium-vid-link" href="https://www.youtube.com/shorts/LFBHDLvL2Yw" target="_blank" rel="noopener">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg> YouTube 앱에서 보기 ↗
         </a>
       </div>
-    </div>
+    </article>
+
+    <!-- Video 3 -->
+    <article class="premium-vid-card">
+      <div class="premium-vid-thumb">
+        <iframe src="https://www.youtube.com/embed/7Ytd-ZDlO0c?mute=1&amp;loop=1&amp;playlist=7Ytd-ZDlO0c" title="YouTube Shorts" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+        <span class="premium-shorts-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
+          Shorts
+        </span>
+      </div>
+      <div class="premium-vid-info">
+        <div class="premium-vid-title">&lt;테크뉴스&gt; 아무도 몰랐던 초파리 뇌의 비밀</div>
+        <div class="premium-vid-meta">Science Note</div>
+        <a class="premium-vid-link" href="https://www.youtube.com/shorts/7Ytd-ZDlO0c" target="_blank" rel="noopener">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg> YouTube 앱에서 보기 ↗
+        </a>
+      </div>
+    </article>
 
     <div class="vd-empty" id="vd-empty">
       <p>해당 카테고리에 영상이 없어요</p>
@@ -300,7 +377,7 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;over
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const total = document.querySelectorAll('.yt-card').length;
+  const total = document.querySelectorAll('.premium-vid-card').length;
   const el = document.getElementById('video-total-count');
   if (el) el.textContent = total;
 });

@@ -13,16 +13,19 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (AI 패키지 빌드에 필요한 도구 추가)
 RUN apt-get update && apt-get install -y \
     build-essential \
+    g++ \
     libpq-dev \
+    libffi-dev \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python dependencies
 COPY requirements.txt /app/
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project
 COPY . /app/

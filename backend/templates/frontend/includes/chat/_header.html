@@ -4,10 +4,12 @@
   <div class="header-left">
     <button class="back-btn" onclick="goBack()">←</button>
     <div class="header-profile">
-      <div class="profile-img" style="background:none; overflow:hidden; border: 1px solid var(--border);">
+      <div class="profile-img" onclick="openHariProfile()"
+           style="background:none; overflow:hidden; border:1px solid var(--border); cursor:pointer; transition:opacity 0.2s;"
+           onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">
         <img src="{% static 'images/hari_image1.png' %}" alt="Hari" style="width:100%; height:100%; object-fit:cover;">
       </div>
-      <div class="profile-info">
+      <div class="profile-info" style="cursor:pointer;" onclick="openHariProfile()">
         <div class="profile-name">하리</div>
       </div>
     </div>
@@ -17,3 +19,184 @@
   </div>
 </div>
 
+<!-- ── 카카오톡 스타일 프로필 모달 ── -->
+<div id="hari-profile-overlay" onclick="closeHariProfile(event)" style="
+  display:none; position:fixed; inset:0; z-index:2000;
+  background:rgba(0,0,0,0.5); backdrop-filter:blur(6px);
+  align-items:center; justify-content:center;
+">
+  <!-- 프로필 카드 -->
+  <div id="hari-profile-card" style="
+    position:relative; z-index:5;
+    width:360px; border-radius:24px; overflow:hidden;
+    box-shadow:0 24px 60px rgba(0,0,0,0.5);
+    animation:profileSlideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+  ">
+    <!-- 배경 이미지 전체 (클릭 → 크게 보기) -->
+    <div onclick="openImgViewer('{% static 'images/hari_image13.png' %}')" style="
+      width:100%; height:560px;
+      background-image:url('{% static 'images/hari_image13.png' %}');
+      background-size:cover; background-position:center top;
+      cursor:zoom-in; position:relative;
+    ">
+      <!-- 하단 그라데이션 (텍스트 가독성) -->
+      <div style="
+        position:absolute; inset:0;
+        background:linear-gradient(to bottom,
+          rgba(0,0,0,0.08) 0%,
+          rgba(0,0,0,0.0) 40%,
+          rgba(0,0,0,0.45) 75%,
+          rgba(0,0,0,0.72) 100%);
+      "></div>
+
+      <!-- 닫기 버튼 -->
+      <button onclick="event.stopPropagation(); closeHariProfileBtn();" style="
+        position:absolute; top:14px; right:14px;
+        background:rgba(0,0,0,0.3); border:none;
+        width:32px; height:32px; border-radius:50%;
+        color:#fff; font-size:0.95rem; cursor:pointer;
+        display:flex; align-items:center; justify-content:center;
+        backdrop-filter:blur(8px); transition:background 0.2s;
+      " onmouseover="this.style.background='rgba(0,0,0,0.5)'"
+         onmouseout="this.style.background='rgba(0,0,0,0.3)'">✕</button>
+
+      <!-- 프로필 사진 + 이름/상메 (배경 위에 겹침) -->
+      <div style="
+        position:absolute; bottom:0; left:0; right:0;
+        padding:0 24px 24px;
+        display:flex; flex-direction:column; align-items:center;
+      ">
+        <!-- 프로필 사진 (클릭 → 크게 보기) -->
+        <div onclick="event.stopPropagation(); openImgViewer('{% static 'images/hari_image1.png' %}');" style="
+          width:80px; height:80px;
+          border-radius:22px; overflow:hidden;
+          border:2.5px solid rgba(255,255,255,0.9);
+          box-shadow:0 6px 20px rgba(0,0,0,0.35);
+          margin-bottom:12px; cursor:zoom-in;
+          transition:transform 0.2s;
+        " onmouseover="this.style.transform='scale(1.05)'"
+           onmouseout="this.style.transform='scale(1)'">
+          <img src="{% static 'images/hari_image1.png' %}" alt="하리"
+               style="width:100%; height:100%; object-fit:cover;">
+        </div>
+
+        <!-- 이름 -->
+        <div style="
+          font-size:1.1rem; font-weight:700; color:#fff;
+          letter-spacing:-0.01em; margin-bottom:5px;
+          text-shadow:0 1px 6px rgba(0,0,0,0.4);
+        ">하리 (Hari)</div>
+
+        <!-- 상태메시지 -->
+        <div style="
+          font-size:0.78rem; color:rgba(255,255,255,0.85);
+          text-shadow:0 1px 4px rgba(0,0,0,0.3);
+          margin-bottom:20px;
+        ">벚꽃 구경 가고싶다 🌸</div>
+
+        <!-- 구분선 -->
+        <div style="width:100%; height:0.5px; background:rgba(255,255,255,0.25); margin-bottom:20px;"></div>
+
+        <!-- 액션 버튼들 -->
+        <div style="display:flex; gap:44px; justify-content:center;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer;"
+               onclick="event.stopPropagation(); window.open('https://www.youtube.com/@Hari-o5m2r','_blank')">
+            <div style="
+              width:48px; height:48px; border-radius:50%;
+              background:rgba(255,255,255,0.15); backdrop-filter:blur(10px);
+              display:flex; align-items:center; justify-content:center;
+              font-size:1.2rem; border:1px solid rgba(255,255,255,0.28);
+              transition:background 0.2s;
+            " onmouseover="this.style.background='rgba(255,255,255,0.28)'"
+               onmouseout="this.style.background='rgba(255,255,255,0.15)'">▶️</div>
+            <span style="font-size:0.6rem; color:rgba(255,255,255,0.82); letter-spacing:0.04em;">유튜브</span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer;"
+               onclick="event.stopPropagation(); window.location.href='/abouthari/'">
+            <div style="
+              width:48px; height:48px; border-radius:50%;
+              background:rgba(255,255,255,0.15); backdrop-filter:blur(10px);
+              display:flex; align-items:center; justify-content:center;
+              font-size:1.2rem; border:1px solid rgba(255,255,255,0.28);
+              transition:background 0.2s;
+            " onmouseover="this.style.background='rgba(255,255,255,0.28)'"
+               onmouseout="this.style.background='rgba(255,255,255,0.15)'">🌸</div>
+            <span style="font-size:0.6rem; color:rgba(255,255,255,0.82); letter-spacing:0.04em;">프로필</span>
+          </div>
+        </div>
+      </div>
+    </div><!-- /배경 이미지 -->
+  </div><!-- /hari-profile-card -->
+</div><!-- /hari-profile-overlay -->
+
+<!-- ── 이미지 풀사이즈 뷰어 ── -->
+<div id="img-viewer-overlay" onclick="closeImgViewer()" style="
+  display:none; position:fixed; inset:0; z-index:3000;
+  background:rgba(0,0,0,0.88); backdrop-filter:blur(8px);
+  align-items:center; justify-content:center; cursor:zoom-out;
+">
+  <img id="img-viewer-img" src="" alt="" style="
+    max-width:90vw; max-height:90vh;
+    object-fit:contain; border-radius:12px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.6);
+    animation:imgViewerIn 0.25s cubic-bezier(0.16,1,0.3,1);
+  ">
+  <button onclick="closeImgViewer()" style="
+    position:absolute; top:20px; right:20px;
+    background:rgba(255,255,255,0.15); border:none;
+    width:38px; height:38px; border-radius:50%;
+    color:#fff; font-size:1.1rem; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    backdrop-filter:blur(10px); transition:background 0.2s;
+  " onmouseover="this.style.background='rgba(255,255,255,0.28)'"
+     onmouseout="this.style.background='rgba(255,255,255,0.15)'">✕</button>
+</div>
+
+<style>
+@keyframes profileSlideUp {
+  from { opacity:0; transform:translateY(16px) scale(0.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes imgViewerIn {
+  from { opacity:0; transform:scale(0.93); }
+  to   { opacity:1; transform:scale(1); }
+}
+</style>
+
+<script>
+/* ── 프로필 모달 ── */
+function openHariProfile() {
+  const overlay = document.getElementById('hari-profile-overlay');
+  overlay.style.display = 'flex';
+  requestAnimationFrame(() => { document.body.style.overflow = 'hidden'; });
+}
+function closeHariProfileBtn() {
+  document.getElementById('hari-profile-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+function closeHariProfile(e) {
+  const card = document.getElementById('hari-profile-card');
+  if (card && card.contains(e.target)) return;
+  closeHariProfileBtn();
+}
+
+/* ── 이미지 뷰어 ── */
+function openImgViewer(src) {
+  const overlay = document.getElementById('img-viewer-overlay');
+  const img = document.getElementById('img-viewer-img');
+  img.src = src;
+  overlay.style.display = 'flex';
+}
+function closeImgViewer() {
+  document.getElementById('img-viewer-overlay').style.display = 'none';
+  document.getElementById('img-viewer-img').src = '';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeImgViewer();
+    closeHariProfileBtn();
+  }
+});
+</script>
