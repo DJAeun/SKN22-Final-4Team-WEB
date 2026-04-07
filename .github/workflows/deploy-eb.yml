@@ -10,8 +10,6 @@ env:
   EB_APP_NAME: ${{ vars.EB_APP_NAME }}
   EB_ENV_NAME: ${{ vars.EB_ENV_NAME }}
   AWS_REGION: ${{ vars.AWS_REGION }}
-  ECR_REGISTRY: 939213667098.dkr.ecr.ap-northeast-2.amazonaws.com
-  ECR_REPOSITORY: hari-backend
 
 jobs:
   deploy:
@@ -26,20 +24,6 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        run: |
-          aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
-          docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
-
-      - name: Build and Push Docker Image to ECR
-        run: |
-          cd backend
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
-          docker tag ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} \
-                     ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
 
       - name: Generate Deployment Package
         run: |
