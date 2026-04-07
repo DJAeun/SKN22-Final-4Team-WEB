@@ -18,6 +18,7 @@ class Message(models.Model):
     # Running message sequence number per session
     count = models.SmallIntegerField(default=0)
     session_id = models.CharField(max_length=255, null=True, blank=True)
+    used_web_search = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

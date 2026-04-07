@@ -173,8 +173,9 @@ COBOL이나 메인프레임 같은 옛날 기술은 잘 몰라.
         This runs inside run_in_executor, making it safe for synchronous psycopg operations.
         """
         if self.init_error:
-            return f"아 미안 나 지금 좀 몸이 안좋아... 나중에 다시 말해줘 (엔진 초기화 실패: {self.init_error})"
+            return f"아 미안 나 지금 좀 몸이 안좋아... 나중에 다시 말해줘 (엔진 초기화 실패: {self.init_error})", False
 
+        used_web_search = False
         try:
             logger.info(f"Invoking LLM graph for thread: {session_id}, input: {user_input[:50]}...")
 
@@ -232,6 +233,7 @@ COBOL이나 메인프레임 같은 옛날 기술은 잘 몰라.
                 if boundary_result.needs_search and boundary_result.search_query:
                     web_results = perform_web_search(boundary_result.search_query, max_results=3)
                     if web_results:
+                        used_web_search = True
                         web_lines = [
                             f"- {r['title']}: {r['content'][:300]}"
                             for r in web_results
@@ -337,11 +339,11 @@ COBOL이나 메인프레임 같은 옛날 기술은 잘 몰라.
 
                 # 2. Extract & validate response
                 ai_message = final_state["messages"][-1]
-                return self._validate_output(ai_message.content)
+                return self._validate_output(ai_message.content), used_web_search
 
         except Exception as e:
             logger.error(f"Error generating AI response: {e}", exc_info=True)
-            return f"아 뭔가 인터넷이 이상한가ㅠㅠ 다시 말해줘 (에러: {str(e)})"
+            return f"아 뭔가 인터넷이 이상한가ㅠㅠ 다시 말해줘 (에러: {str(e)})", False
 
 # Singleton instance
 engine = HariAIEngine()
