@@ -15,7 +15,10 @@
       "Bash(eb deploy:*)",
       "Bash(curl -sI https://chatting-hari.com/static/chat/images/hari_bg.png)",
       "Bash(aws elasticbeanstalk:*)",
-      "Bash(aws sts:*)"
+      "Bash(aws sts:*)",
+      "Bash(nslookup:*)",
+      "Bash(curl -sS -v https://chatting-hari.com/)",
+      "Bash(aws elbv2 describe-load-balancers:*)"
     ]
   }
 }

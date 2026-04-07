@@ -120,9 +120,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             # Get AI response
             from .engine import engine
+            used_web_search = False
             try:
                 loop = asyncio.get_running_loop()
-                ai_response = await asyncio.wait_for(
+                ai_response, used_web_search = await asyncio.wait_for(
                     loop.run_in_executor(None, engine.get_response, user_message, self.thread_id),
                     timeout=60.0
                 )
@@ -150,7 +151,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Save Hari's response after sending (non-critical)
             if user_message:
                 try:
-                    await self.save_message(sender_type=False, content=ai_response)
+                    await self.save_message(sender_type=False, content=ai_response, used_web_search=used_web_search)
                 except Exception as e:
                     logger.error(f"Failed to save Hari response: {e}", exc_info=True)
 
@@ -164,7 +165,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return Message.objects.filter(user_id=self.user_id).count()
 
     @database_sync_to_async
-    def save_message(self, sender_type, content):
+    def save_message(self, sender_type, content, used_web_search=False):
         self.message_count += 1
         self.session_messages.append({
             'sender': 'user' if sender_type else 'hari',
@@ -178,6 +179,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             content=content,
             count=self.message_count,
             session_id=self.session_id,
+            used_web_search=used_web_search,
         )
 
     @database_sync_to_async
