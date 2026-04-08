@@ -2,7 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from .models import RpgSession
-from .engine import MainEngine
+from .engine import MainEngine, apply_status_metadata_to_session, extract_status_metadata, strip_status_content
 
 class RoleplayConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -58,7 +58,8 @@ class RoleplayConsumer(AsyncWebsocketConsumer):
         # Send response back to WebSocket
         await self.send(text_data=json.dumps({
             'type': 'chat_message',
-            'message': engine_response['content']
+            'message': engine_response['content'],
+            'status_snapshot': engine_response.get('status_snapshot', {}),
         }))
 
     @sync_to_async
@@ -76,23 +77,38 @@ class RoleplayConsumer(AsyncWebsocketConsumer):
         
         content = content.replace('{{user}}', session.user_nickname)
         content = content.replace('{{User}}', session.user_nickname)
-        
+        status_snapshot = extract_status_metadata(content)
+        visible_content = strip_status_content(content)
+        apply_status_metadata_to_session(session, status_snapshot)
+
         new_log = RpgChatLog.objects.create(
             session=session,
             role="NPC Engine",
             raw_content=content,
-            content=content,
+            content=visible_content,
+            status_snapshot={
+                'date': status_snapshot.get('date', ''),
+                'time': status_snapshot.get('time', ''),
+                'location': status_snapshot.get('location', ''),
+                'stress': status_snapshot.get('stress'),
+                'crack_stage': status_snapshot.get('crack_stage'),
+                'thought': status_snapshot.get('thought', ''),
+            },
             token_count=len(content) // 4
         )
-        return content
+        return {
+            'content': visible_content,
+            'status_snapshot': new_log.status_snapshot,
+        }
 
     async def _send_first_message_if_needed(self, session):
         needs_msg = await self._needs_first_message(session)
         if needs_msg:
-            content = await self._create_and_get_first_message(session)
+            first_message = await self._create_and_get_first_message(session)
             await self.send(text_data=json.dumps({
                 'type': 'chat_message',
-                'message': content
+                'message': first_message['content'],
+                'status_snapshot': first_message.get('status_snapshot', {}),
             }))
 
     @sync_to_async
