@@ -1,7 +1,7 @@
 {
   "id": "9ae6082b-c7f4-433c-9971-7a8f65a3ea65",
   "revision": 0,
-  "last_node_id": 73,
+  "last_node_id": 71,
   "last_link_id": 84,
   "nodes": [
     {
@@ -96,34 +96,90 @@
       "widgets_values": []
     },
     {
-      "id": 68,
-      "type": "EmptySD3LatentImage",
+      "id": 65,
+      "type": "VAEDecode",
       "pos": [
-        -327,
-        620
+        783,
+        150
       ],
       "size": [
-        260,
-        110
+        210,
+        46
       ],
       "flags": {},
-      "order": 1,
+      "order": 10,
       "mode": 0,
-      "inputs": [],
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 73
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 74
+        }
+      ],
       "outputs": [
         {
-          "name": "LATENT",
-          "type": "LATENT",
+          "name": "IMAGE",
+          "type": "IMAGE",
           "slot_index": 0,
           "links": [
-            78
+            80
           ]
         }
       ],
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.3.64",
-        "Node name for S&R": "EmptySD3LatentImage",
+        "Node name for S&R": "VAEDecode",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 69,
+      "type": "ModelSamplingAuraFlow",
+      "pos": [
+        443,
+        150
+      ],
+      "size": [
+        310,
+        60
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 82
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            75
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.64",
+        "Node name for S&R": "ModelSamplingAuraFlow",
         "enableTabs": false,
         "tabWidth": 65,
         "tabXOffset": 10,
@@ -133,9 +189,45 @@
         "secondTabWidth": 65
       },
       "widgets_values": [
-        1024,
-        1024,
-        1
+        3
+      ]
+    },
+    {
+      "id": 9,
+      "type": "SaveImage",
+      "pos": [
+        831.2852673452418,
+        276.423232802374
+      ],
+      "size": [
+        780,
+        660
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 80
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.64",
+        "Node name for S&R": "SaveImage",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": [
+        "z-image-turbo"
       ]
     },
     {
@@ -152,7 +244,7 @@
       "flags": {
         "collapsed": false
       },
-      "order": 2,
+      "order": 1,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -176,7 +268,7 @@
         82
       ],
       "flags": {},
-      "order": 3,
+      "order": 2,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -224,7 +316,7 @@
         106
       ],
       "flags": {},
-      "order": 4,
+      "order": 3,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -262,108 +354,11 @@
       ]
     },
     {
-      "id": 69,
-      "type": "ModelSamplingAuraFlow",
-      "pos": [
-        461.3226403387304,
-        152.9195205547191
-      ],
-      "size": [
-        310,
-        60
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 82
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "slot_index": 0,
-          "links": [
-            75
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.64",
-        "Node name for S&R": "ModelSamplingAuraFlow",
-        "enableTabs": false,
-        "tabWidth": 65,
-        "tabXOffset": 10,
-        "hasSecondTab": false,
-        "secondTabText": "Send Back",
-        "secondTabOffset": 80,
-        "secondTabWidth": 65
-      },
-      "widgets_values": [
-        3
-      ]
-    },
-    {
-      "id": 65,
-      "type": "VAEDecode",
-      "pos": [
-        792.3627599080404,
-        168.0205527379455
-      ],
-      "size": [
-        210,
-        46
-      ],
-      "flags": {},
-      "order": 10,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "samples",
-          "type": "LATENT",
-          "link": 73
-        },
-        {
-          "name": "vae",
-          "type": "VAE",
-          "link": 74
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "slot_index": 0,
-          "links": [
-            80
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.64",
-        "Node name for S&R": "VAEDecode",
-        "enableTabs": false,
-        "tabWidth": 65,
-        "tabXOffset": 10,
-        "hasSecondTab": false,
-        "secondTabText": "Send Back",
-        "secondTabOffset": 80,
-        "secondTabWidth": 65
-      },
-      "widgets_values": []
-    },
-    {
       "id": 70,
       "type": "KSampler",
       "pos": [
-        482.0612134066493,
-        272.6848949535128
+        451.3201157581323,
+        249.18382412344977
       ],
       "size": [
         315,
@@ -417,98 +412,13 @@
         "secondTabWidth": 65
       },
       "widgets_values": [
-        637604809563774,
+        801955946594301,
         "randomize",
         8,
         1,
         "res_multistep",
         "simple",
         1
-      ]
-    },
-    {
-      "id": 9,
-      "type": "SaveImage",
-      "pos": [
-        827.1576210499323,
-        286.3898722023039
-      ],
-      "size": [
-        780,
-        660
-      ],
-      "flags": {},
-      "order": 11,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 80
-        }
-      ],
-      "outputs": [],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.64",
-        "Node name for S&R": "SaveImage",
-        "enableTabs": false,
-        "tabWidth": 65,
-        "tabXOffset": 10,
-        "hasSecondTab": false,
-        "secondTabText": "Send Back",
-        "secondTabOffset": 80,
-        "secondTabWidth": 65
-      },
-      "widgets_values": [
-        "z-image-turbo"
-      ]
-    },
-    {
-      "id": 67,
-      "type": "CLIPTextEncode",
-      "pos": [
-        -7,
-        190
-      ],
-      "size": [
-        410,
-        370
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 84
-        }
-      ],
-      "outputs": [
-        {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
-          "links": [
-            71,
-            76
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.73",
-        "Node name for S&R": "CLIPTextEncode",
-        "enableTabs": false,
-        "tabWidth": 65,
-        "tabXOffset": 10,
-        "hasSecondTab": false,
-        "secondTabText": "Send Back",
-        "secondTabOffset": 80,
-        "secondTabWidth": 65
-      },
-      "widgets_values": [
-        "hari,\n\n1. Camera: { masterpiece, best quality, 8k, highly detailed face, flawless skin, sharp focus, soft bokeh | (best quality:1.3), (ultra realistic:1.2) } , { (Full body shot:1.3), low angle looking up, cinematic movie still | (Full body shot:1.3), eye-level, editorial fashion photography | (Medium shot:1.3), three-quarter angle, intimate portraiture | (Cowboy shot:1.3), from below eye level, confident hip-level framing | (Wide angle shot:1.3), overhead bird's eye view, drone shot perspective } , { front view, head facing forward, symmetrical to body | three-quarter view from left, head turned 45° right | side profile view left, head turned 90° right | over-the-shoulder view from left, head turned right | low angle front view, head looking down at camera | front view head tilted up, chin raised }\n\n2: { vibrant spring cherry blossom pathway at university campus, pink petals floating | Yeouido Hangang Park cherry blossom festival, rows of pink sakura trees | Seoul Forest spring trail with blooming azaleas | Gyeongbokgung Palace spring courtyard, traditional hanok roofs | Bukchon Hanok Village spring cherry blossoms, tiled roofs | spring wisteria tunnel, purple hanging blooms } , { Midnight, deep darkness and mysterious purple hues | Early morning, soft predawn blue and muted pastel | Morning sunlight, fresh crisp rays | Blue hour, deep indigo sky | Golden hour, warm orange gold sunlight | Sunset glow, rich fiery oranges } , { soft overcast daylight, hazy calm atmosphere | soft diffused afternoon light, ethereal gentle | warm natural rim light, soft gentle hair outline | golden hour soft backlighting, warm subtle halo | cool blue hour twilight, soft even glow }"
       ]
     },
     {
@@ -561,6 +471,96 @@
       "widgets_values": [
         "hari_v1.safetensors",
         1,
+        1
+      ]
+    },
+    {
+      "id": 67,
+      "type": "CLIPTextEncode",
+      "pos": [
+        -7,
+        190
+      ],
+      "size": [
+        410,
+        370
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 84
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            71,
+            76
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.73",
+        "Node name for S&R": "CLIPTextEncode",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": [
+        "hari,\n01. [QUALITY & MASTERING]: 8K ultra-HD, film-grade quality, grainless precision, high-contrast cinematic color grading with cool-toned tech aesthetics. The image must exhibit unparalleled sharpness and hyper-realistic rendering, ensuring zero chromatic aberration. The color palette should emphasize sleek modern tones like matte black, silver, and soft neon accents. Every pixel must reflect a pristine, commercial-grade YouTube production standard. 02. [CAMERA & OPTICS]: Shot on a Sony A7S III with a 24mm f/1.4 G Master lens to achieve a sitting wide-angle perspective and a distant camera:1.5 effect. The aperture is set to f/2.8 to maintain a crisp focus on the subject while creating a smooth, subtle bokeh in the background tech setup. The sensor captures an expansive dynamic range, preserving intricate details in both the brightly lit face and the shadowed desk areas. The front-view direct angle ensures a perfectly symmetrical composition. 03. [SUBJECT & PHYSIOLOGY]: [SUBJECT]: 20yo Korean female, 168cm height, perfect 8-head body proportion, extremely small head size, narrow feminine shoulders, voluptuous curves, cinched waist, pristine porcelain skin, none. Her facial features are highly symmetrical with a neutral ivory complexion, absolutely zero redness or blushing. Her expression is completely serious with no smile and lips firmly closed, conveying a professional and focused demeanor. The hyper-detailed rendering captures the microscopic peach fuzz on her jawline and the matte finish of her foundation perfectly. 04. [WARDROBE & TEXTILE]: She is wearing a {crisp white oversized Oxford cotton shirt with rolled-up sleeves|sleek black turtleneck made of high-density merino wool|minimalist grey structured blazer over a matte silk camisole} specifically framing her upper body. The fabric drapes naturally over her narrow shoulders, displaying realistic tension folds around the chest and arms. The micro-texture of the chosen garment interacts flawlessly with the studio lighting, highlighting the premium quality of the material. A subtle metallic glint from a minimalist silver smartwatch adds a touch of tech-savvy professionalism to her wrist. 05. [ENVIRONMENT & ARCHITECTURE]: The setting is a premium tech vlogger's studio, viewed from behind a sleek matte-black oak desk. High-end peripherals, such as a mechanical keyboard with brushed aluminum chassis and a precision mouse, are neatly arranged on the desk surface directly in front of her. The background features acoustic dampening panels and a subtly glowing monitor setup, establishing a modern, professional atmosphere. The ambient air feels cool and dust-free, perfectly suited for high-end electronics and concentrated work. 06. [ACTION & POSTURE]: She is seated in an ergonomic mesh office chair, maintaining a perfectly straight alignment of her legs, pelvis, waist, and head facing directly towards the camera. Her posture is relaxed yet highly disciplined, with her upper body resting comfortably but symmetrically. Her hands are gently placed on the desk near the keyboard, fingers slightly curved in a natural resting state. Her gaze is locked dead-center into the lens with an unwavering, professional intensity."
+      ]
+    },
+    {
+      "id": 68,
+      "type": "EmptySD3LatentImage",
+      "pos": [
+        -327,
+        620
+      ],
+      "size": [
+        260,
+        110
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            78
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.64",
+        "Node name for S&R": "EmptySD3LatentImage",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": [
+        1920,
+        800,
         1
       ]
     }
@@ -707,10 +707,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.9615250836120517,
+      "scale": 0.8954302432552388,
       "offset": [
-        263.92203290297033,
-        -227.52636667713273
+        790.638854074616,
+        -81.64944025771612
       ]
     },
     "frontendVersion": "1.41.20",
