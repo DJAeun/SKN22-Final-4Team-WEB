@@ -131,3 +131,4 @@ backend/static/video/
 # Ensure branding and UI images in static are tracked and deployed
 !backend/static/images/
 !backend/static/images/**
+hari-key.pem
