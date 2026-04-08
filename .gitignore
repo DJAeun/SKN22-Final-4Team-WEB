@@ -109,6 +109,9 @@ generated_videos/
 # Project specific
 z_structure.md
 lambda.md
+problem-solving.md
+BACKEND_REQUEST.md
+COLLABORATION_GUIDE.md
 
 # Audio files
 *.wav

@@ -331,7 +331,11 @@
       </div>
       <div class="auth-field">
         <label class="auth-label" for="signupEmail">이메일</label>
-        <input class="auth-inp" id="signupEmail" name="signupEmail" type="email" placeholder="hello@hari.kr">
+        <div style="position:relative; display:flex; align-items:center; gap:0.5rem;">
+          <input class="auth-inp" id="signupEmail" name="signupEmail" type="email" placeholder="hello@hari.kr" style="flex:1;" oninput="debounceEmailCheck(this.value)">
+          <span id="email-status" style="font-size:1.2rem; min-width:24px; text-align:center; flex-shrink:0;"></span>
+        </div>
+        <div id="email-message" style="font-size:0.75rem; margin-top:0.3rem; min-height:16px; color:#ff7b8a;"></div>
       </div>
       <div class="auth-field">
         <label class="auth-label" for="signup-pw">비밀번호</label>
@@ -348,7 +352,7 @@
 
       <label class="auth-check" for="signup-terms">
         <input type="checkbox" id="signup-terms" name="signup-terms" required>
-        <a href="#" onclick="closeAuth()">이용약관</a> 및 <a href="#" onclick="closeAuth()">개인정보처리방침</a>에 동의합니다.
+        <button type="button" onclick="openTermsModal('terms')" style="background:none; border:none; border-bottom:0.5px solid var(--acc); color:var(--acc); cursor:pointer; padding:0; font-family:inherit; font-size:inherit;">이용약관</button> 및 <button type="button" onclick="openTermsModal('privacy')" style="background:none; border:none; border-bottom:0.5px solid var(--acc); color:var(--acc); cursor:pointer; padding:0; font-family:inherit; font-size:inherit;">개인정보처리방침</button>에 동의합니다.
       </label>
       <label class="auth-check" for="signup-news">
         <input type="checkbox" id="signup-news" name="signup-news">
@@ -373,6 +377,19 @@
       <div class="auth-switch"><button onclick="switchTab('login')">← 로그인으로 돌아가기</button></div>
     </div>
 
+  </div>
+</div>
+
+<!-- 이용약관 모달 -->
+<div id="terms-modal-overlay" onclick="closeTermsModal(event)" style="position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9500; display:none; align-items:center; justify-content:center;">
+  <div id="terms-modal-box" style="background:#fff; width:min(650px,90vw); max-height:85vh; display:flex; flex-direction:column; border-radius:8px; overflow:hidden;">
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:1.2rem 1.5rem; border-bottom:0.5px solid rgba(255,123,138,0.22);">
+      <h2 id="terms-modal-title" style="font-family:'Jua',sans-serif; font-size:1.2rem; color:#2a2420; margin:0;"></h2>
+      <button onclick="closeTermsModal()" style="background:none; border:none; cursor:pointer; font-size:1.4rem; color:#9e9490; line-height:1;">✕</button>
+    </div>
+    <div id="terms-modal-content" style="padding:1.5rem; overflow-y:auto; font-family:'Jua',sans-serif; font-size:0.9rem; color:#444; line-height:2;">
+      <!-- 내용은 JS로 동적 로드 -->
+    </div>
   </div>
 </div>
 
