@@ -268,7 +268,16 @@
     <a href="#" onclick="openAuth('login'); return false;" class="nav-gnb-item nav-gnb-roleplay nav-gnb-sep-roleplay">🎭 하리와 롤플레잉</a>
     {% endif %}
 
-    <span class="nav-gnb-sep"></span>
+      <!-- 06. 하리와 롤플레잉 -->
+      {% if user.is_authenticated %}
+      <a href="/roleplay/" class="nav-gnb-item nav-gnb-roleplay">
+        하리와 롤플레잉
+      </a>
+      {% else %}
+      <a href="#" onclick="openAuth('login'); return false;" class="nav-gnb-item nav-gnb-roleplay">
+        하리와 롤플레잉
+      </a>
+      {% endif %}
 
     <!-- 로컬 전용 관리자 링크 -->
     {% if debug %}
