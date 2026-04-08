@@ -9,3 +9,6 @@ __pycache__/
 .git/
 .gitignore
 *.log
+
+# Exclude large media files from build context (89MB+ savings)
+static/video/

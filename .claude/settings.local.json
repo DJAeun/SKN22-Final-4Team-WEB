@@ -18,7 +18,9 @@
       "Bash(aws sts:*)",
       "Bash(nslookup:*)",
       "Bash(curl -sS -v https://chatting-hari.com/)",
-      "Bash(aws elbv2 describe-load-balancers:*)"
+      "Bash(aws elbv2 describe-load-balancers:*)",
+      "Bash(chmod +x c:/Workspaces/SKN22-Final-4Team-WEB/backend/.platform/hooks/prebuild/01-docker-build.sh)",
+      "Bash(git update-index:*)"
     ]
   }
 }
