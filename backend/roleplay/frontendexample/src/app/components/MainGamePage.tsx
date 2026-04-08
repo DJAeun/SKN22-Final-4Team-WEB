@@ -715,8 +715,7 @@ export function MainGamePage({ bootstrap }: MainGamePageProps) {
                 >
                   {archivedMessages.length === 0 && (
                     <div className="rounded-2xl border border-dashed border-[#4A3728]/25 p-5 text-sm leading-7 text-[#6f5947]">
-                      Use the toolbar above to create a session or restore an existing one. Completed
-                      turns will stack on this page while the current turn stays on the right.
+                      지난 이야기의 기록이 여기에 저장됩니다. 더 나은 롤플레잉을 위해 상단의 상태창, 도움말을 참고하세요.
                     </div>
                   )}
 
