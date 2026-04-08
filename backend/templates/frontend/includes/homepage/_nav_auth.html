@@ -24,6 +24,8 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  position: relative;
+  z-index: 1;
 }
 
 /* ── THEME TOGGLE (iOS 스위치 스타일) ── */
@@ -514,6 +516,108 @@
     </div>
   </div>
 </div>
+
+<script>
+// ── 인증 모달 함수 (모든 페이지에서 사용) ──
+if (typeof openAuth === 'undefined') {
+  window.openAuth = function(tab) {
+    const overlay = document.getElementById('auth-overlay');
+    if (overlay) {
+      overlay.classList.add('show');
+      document.body.style.overflow = 'hidden';
+      if (typeof switchTab === 'function') switchTab(tab || 'login');
+    }
+  };
+}
+
+if (typeof closeAuth === 'undefined') {
+  window.closeAuth = function() {
+    const overlay = document.getElementById('auth-overlay');
+    if (overlay) {
+      overlay.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  };
+}
+
+if (typeof overlayClose === 'undefined') {
+  window.overlayClose = function(e) {
+    if (e.target === document.getElementById('auth-overlay')) {
+      closeAuth();
+    }
+  };
+}
+
+if (typeof switchTab === 'undefined') {
+  window.switchTab = function(t) {
+    const tabMap = { login: 'login', signup: 'signup', forgot: 'forgot' };
+    const tab = tabMap[t] || 'login';
+    document.querySelectorAll('.auth-tab').forEach(el => el.classList.remove('on'));
+    document.querySelectorAll('.auth-panel').forEach(el => el.classList.remove('on'));
+    const tabEl = document.getElementById('tab-' + tab);
+    const panelEl = document.getElementById('panel-' + tab);
+    if (tabEl) tabEl.classList.add('on');
+    if (panelEl) panelEl.classList.add('on');
+  };
+}
+
+if (typeof toggleUserMenu === 'undefined') {
+  window.toggleUserMenu = function() {
+    const dropdown = document.getElementById('user-dropdown');
+    if (dropdown) {
+      dropdown.classList.toggle('show');
+    }
+  };
+}
+
+if (typeof openTermsModal === 'undefined') {
+  window.openTermsModal = function(type) {
+    const overlay = document.getElementById('terms-modal-overlay');
+    const title = document.getElementById('terms-modal-title');
+    const content = document.getElementById('terms-modal-content');
+
+    if (type === 'terms') {
+      if (title) title.textContent = '이용약관';
+      if (content) {
+        content.innerHTML = `
+          <div style="font-size:0.9rem; line-height:2;">
+            <h3 style="font-weight:600; margin:1.2rem 0 0.6rem;">제1조 (목적)</h3>
+            <p>본 약관은 하리 팬클럽 서비스 이용 약관입니다.</p>
+            <h3 style="font-weight:600; margin:1.2rem 0 0.6rem;">제2조 (이용약관의 효력)</h3>
+            <p>본 약관은 사용자가 회원가입을 완료할 때부터 효력이 발생합니다.</p>
+          </div>
+        `;
+      }
+    } else if (type === 'privacy') {
+      if (title) title.textContent = '개인정보처리방침';
+      if (content) {
+        content.innerHTML = `
+          <div style="font-size:0.9rem; line-height:2;">
+            <h3 style="font-weight:600; margin:1.2rem 0 0.6rem;">1. 개인정보의 수집 및 이용 목적</h3>
+            <p>하리 서비스 제공을 위해 개인정보를 수집합니다.</p>
+            <h3 style="font-weight:600; margin:1.2rem 0 0.6rem;">2. 수집하는 개인정보의 항목</h3>
+            <p>이름, 이메일, 닉네임 등을 수집합니다.</p>
+          </div>
+        `;
+      }
+    }
+
+    if (overlay) {
+      overlay.style.display = 'flex';
+    }
+  };
+}
+
+if (typeof closeTermsModal === 'undefined') {
+  window.closeTermsModal = function(e) {
+    if (e && e.target !== document.getElementById('terms-modal-overlay')) return;
+    const overlay = document.getElementById('terms-modal-overlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+  };
+}
+</script>
 
 <div id="ticker">
   <div class="ticker-track">
