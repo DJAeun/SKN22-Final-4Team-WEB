@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/NeoDunggeunmo.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSSaemmul.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
+<script src="{% static 'js/theme.js' %}"></script>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
@@ -40,6 +41,76 @@
   /* 헤더 */
   --header-bg: rgba(255, 255, 255, 0.95);
   --border: rgba(255, 123, 138, 0.1);
+}
+
+/* 다크 모드 */
+html[data-theme="dark"] {
+  --bg-main: rgba(45, 35, 25, 0.85);
+  --bg-gradient: rgba(45, 35, 25, 0.85);
+  --bubble-hari: linear-gradient(135deg, #5a5248 0%, #4a423a 100%);
+  --bubble-me: linear-gradient(135deg, #ff8a9b 0%, #ffaa88 100%);
+  --bubble-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  --text-main: #fff9f7;
+  --text-dim: #d4cac5;
+  --text-time: #b5aea8;
+  --header-bg: rgba(42, 36, 32, 0.98);
+  --border: rgba(255, 138, 155, 0.25);
+}
+
+/* 다크 모드 추가 스타일 */
+html[data-theme="dark"] .sidebar-left {
+  border-right-color: rgba(255, 138, 155, 0.2);
+}
+
+html[data-theme="dark"] .sidebar-left::after {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.6) 60%, rgba(26, 22, 18, 0.95) 100%) !important;
+}
+
+html[data-theme="dark"] .sidebar-right {
+  background: #1f1812 !important;
+}
+
+html[data-theme="dark"] .chat-container {
+  background: rgba(26, 22, 18, 0.75) !important;
+}
+
+html[data-theme="dark"] .header {
+  background: rgba(26, 22, 18, 0.75) !important;
+  backdrop-filter: blur(8px);
+}
+
+html[data-theme="dark"] .input-area {
+  background: rgba(60, 48, 36, 0.8) !important;
+}
+
+html[data-theme="dark"] #messageInput {
+  background: transparent !important;
+  color: #2a2420 !important;
+}
+
+html[data-theme="dark"] #messageInput::placeholder {
+  color: #999999 !important;
+}
+
+html[data-theme="dark"] .input-button {
+  color: #ff8a9b;
+}
+
+html[data-theme="dark"] .search-input-wrapper {
+  background: #251d1a !important;
+}
+
+html[data-theme="dark"] .search-input-wrapper:focus-within {
+  background: #3d3530 !important;
+  border-color: var(--hari-pink) !important;
+}
+
+html[data-theme="dark"] .back-btn {
+  color: #b5aea8;
+}
+
+html[data-theme="dark"] .back-btn:hover {
+  color: #f5f1ed;
 }
 
 html, body {
@@ -260,6 +331,80 @@ html, body {
   border-color: var(--hari-pink);
   color: var(--hari-pink);
   background: rgba(255, 123, 138, 0.05);
+}
+
+/* ── THEME TOGGLE (iOS 스위치 스타일) ── */
+.chat-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem;
+  flex-shrink: 0;
+}
+
+#chat-theme-toggle {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  background: #ddd;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.3s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+
+#chat-theme-toggle::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  left: 2px;
+  transition: left 0.3s cubic-bezier(0.45, 0, 0.15, 1),
+              background 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+#chat-theme-toggle.off {
+  background: #e8e8e8;
+}
+
+#chat-theme-toggle.off::after {
+  left: 2px;
+  background: #fff;
+}
+
+#chat-theme-toggle.on {
+  background: #2a2420;
+}
+
+#chat-theme-toggle.on::after {
+  left: 20px;
+  background: #fff;
+}
+
+#chat-theme-toggle:hover {
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.15),
+              0 0 8px rgba(255,123,138,0.2);
+}
+
+#chat-theme-toggle.on:hover {
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2),
+              0 0 8px rgba(255,123,138,0.3);
+}
+
+.chat-theme-icon {
+  font-size: 0.85rem;
+  opacity: 0.65;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ═══════════════════════════════════════
@@ -644,6 +789,12 @@ html, body {
   font-family: 'DM Mono', monospace;
   border: 0.5px solid var(--border);
   box-shadow: 0 2px 8px rgba(255, 123, 138, 0.08);
+}
+
+html[data-theme="dark"] .date-divider-text {
+  background: rgba(90, 82, 72, 0.8);
+  color: #fff9f7;
+  border-color: rgba(255, 138, 155, 0.35);
 }
 
 /* 메시지 그룹 */

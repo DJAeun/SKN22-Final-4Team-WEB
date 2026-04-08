@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/NeoDunggeunmo.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSSaemmul.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
+<script src="{% static 'js/theme.js' %}"></script>
 <!-- v3.0 -->
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
@@ -24,8 +25,17 @@
   --bdr:rgba(255,123,138,0.12);--bdr2:rgba(255,123,138,0.22);
   --grn:#06d6a0;
 }
+
+/* 다크 모드 */
+html[data-theme="dark"]{
+  --bg:#1a1612;--ink:#f5f1ed;--acc:#ff8a9b;--dim:#9a8f87;
+  --bdr:rgba(255,123,138,0.15);--bdr2:rgba(255,123,138,0.25);
+  --grn:#1ee0a6;
+}
+
 html,body{height:100%;overflow-x:hidden;}
 body{background:linear-gradient(135deg, #fff5f6 0%, #f0e6ff 50%, #e6f5ff 100%);color:var(--ink);font-family:'Jua','Apple SD Gothic Neo','Noto Sans KR',sans-serif !important;letter-spacing:0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;display:flex;flex-direction:column;min-height:100vh;max-width:100vw;}
+html[data-theme="dark"] body{background:linear-gradient(135deg, #251d1a 0%, #2a2420 50%, #1f1a16 100%);}
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-thumb{background:var(--acc);border-radius:3px;}
 
