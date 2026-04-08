@@ -11,7 +11,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2301-wagle@1.0/WagleWagle.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/LoveType.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2210@1.0/SejongGeulgot.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<script src="{% static 'js/theme.js' %}"></script>
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 :root {
@@ -53,8 +55,138 @@
   --dim-dk: rgba(255,245,246,0.5);
   --bdr-dk: rgba(255,245,246,0.12);
 }
+
+/* ── DARK MODE ── */
+html[data-theme="dark"] {
+  --bg:     #1a1612;
+  --ink:    #f5f1ed;
+  --acc:    #ff8a9b;
+  --acc2:   #ffd977;
+  --acc3:   #1ee0a6;
+  --dim:    #9a8f87;
+  --bdr:    rgba(255,123,138,0.15);
+  --bdr2:   rgba(255,123,138,0.25);
+  --grn:    #1ee0a6;
+
+  --s1-bg:  #1a1612;
+  --s2-bg:  #251d1a;
+  --s3-bg:  #1e2724;
+  --s4-bg:  #22201a;
+  --s5-bg:  #1a1612;
+  --s6-bg:  #251d1a;
+  --s7-bg:  #0f0e0c;
+  --mem-bg: #1a1612;
+
+  --ink-on-dark: #1a1612;
+}
+
+/* 다크 모드에서 스크롤바 색상 */
+html[data-theme="dark"]::-webkit-scrollbar-thumb {
+  background: #ff8a9b;
+}
+
+/* 다크 모드에서 네비게이션 배경 */
+html[data-theme="dark"] #nav {
+  background: #1a1612;
+}
+html[data-theme="dark"] #nav.scrolled {
+  background: rgba(26,22,18,0.96);
+}
+
+/* 다크 모드에서 메뉴 버튼 색상 */
+html[data-theme="dark"] #menu-btn span {
+  background: #ff8a9b;
+}
+
+/* 다크 모드에서 인증 요소 */
+html[data-theme="dark"] #auth-overlay {
+  background: rgba(0,0,0,0.6);
+}
+html[data-theme="dark"] #auth-modal {
+  background: #1a1612;
+  border-color: rgba(255,123,138,0.2);
+}
+html[data-theme="dark"] .auth-tab {
+  color: #9e9490;
+}
+html[data-theme="dark"] .auth-tab.on {
+  color: #f5f1ed;
+  border-bottom-color: var(--acc);
+}
+html[data-theme="dark"] .auth-sub {
+  color: #b5aea8;
+}
+html[data-theme="dark"] .auth-label {
+  color: #b5aea8;
+}
+html[data-theme="dark"] .auth-inp {
+  background: rgba(61,53,48,0.6);
+  border-color: rgba(255,123,138,0.3);
+  color: #f5f1ed;
+}
+html[data-theme="dark"] .auth-inp::placeholder {
+  color: rgba(181,174,168,0.4);
+}
+html[data-theme="dark"] .auth-inp:focus {
+  background: rgba(61,53,48,0.9);
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px rgba(255,123,138,0.2);
+}
+html[data-theme="dark"] .social-btn {
+  background: #2a2420;
+  color: #f5f1ed;
+  border: 1px solid rgba(255,123,138,0.2);
+}
+html[data-theme="dark"] .social-btn:hover {
+  background: #3d3530;
+  border-color: var(--acc);
+}
+html[data-theme="dark"] .naver-btn {
+  background: #03C75A;
+  color: #fff;
+}
+html[data-theme="dark"] .naver-btn:hover {
+  background: #02b351;
+}
+html[data-theme="dark"] .auth-divider {
+  color: #9e9490;
+}
+html[data-theme="dark"] .auth-divider::before,
+html[data-theme="dark"] .auth-divider::after {
+  background: rgba(255,123,138,0.2);
+}
+html[data-theme="dark"] .auth-forgot {
+  color: #9e9490;
+  border-bottom-color: rgba(255,123,138,0.2);
+}
+html[data-theme="dark"] .auth-forgot:hover {
+  color: #f5f1ed;
+  border-bottom-color: var(--acc);
+}
+html[data-theme="dark"] .auth-check {
+  color: #b5aea8;
+}
+
+/* 다크 모드에서 사용자 드롭다운 */
+html[data-theme="dark"] .user-dropdown {
+  background: #1a1612;
+  border-color: rgba(255,123,138,0.2);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+html[data-theme="dark"] .user-dropdown a,
+html[data-theme="dark"] .user-dropdown button {
+  color: #f5f1ed;
+}
+html[data-theme="dark"] .user-dropdown a:hover,
+html[data-theme="dark"] .user-dropdown button:hover {
+  background: rgba(255,138,155,0.15);
+}
+html[data-theme="dark"] .user-dropdown .logout-btn {
+  border-top-color: rgba(255,123,138,0.2);
+}
+
 html { scroll-behavior:smooth; overflow-x:hidden; }
-body { background:var(--bg); color:var(--ink); font-family:var(--f-thin); font-size: 1rem; line-height: 1.5; font-weight:400; overflow-x:hidden; max-width:100vw; }
+body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size: 1rem; line-height: 1.5; font-weight:400; letter-spacing:-0.02em; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; overflow-x:hidden; max-width:100vw; }
 ::-webkit-scrollbar { width:6px; }
 ::-webkit-scrollbar-thumb { background:var(--acc); border-radius:3px; }
 
@@ -182,6 +314,8 @@ body { background:var(--bg); color:var(--ink); font-family:var(--f-thin); font-s
   background:var(--bg);
   border:0.5px solid var(--bdr2);
   width:100%; max-width:420px;
+  max-height:90vh;
+  overflow-y:auto;
   padding:2.5rem 2.5rem 2rem;
   position:relative;
   transform:translateY(16px);
@@ -190,10 +324,12 @@ body { background:var(--bg); color:var(--ink); font-family:var(--f-thin); font-s
 #auth-overlay.show #auth-modal { transform:translateY(0); }
 
 .auth-close {
-  position:absolute; top:1.2rem; right:1.4rem;
+  position:sticky; top:0; right:0;
+  float:right;
   background:transparent; border:none; cursor:pointer;
   font-size:1.1rem; color:var(--dim); line-height:1;
   transition:color .2s;
+  z-index:10;
 }
 .auth-close:hover { color:var(--ink); }
 
@@ -219,24 +355,35 @@ body { background:var(--bg); color:var(--ink); font-family:var(--f-thin); font-s
 
 .auth-title {
   font-family:'Bebas Neue',sans-serif;
-  font-size:1.9rem; letter-spacing:.04em;
-  color:var(--ink); line-height:1; margin-bottom:.2rem;
+  font-size:2.3rem; letter-spacing:.04em;
+  background:linear-gradient(135deg, var(--acc) 0%, #ff5c73 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  line-height:1; margin-bottom:.5rem; font-weight:700;
 }
 .auth-sub {
-  font-size:.78rem; line-height:1.7; color:var(--dim);
-  margin-bottom:.4rem;
+  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  font-size:1.05rem; font-weight:400; line-height:1.8; color:var(--dim);
+  margin-bottom:.8rem;
 }
 
 /* social buttons */
 .social-row { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
 .social-btn {
   display:flex; align-items:center; justify-content:center; gap:.6rem;
-  padding:.82rem .5rem;
-  border:0.5px solid var(--bdr2); background:var(--bg);
-  font-family:'DM Sans',sans-serif; font-size:.8rem; font-weight:400;
+  padding:.95rem .7rem;
+  border:none; background:rgba(255,255,255,0.8);
+  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.95rem; font-weight:500;
   color:var(--ink); cursor:pointer;
-  transition:border-color .2s, background .2s;
+  transition:all .3s;
   white-space:nowrap;
+  border-radius:10px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+.social-btn:hover {
+  background:rgba(255,123,138,0.08);
+  transform:translateY(-2px);
+  box-shadow:0 4px 16px rgba(255,123,138,0.2);
 }
 .social-btn:hover { border-color:var(--acc); background:var(--bg); }
 .naver-btn { background:#03C75A; border-color:#03C75A; color:#fff; }
@@ -254,19 +401,20 @@ body { background:var(--bg); color:var(--ink); font-family:var(--f-thin); font-s
 
 /* inputs */
 .auth-inp {
-  background:transparent; border:0.5px solid var(--bdr2);
-  color:var(--ink); font-family:'DM Sans',sans-serif; font-size:.84rem;
-  padding:.72rem .9rem; outline:none; width:100%;
-  transition:border-color .2s;
+  background:rgba(255,255,255,0.6); border:1.5px solid rgba(255,123,138,0.2);
+  color:var(--ink); font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:1rem;
+  font-weight:400; padding:.95rem 1rem; outline:none; width:100%; line-height:1.6;
+  transition:all .3s;
+  border-radius:10px;
 }
-.auth-inp::placeholder { color:var(--dim); }
-.auth-inp:focus { border-color:var(--acc); }
+.auth-inp::placeholder { color:rgba(158,148,144,0.5); font-size:.9rem; }
+.auth-inp:focus { background:rgba(255,255,255,0.95); border-color:var(--acc); box-shadow:0 0 0 3px rgba(255,123,138,0.15); }
 .auth-inp-row { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
 
 .auth-label {
-  font-family:'DM Mono',monospace; font-size:.54rem;
-  letter-spacing:.14em; text-transform:uppercase;
-  color:var(--dim); margin-bottom:.2rem; display:block;
+  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.78rem;
+  font-weight:600; letter-spacing:.02em;
+  color:var(--dim); margin-bottom:.4rem; display:block;
 }
 .auth-field { display:flex; flex-direction:column; }
 
@@ -291,22 +439,27 @@ body { background:var(--bg); color:var(--ink); font-family:var(--f-thin); font-s
 
 /* submit */
 .auth-submit {
-  background:var(--acc); border:none; color:#fff;
-  font-family:'DM Mono',monospace; font-size:.68rem;
-  letter-spacing:.18em; text-transform:uppercase;
-  padding:.82rem; cursor:pointer; width:100%;
-  transition:background .2s, transform .1s;
+  background:linear-gradient(135deg, #ff7b8a 0%, #ff5c73 100%); border:none; color:#fff;
+  font-family:'DM Mono',monospace; font-size:.85rem;
+  letter-spacing:.14em; text-transform:uppercase;
+  padding:1rem; cursor:pointer; width:100%; font-weight:700;
+  transition:all .3s;
+  border-radius:10px;
+  box-shadow:0 4px 15px rgba(255,123,138,0.4);
 }
-.auth-submit:hover { background:var(--acc); }
-.auth-submit:active { transform:scale(.98); }
+.auth-submit:hover {
+  transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(255,123,138,0.5);
+}
+.auth-submit:active { transform:translateY(0); }
 
 .auth-switch {
-  font-size:.76rem; color:var(--dim); text-align:center;
+  font-size:.9rem; color:var(--dim); text-align:center; line-height:1.8;
 }
 .auth-switch button {
   background:transparent; border:none; border-bottom:0.5px solid var(--acc);
-  color:var(--acc); font-family:'DM Sans',sans-serif; font-size:.76rem;
-  cursor:pointer; padding:0; transition:color .2s;
+  color:var(--acc); font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.9rem;
+  cursor:pointer; padding:0; transition:color .2s; font-weight:500;
 }
 .auth-switch button:hover { color:var(--ink); }
 
@@ -342,20 +495,21 @@ body { background:var(--bg); color:var(--ink); font-family:var(--f-thin); font-s
   overflow-y:auto;
 }
 #drawer.open { transform:translateX(0); }
-.drawer-label { font-family:'DM Mono',monospace; font-size:.54rem; letter-spacing:.22em; text-transform:uppercase; color:var(--dim); margin-bottom:1.5rem; }
+.drawer-label { font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.62rem; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin-bottom:1.5rem; opacity:.7; }
 #drawer ul { list-style:none; }
 #drawer ul li { border-bottom:0.5px solid var(--bdr); }
 #drawer ul li a {
   display:flex; justify-content:space-between; align-items:center;
-  padding:.85rem 0;
-  font-family:'DM Mono',monospace; font-size:.68rem;
-  letter-spacing:.15em; text-transform:uppercase;
-  color:var(--dim); text-decoration:none;
+  padding:.95rem 0;
+  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.95rem;
+  font-weight:500; letter-spacing:-0.01em;
+  color:#6b6460; text-decoration:none;
   transition:color .2s, padding-left .2s;
+  -webkit-font-smoothing:antialiased;
 }
-#drawer ul li a:hover { color:var(--ink); padding-left:.5rem; }
-#drawer ul li a .d-num { font-size:.54rem; color:var(--dim); transition:color .2s; }
-#drawer ul li a:hover .d-num { color:var(--acc); }
+#drawer ul li a:hover { color:var(--ink); padding-left:.4rem; }
+#drawer ul li a .d-num { font-family:'DM Mono',monospace; font-size:.52rem; letter-spacing:.08em; color:var(--dim); opacity:.5; transition:color .2s, opacity .2s; }
+#drawer ul li a:hover .d-num { color:var(--acc); opacity:1; }
 #drawer-bd { position:fixed; inset:0; z-index:198; background:rgba(0,0,0,.18); opacity:0; pointer-events:none; transition:opacity .4s; }
 #drawer-bd.show { opacity:1; pointer-events:all; }
 
@@ -593,7 +747,7 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 @keyframes db{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px);background:var(--acc)}}
 
 /* 입력창 */
-.chat-inp { flex:1; background:var(--s4-bg); border:0.5px solid var(--bdr2); color:var(--ink); font-family:'DM Sans',sans-serif; font-size:.83rem; padding:.6rem .9rem; resize:none; outline:none; min-height:36px; max-height:100px; line-height:1.5; transition:border-color .2s; }
+.chat-inp { flex:1; background:var(--s4-bg); border:0.5px solid var(--bdr2); color:var(--ink); font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.83rem; padding:.6rem .9rem; resize:none; outline:none; min-height:36px; max-height:100px; line-height:1.5; transition:border-color .2s; }
 .chat-inp::placeholder { color:var(--dim); }
 .chat-inp:focus { border-color:var(--acc); background:var(--bg); }
 .send-btn { width:36px; height:36px; background:var(--acc); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background .2s, transform .1s; border-radius:50%; }
@@ -867,6 +1021,7 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
   font-weight: 400;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -982,7 +1137,7 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 .contact-right { padding:4rem 3rem; background:var(--s5-bg); }
 .contact-form { display:flex; flex-direction:column; gap:.7rem; }
 .cf-row { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
-.cf-inp, .cf-sel, .cf-ta { background:var(--bg); border:0.5px solid var(--bdr2); color:var(--ink); font-family:'DM Sans',sans-serif; font-size:.82rem; padding:.65rem .9rem; outline:none; transition:border-color .2s; width:100%; }
+.cf-inp, .cf-sel, .cf-ta { background:var(--bg); border:0.5px solid var(--bdr2); color:var(--ink); font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.82rem; padding:.65rem .9rem; outline:none; transition:border-color .2s; width:100%; }
 .cf-inp::placeholder, .cf-ta::placeholder { color:var(--dim); }
 .cf-inp:focus, .cf-sel:focus, .cf-ta:focus { border-color:var(--acc); }
 .cf-sel { appearance:none; cursor:pointer; color:var(--dim); }
@@ -991,25 +1146,33 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 .cf-btn:hover { background:var(--acc); }
 .cf-btn:active { transform:scale(.97); }
 
-/* §7 FOOTER */
-#s7 { border-bottom:none; background:var(--s7-bg); display:grid; grid-template-columns:1fr 0.5px 1fr 0.5px 1fr; min-height:72vh; }
+/* §7 FOOTER v2 — 4-column */
+#s7 { border-bottom:none; background:var(--s7-bg); display:grid; grid-template-columns:1.1fr 0.5px 1fr 0.5px 1fr 0.5px 1fr; min-height:68vh; }
 .ft-div { background:rgba(255,255,255,0.08); }
-.ft-logo-area { padding:3.5rem; display:flex; flex-direction:column; justify-content:space-between; }
-.ft-big-logo { font-family:'Bebas Neue',sans-serif; font-size:clamp(5rem,12vw,12rem); line-height:.82; letter-spacing:.01em; color:rgba(255,245,246,0.9); }
-.ft-big-logo em { font-style:normal; -webkit-text-stroke:1.5px rgba(255,123,138,0.4); color:transparent; }
+/* Brand column */
+.ft-logo-area { padding:3rem 3.5rem; display:flex; flex-direction:column; justify-content:space-between; }
+.ft-big-logo { margin-bottom:1rem; }
 .ft-tagline { font-size:.8rem; line-height:1.75; color:rgba(255,245,246,0.65); max-width:220px; margin-top:auto; }
 .ft-copy { font-family:'DM Mono',monospace; font-size:.54rem; letter-spacing:.1em; color:rgba(255,245,246,0.45); margin-top:1.5rem; }
-.ft-nav-area { padding:3.5rem; display:flex; flex-direction:column; }
-.ft-nav-lbl { font-family:'DM Mono',monospace; font-size:.54rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,245,246,0.55); margin-bottom:2rem; }
+/* Nav columns */
+.ft-nav-area { padding:3rem 3rem; display:flex; flex-direction:column; }
+.ft-nav-lbl { font-family:'DM Mono',monospace; font-size:.54rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,245,246,0.55); margin-bottom:1.8rem; }
 .ft-nav-list { list-style:none; }
-.ft-nav-list li { margin-bottom:.2rem; }
-.ft-nav-list a { font-family:'Bebas Neue',sans-serif; font-size:1.9rem; letter-spacing:.07em; color:rgba(255,245,246,0.75); text-decoration:none; transition:color .2s, letter-spacing .2s; display:inline-block; }
+.ft-nav-list li { margin-bottom:.15rem; }
+.ft-nav-list a { font-family:'Bebas Neue',sans-serif; font-size:1.75rem; letter-spacing:.07em; color:rgba(255,245,246,0.75); text-decoration:none; transition:color .2s, letter-spacing .2s; display:inline-block; }
 .ft-nav-list a:hover { color:var(--acc); letter-spacing:.11em; }
-.ft-lang-row { margin-top:auto; display:flex; gap:.5rem; }
-.ft-lang-btn { font-family:'DM Mono',monospace; font-size:.58rem; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,245,246,0.65); background:transparent; border:0.5px solid rgba(255,255,255,0.18); padding:4px 10px; cursor:pointer; transition:all .2s; }
-.ft-lang-btn:hover, .ft-lang-btn.on { color:#fff; border-color:var(--acc); }
-.ft-sns-area { padding:3.5rem; display:flex; flex-direction:column; }
-.ft-sns-lbl { font-family:'DM Mono',monospace; font-size:.54rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,245,246,0.55); margin-bottom:2rem; }
+/* Action column */
+.ft-engage-area { padding:3rem 3rem; display:flex; flex-direction:column; }
+.ft-engage-lbl { font-family:'DM Mono',monospace; font-size:.54rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,245,246,0.55); margin-bottom:1.8rem; }
+.ft-engage-list { list-style:none; }
+.ft-engage-list li { margin-bottom:.15rem; }
+.ft-engage-list a { font-family:'Bebas Neue',sans-serif; font-size:1.75rem; letter-spacing:.07em; color:rgba(255,245,246,0.75); text-decoration:none; transition:color .2s, letter-spacing .2s; display:inline-block; }
+.ft-engage-list a:hover { color:var(--acc); letter-spacing:.11em; }
+.ft-engage-list .ft-chat-link { color:rgba(255,245,246,0.75) !important; }
+.ft-engage-list .ft-chat-link:hover { color:var(--acc) !important; }
+/* SNS column */
+.ft-sns-area { padding:3rem 3rem; display:flex; flex-direction:column; }
+.ft-sns-lbl { font-family:'DM Mono',monospace; font-size:.54rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,245,246,0.55); margin-bottom:1.8rem; }
 .sns-list { list-style:none; }
 .sns-item { border-bottom:0.5px solid rgba(255,255,255,0.1); }
 .sns-link { display:flex; align-items:center; justify-content:space-between; padding:.9rem 0; text-decoration:none; transition:padding-left .2s; }
@@ -1229,7 +1392,7 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
   .gal-item{grid-column:span 1 !important; grid-row:span 1 !important;}
   #s7{grid-template-columns:1fr;min-height:auto;}
   .ft-div{display:none;}
-  .ft-logo-area,.ft-nav-area,.ft-sns-area{border-bottom:0.5px solid var(--bdr);min-height:auto;padding:2.5rem;}
+  .ft-logo-area,.ft-nav-area,.ft-engage-area,.ft-sns-area{border-bottom:0.5px solid var(--bdr);min-height:auto;padding:2rem 1.5rem;}
   .cf-row{grid-template-columns:1fr;}
 }
 
@@ -1254,7 +1417,7 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 
 {% include "frontend/includes/homepage/_s1_hero.html" %}
 
-    <!-- SECTION 2: ABOUT ME (옛 Profile) -->
+    <!-- SECTION 2: ABOUT HARI (옛 Profile) -->
     {% include 'frontend/includes/homepage/_s2_abouthari.html' %}
 
 {% include "frontend/includes/homepage/_s3_gallery.html" %}
@@ -1332,6 +1495,62 @@ function getCookie(name){
   const v=document.cookie.match('(^|;)\\s*'+name+'\\s*=\\s*([^;]+)');
   return v?v.pop():'';
 }
+// 이메일 검증 전역 상태
+window.emailValidated=false;
+let emailCheckTimeout;
+function debounceEmailCheck(email){
+  clearTimeout(emailCheckTimeout);
+  const statusEl=document.getElementById('email-status');
+  const messageEl=document.getElementById('email-message');
+  if(!email){
+    statusEl.textContent='';
+    messageEl.textContent='';
+    window.emailValidated=false;
+    return;
+  }
+  statusEl.textContent='🔄';
+  messageEl.textContent='검증 중...';
+  emailCheckTimeout=setTimeout(()=>{
+    checkEmailValidity(email);
+  },500);
+}
+function checkEmailValidity(email){
+  const statusEl=document.getElementById('email-status');
+  const messageEl=document.getElementById('email-message');
+  const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!emailRegex.test(email)){
+    statusEl.textContent='❌';
+    messageEl.textContent='유효하지 않은 이메일 형식입니다.';
+    messageEl.style.color='#ff7b8a';
+    window.emailValidated=false;
+    return;
+  }
+  fetch('/api/auth/verify-email/',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+    body:JSON.stringify({email:email})
+  }).then(r=>{
+    if(!r.ok) return r.json().then(d=>{throw d;});
+    return r.json();
+  }).then(data=>{
+    if(data.valid||data.available){
+      statusEl.textContent='✅';
+      messageEl.textContent='사용 가능한 이메일입니다.';
+      messageEl.style.color='#06d6a0';
+      window.emailValidated=true;
+    }else{
+      statusEl.textContent='❌';
+      messageEl.textContent=data.message||'이미 가입된 이메일입니다.';
+      messageEl.style.color='#ff7b8a';
+      window.emailValidated=false;
+    }
+  }).catch(err=>{
+    statusEl.textContent='⚠️';
+    messageEl.textContent='검증 서버 오류입니다.';
+    messageEl.style.color='#ffd166';
+    window.emailValidated=false;
+  });
+}
 function doSignup(){
   const btn=document.querySelector('#panel-signup .auth-submit');
   const panel=document.getElementById('panel-signup');
@@ -1341,6 +1560,7 @@ function doSignup(){
   const pw=document.getElementById('signup-pw').value;
   const agreed=panel.querySelector('input[type="checkbox"][required]');
   if(!email||!pw){alert('이메일과 비밀번호를 입력해주세요.');return;}
+  if(!window.emailValidated){alert('이메일 검증을 완료해주세요.');return;}
   if(pw.length<8){alert('비밀번호는 8자 이상이어야 합니다.');return;}
   if(!agreed.checked){alert('이용약관에 동의해주세요.');return;}
   btn.textContent='가입 중...'; btn.disabled=true;
@@ -1437,7 +1657,87 @@ function planSelect(btn,tier){ btn.textContent='처리 중...'; setTimeout(()=>{
 
 
 function toggleFaq(el){ const item=el.parentElement; item.classList.toggle('open'); }
-function submitForm(e){ e.preventDefault(); const btn=e.target.querySelector('.cf-btn'); btn.textContent='전송 완료! ✓'; btn.style.background='var(--grn)'; setTimeout(()=>{ btn.textContent='보내기 / Send →'; btn.style.background=''; },3000); }
+function submitForm(e){
+  e.preventDefault();
+  const form = e.target;
+  const btn = form.querySelector('.cf-btn');
+  btn.textContent = '전송 중...'; btn.disabled = true;
+  const data = new FormData(form);
+  fetch('/contact/', { method:'POST', headers:{'X-CSRFToken':getCookie('csrftoken')}, body:data })
+    .then(r => r.json())
+    .then(res => {
+      if(res.ok){
+        btn.textContent = '전송 완료! ✓'; btn.style.background = 'var(--grn)';
+        form.reset();
+        setTimeout(() => { btn.textContent = '보내기 / Send →'; btn.style.background = ''; btn.disabled = false; }, 3000);
+      } else {
+        btn.textContent = '전송 실패 — 다시 시도해주세요'; btn.style.background = '#c84a3a';
+        setTimeout(() => { btn.textContent = '보내기 / Send →'; btn.style.background = ''; btn.disabled = false; }, 3000);
+      }
+    })
+    .catch(() => {
+      btn.textContent = '오류가 발생했어요'; btn.style.background = '#c84a3a';
+      setTimeout(() => { btn.textContent = '보내기 / Send →'; btn.style.background = ''; btn.disabled = false; }, 3000);
+    });
+}
+
+const termsContent = {
+  terms: `<h3 style="margin-top:0;">제1조 (목적)</h3>
+<p>본 약관은 주식회사 하리스튜디오가 운영하는 HARI 플랫폼의 이용 조건 및 절차, 회사와 회원 간의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
+<h3>제2조 (정의)</h3>
+<p>"서비스"란 회사가 제공하는 AI 기반 팬 커뮤니케이션 플랫폼 및 이에 부수하는 모든 기능을 말합니다.</p>
+<p>"회원"이란 본 약관에 동의하고 회원가입을 완료하여 서비스를 이용하는 자를 말합니다.</p>
+<p>"콘텐츠"란 회원이 서비스 내에서 생성·업로드하는 텍스트, 이미지, 파일 등 모든 정보를 말합니다.</p>
+<p>"포인트"란 서비스 내 재화로, 현금으로 환급되지 않습니다.</p>
+<h3>제3조 (약관의 효력 및 변경)</h3>
+<p>본 약관은 서비스 화면에 게시하거나 기타 방법으로 공지함으로써 효력이 발생합니다. 회사는 관련 법령을 위반하지 않는 범위에서 약관을 개정할 수 있으며, 개정 시 적용 일자 및 개정 사유를 명시하여 7일 전부터 공지합니다.</p>
+<h3>제4조 (서비스 이용 자격)</h3>
+<p>만 14세 미만의 아동은 보호자 동의 없이 회원가입이 제한됩니다. 타인의 정보를 도용하거나 허위 정보로 가입한 경우 이용이 제한될 수 있습니다.</p>
+<h3>제5조 (회원의 의무)</h3>
+<p>회원은 다음 행위를 하여서는 안 됩니다:</p>
+<ul style="padding-left:1.2rem;"><li>타인의 개인정보 무단 수집·이용·배포</li><li>서비스 운영을 방해하는 일체의 행위</li><li>허위 정보 등록 또는 타인 사칭</li><li>저작권 등 지식재산권을 침해하는 행위</li></ul>
+<h3>제6조 (면책사항)</h3>
+<p>회사는 천재지변, 불가항력, 제3자의 귀책 사유 등으로 발생한 서비스 장애에 대해 책임을 지지 않습니다. AI가 생성하는 대화 내용은 창작적 결과물이며, 실제 아티스트의 공식 발언이나 입장을 대표하지 않습니다.</p>`,
+
+  privacy: `<h3 style="margin-top:0;">1. 개인정보의 수집 및 이용 목적</h3>
+<p>주식회사 하리스튜디오는 다음의 목적을 위하여 개인정보를 처리합니다:</p>
+<ul style="padding-left:1.2rem;"><li>회원 가입·관리, 본인 확인, 부정 이용 방지</li><li>AI 채팅 서비스 제공 및 대화 품질 개선</li><li>멤버십·포인트 구매, 결제 처리 및 환불</li><li>고객 문의 응대 및 공지 사항 전달</li></ul>
+<h3>2. 수집하는 개인정보 항목</h3>
+<p><strong>필수:</strong> 이름, 닉네임, 이메일, 비밀번호(암호화)<br><strong>선택:</strong> 프로필 이미지, 생년월일<br><strong>자동 수집:</strong> IP, 접속 기기·OS, 쿠키, 서비스 이용 기록</p>
+<h3>3. 개인정보의 보유 및 이용 기간</h3>
+<p>원칙적으로 개인정보 수집·이용 목적이 달성된 후에는 해당 정보를 지체 없이 파기합니다. 단, 관계 법령에 의해 보존 의무가 있는 경우 아래와 같이 보관합니다:</p>
+<ul style="padding-left:1.2rem;"><li>소비자 불만·분쟁 처리 기록: 3년</li><li>대금 결제·재화 공급 기록: 5년</li><li>접속 로그 기록: 3개월</li></ul>
+<h3>4. 이용자 권리</h3>
+<p>이용자는 언제든지 다음의 권리를 행사할 수 있습니다:</p>
+<ul style="padding-left:1.2rem;"><li>개인정보 열람·정정·삭제 요청</li><li>개인정보 처리 정지 요청</li><li>동의 철회 및 회원 탈퇴</li></ul>
+<p>권리 행사는 마이페이지 &gt; 내 정보 또는 고객센터(support@hari.kr)를 통해 가능합니다.</p>
+<h3>5. 개인정보 보호 책임자</h3>
+<ul style="padding-left:1.2rem;"><li>책임자: 개인정보보호팀</li><li>이메일: privacy@hari.kr</li></ul>`
+};
+
+function openTermsModal(type){
+  const overlay = document.getElementById('terms-modal-overlay');
+  const title = document.getElementById('terms-modal-title');
+  const content = document.getElementById('terms-modal-content');
+
+  if(type === 'terms'){
+    title.textContent = '이용약관';
+    content.innerHTML = termsContent.terms;
+  } else {
+    title.textContent = '개인정보처리방침';
+    content.innerHTML = termsContent.privacy;
+  }
+
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTermsModal(e){
+  if(e && e.target !== document.getElementById('terms-modal-overlay')) return;
+  const overlay = document.getElementById('terms-modal-overlay');
+  overlay.style.display = 'none';
+  document.body.style.overflow = '';
+}
 
 </script>
 

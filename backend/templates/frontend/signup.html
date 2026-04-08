@@ -12,7 +12,11 @@
 <link rel="icon" type="image/png" href="{% static 'images/hari_favicon.png' %}?v=2">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/NeoDunggeunmo.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSSaemmul.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
+<script src="{% static 'js/theme.js' %}"></script>
+<!-- v3.0 -->
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
   --f-pixel:'DOSSaemmul',sans-serif;
@@ -21,44 +25,53 @@
   --bdr:rgba(255,123,138,0.12);--bdr2:rgba(255,123,138,0.22);
   --grn:#06d6a0;
 }
+
+/* 다크 모드 */
+html[data-theme="dark"]{
+  --bg:#1a1612;--ink:#f5f1ed;--acc:#ff8a9b;--dim:#9a8f87;
+  --bdr:rgba(255,123,138,0.15);--bdr2:rgba(255,123,138,0.25);
+  --grn:#1ee0a6;
+}
+
 html,body{height:100%;overflow-x:hidden;}
-body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;min-height:100vh;max-width:100vw;}
+body{background:linear-gradient(135deg, #fff5f6 0%, #f0e6ff 50%, #e6f5ff 100%);color:var(--ink);font-family:'Jua','Apple SD Gothic Neo','Noto Sans KR',sans-serif !important;letter-spacing:0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;display:flex;flex-direction:column;min-height:100vh;max-width:100vw;}
+html[data-theme="dark"] body{background:linear-gradient(135deg, #251d1a 0%, #2a2420 50%, #1f1a16 100%);}
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-thumb{background:var(--acc);border-radius:3px;}
 
 /* LAYOUT */
-.auth-wrap{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:100vh;}
+.auth-wrap{flex:1;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem;}
 
-/* LEFT — 이미지 패널 */
-.auth-left{position:relative;overflow:hidden;background-image:linear-gradient(rgba(0,0,0,0.2),rgba(0,0,0,0.5)),url('{% static "images/hari_image4.png" %}');background-size:cover;background-position:center;display:flex;flex-direction:column;justify-content:space-between;padding:2.5rem;}
+/* LEFT — 이미지 패널 (숨김) */
+.auth-left{display:none;}
 .auth-left-logo img{height:48px;width:auto;filter:brightness(0) invert(1);}
 .auth-left-title{font-family:var(--f-neo);font-size:clamp(2rem,4vw,3.5rem);color:#fff;line-height:1.1;margin-bottom:.8rem;}
 .auth-left-sub{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,0.65);}
 
 /* RIGHT — 폼 패널 */
-.auth-right{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:4rem 3rem;background:#fff;}
+.auth-right{display:flex;flex-direction:column;justify-content:center;align-items:center;width:100%;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border-radius:20px;padding:3.5rem 2.5rem;box-shadow:0 8px 32px rgba(255,123,138,0.15);max-width:450px;border:1px solid rgba(255,255,255,0.5);overflow-y:auto;max-height:90vh;}
 .auth-form-wrap{width:100%;max-width:400px;}
 
-.auth-form-title{font-family:'DM Sans',sans-serif;font-size:1.6rem;font-weight:600;color:var(--ink);margin-bottom:.4rem;}
-.auth-form-sub{font-size:.85rem;color:var(--dim);margin-bottom:2rem;line-height:1.6;}
+.auth-form-title{font-family:'Jua',sans-serif;font-size:2.1rem;font-weight:400;color:var(--ink);margin-bottom:.6rem;letter-spacing:.03em;}
+.auth-form-sub{font-family:'Jua',sans-serif;font-size:1rem;color:var(--dim);margin-bottom:1.5rem;line-height:1.8;font-weight:300;}
 
 /* Social */
-.social-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1.5rem;}
-.social-btn{display:flex;align-items:center;justify-content:center;gap:.7rem;width:100%;padding:.75rem;border:.5px solid var(--bdr2);background:#fff;color:var(--ink);font-family:'DM Sans',sans-serif;font-size:.85rem;cursor:pointer;transition:border-color .2s,background .2s;}
-.social-btn:hover{border-color:var(--acc);background:rgba(255,123,138,0.04);}
+.social-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem;}
+.social-btn{display:flex;align-items:center;justify-content:center;gap:.7rem;width:100%;padding:.9rem;border:none;background:rgba(255,255,255,0.8);color:var(--ink);font-family:'Jua',sans-serif;font-size:1rem;cursor:pointer;transition:all .3s;font-weight:500;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+.social-btn:hover{background:rgba(255,123,138,0.08);transform:translateY(-2px);box-shadow:0 4px 16px rgba(255,123,138,0.2);}
 .social-btn.naver{background:#03C75A;border-color:#03C75A;color:#fff;}
 .social-btn.naver:hover{background:#02b350;border-color:#02b350;}
 
 /* Divider */
-.auth-divider{display:flex;align-items:center;gap:.8rem;margin:1.2rem 0;font-family:'DM Mono',monospace;font-size:.54rem;letter-spacing:.14em;color:var(--dim);}
+.auth-divider{display:flex;align-items:center;gap:.8rem;margin:.7rem 0;font-family:'DM Mono',monospace;font-size:.54rem;letter-spacing:.14em;color:var(--dim);}
 .auth-divider::before,.auth-divider::after{content:'';flex:1;height:.5px;background:var(--bdr);}
 
 /* Fields */
-.auth-field{display:flex;flex-direction:column;margin-bottom:1rem;}
-.auth-label{font-family:'DM Mono',monospace;font-size:.54rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:.3rem;}
-.auth-inp{background:transparent;border:.5px solid var(--bdr2);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:.88rem;padding:.75rem .9rem;outline:none;width:100%;transition:border-color .2s;}
-.auth-inp::placeholder{color:var(--dim);}
-.auth-inp:focus{border-color:var(--acc);}
+.auth-field{display:flex;flex-direction:column;margin-bottom:.65rem;}
+.auth-label{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:.4rem;font-weight:500;}
+.auth-inp{background:rgba(255,255,255,0.7);border:1.5px solid rgba(255,123,138,0.2);color:var(--ink);font-family:'Jua',sans-serif;font-size:1rem;padding:.95rem 1.1rem;outline:none;width:100%;transition:all .3s;line-height:1.5;border-radius:12px;}
+.auth-inp::placeholder{color:rgba(158,148,144,0.5);}
+.auth-inp:focus{background:rgba(255,255,255,0.95);border-color:var(--acc);box-shadow:0 0 0 3px rgba(255,123,138,0.1);}
 
 .auth-inp-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
 
@@ -77,23 +90,46 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;disp
 .auth-error.show{display:block;}
 
 /* Terms */
-.auth-check{display:flex;align-items:flex-start;gap:.6rem;font-size:.75rem;color:var(--dim);cursor:pointer;line-height:1.6;margin-bottom:1.5rem;}
+.auth-check{display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;color:var(--dim);cursor:pointer;line-height:1.8;margin-bottom:1.2rem;}
 .auth-check input{accent-color:var(--acc);margin-top:3px;flex-shrink:0;}
-.auth-check a{color:var(--acc);text-decoration:none;border-bottom:.5px solid var(--acc);}
+.auth-check a, .auth-check button{color:var(--acc);text-decoration:none;border-bottom:.5px solid var(--acc);background:none;border:none;padding:0;cursor:pointer;font-family:inherit;font-size:inherit;}
 
 /* Submit */
-.auth-submit{background:var(--acc);border:none;color:#fff;font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;padding:.9rem;cursor:pointer;width:100%;transition:background .2s;margin-bottom:1.2rem;}
-.auth-submit:hover{background:#ff4c6c;}
+.auth-submit{background:linear-gradient(135deg, #ff7b8a 0%, #ff5c73 100%);border:none;color:#fff;font-family:'Jua',sans-serif;font-size:1.05rem;letter-spacing:.04em;padding:1.1rem;cursor:pointer;width:100%;transition:all .3s;margin-bottom:1rem;font-weight:600;border-radius:12px;box-shadow:0 4px 15px rgba(255,123,138,0.4);}
+.auth-submit:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,123,138,0.5);}
+.auth-submit:active{transform:translateY(0);}
 .auth-submit:disabled{opacity:.6;cursor:not-allowed;}
 
 /* Switch */
-.auth-switch{text-align:center;font-size:.8rem;color:var(--dim);}
+.auth-switch{text-align:center;font-family:'Jua',sans-serif;font-size:.95rem;color:var(--dim);line-height:1.8;}
 .auth-switch a{color:var(--acc);text-decoration:none;border-bottom:.5px solid var(--acc);}
 .auth-switch a:hover{color:var(--ink);}
 
 /* Home link */
 .auth-home{display:block;text-align:center;margin-top:1.5rem;font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);text-decoration:none;transition:color .2s;}
 .auth-home:hover{color:var(--acc);}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:#fff;width:min(600px,92vw);max-height:80vh;display:grid;grid-template-rows:auto 1fr;transform:translateY(12px);transition:transform .2s;overflow:hidden;}
+.modal-overlay.open .modal-box{transform:translateY(0);}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.4rem;border-bottom:.5px solid var(--bdr2);position:sticky;top:0;background:#fff;z-index:10;}
+.modal-head h2{font-family:'Jua',sans-serif;font-size:1.15rem;color:var(--ink);font-weight:600;}
+.modal-close{background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--dim);line-height:1;}
+.modal-close:hover{color:var(--acc);}
+.modal-body{padding:1.4rem;overflow-y:auto;font-family:'Jua',sans-serif;font-size:.85rem;color:#444;line-height:1.95;}
+.modal-body h3{font-size:.82rem;color:var(--ink);margin:1.2rem 0 .4rem;font-family:'Jua',sans-serif;}
+.modal-body h3:first-child{margin-top:0;}
+.modal-body p{margin-bottom:.6rem;}
+.modal-body ul{padding-left:1.1rem;margin-bottom:.6rem;}
+.modal-body ul li{margin-bottom:.3rem;}
+.modal-body table{width:100%;border-collapse:collapse;font-size:.72rem;margin-bottom:.8rem;}
+.modal-body table th,.modal-body table td{border:.5px solid var(--bdr2);padding:.45rem .6rem;text-align:left;}
+.modal-body table th{background:rgba(255,123,138,0.05);font-weight:normal;color:var(--dim);}
+.modal-badge{display:inline-block;background:rgba(255,123,138,0.1);color:var(--acc);font-size:.62rem;padding:.15rem .4rem;margin-bottom:1rem;font-family:'DM Mono',monospace;letter-spacing:.08em;}
+
+html[data-theme="dark"] .modal-head{background:#1a1612;}
 
 @media(max-width:768px){
   .auth-wrap{grid-template-columns:1fr;}
@@ -103,12 +139,13 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;disp
 }
 @media(max-width:480px){
   .auth-right{padding:2rem 1.2rem;}
-  .auth-form-title{font-size:1.3rem;}
+  .auth-form-title{font-size:1.5rem;}
   .social-row{grid-template-columns:1fr;}
-  .social-btn{padding:.65rem;}
+  .social-btn{padding:.75rem;font-size:.95rem;}
   .auth-inp-row{grid-template-columns:1fr;}
-  .auth-inp{font-size:.82rem;padding:.65rem .8rem;}
-  .auth-submit{padding:.8rem;font-size:.62rem;}
+  .auth-inp{font-size:.95rem;padding:.75rem .8rem;}
+  .auth-check{font-size:.8rem;}
+  .auth-submit{padding:.9rem;font-size:.95rem;}
 }
 @media(max-width:360px){
   .auth-right{padding:1.5rem 1rem;}
@@ -134,8 +171,8 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;disp
   <!-- RIGHT: 폼 -->
   <div class="auth-right">
     <div class="auth-form-wrap">
-      <div class="auth-form-title">회원가입</div>
-      <p class="auth-form-sub">하리와의 특별한 대화, 지금 시작해보세요 🌸</p>
+      <div class="auth-form-title" style="font-size:2.2rem !important; margin-bottom:1rem !important;">회원가입</div>
+      <p class="auth-form-sub" style="font-size:1.1rem !important; line-height:1.8 !important;">하리와의 특별한 대화, 지금 시작해보세요 🌸</p>
 
       <!-- Social -->
       <div class="social-row">
@@ -160,24 +197,28 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;disp
 
       <div class="auth-inp-row">
         <div class="auth-field">
-          <label class="auth-label">이름</label>
-          <input class="auth-inp" id="reg-name" type="text" placeholder="실명" autocomplete="name">
+          <label class="auth-label" style="font-size:0.65rem !important;">이름</label>
+          <input class="auth-inp" id="reg-name" type="text" placeholder="실명" autocomplete="name" style="font-size:1.05rem !important; padding:0.9rem !important;">
         </div>
         <div class="auth-field">
-          <label class="auth-label">닉네임</label>
-          <input class="auth-inp" id="reg-nick" type="text" placeholder="활동명" autocomplete="username">
+          <label class="auth-label" style="font-size:0.65rem !important;">닉네임</label>
+          <input class="auth-inp" id="reg-nick" type="text" placeholder="활동명" autocomplete="username" style="font-size:1.05rem !important; padding:0.9rem !important;">
         </div>
       </div>
 
       <div class="auth-field">
-        <label class="auth-label">이메일</label>
-        <input class="auth-inp" id="reg-email" type="email" placeholder="hello@hari.kr" autocomplete="email">
+        <label class="auth-label" style="font-size:0.65rem !important;">이메일</label>
+        <div style="position:relative; display:flex; align-items:center; gap:0.5rem;">
+          <input class="auth-inp" id="reg-email" type="email" placeholder="hello@hari.kr" autocomplete="email" style="font-size:1.05rem !important; padding:0.9rem !important; flex:1;" oninput="debounceEmailCheck(this.value)">
+          <span id="email-status" style="font-size:1.2rem; min-width:24px; text-align:center; flex-shrink:0;"></span>
+        </div>
+        <div id="email-message" style="font-size:0.75rem; margin-top:0.3rem; min-height:16px; color:#ff7b8a;"></div>
       </div>
 
       <div class="auth-field">
-        <label class="auth-label">비밀번호</label>
+        <label class="auth-label" style="font-size:0.65rem !important;">비밀번호</label>
         <div class="pw-wrap">
-          <input class="auth-inp" id="reg-pw" type="password" placeholder="8자 이상" oninput="checkStrength(this)">
+          <input class="auth-inp" id="reg-pw" type="password" placeholder="8자 이상" oninput="checkStrength(this)" style="font-size:1.05rem !important; padding:0.9rem !important;">
           <button class="pw-toggle" type="button" onclick="togglePw('reg-pw',this)">표시</button>
         </div>
         <div class="pw-strength">
@@ -189,10 +230,10 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;disp
 
       <label class="auth-check">
         <input type="checkbox" id="reg-agree" required>
-        <span><a href="#">이용약관</a> 및 <a href="#">개인정보처리방침</a>에 동의합니다.</span>
+        <span><button type="button" onclick="openModal('modal-terms')">이용약관</button> 및 <button type="button" onclick="openModal('modal-privacy')">개인정보처리방침</button>에 동의합니다.</span>
       </label>
 
-      <button class="auth-submit" id="reg-btn" type="button" onclick="doSignup()">가입하기 →</button>
+      <button class="auth-submit" id="reg-btn" type="button" onclick="doSignup()" style="font-size:1.1rem !important; padding:1.05rem !important; font-weight:600;">가입하기 →</button>
 
       <div class="auth-switch">
         이미 계정이 있으신가요? <a href="{% url 'login_page' %}">로그인</a>
@@ -203,7 +244,155 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;disp
   </div>
 </div>
 
+<!-- 이용약관 모달 -->
+<div class="modal-overlay" id="modal-terms" onclick="closeModalOutside(event,'modal-terms')">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 style="font-size:1.2rem !important;">이용약관</h2>
+      <button class="modal-close" onclick="closeModal('modal-terms')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-badge">시행일: 2026년 3월 4일 · 최종 개정: 2026년 4월 24일</div>
+
+      <h3>제1조 (목적)</h3>
+      <p>본 약관은 주식회사 하리스튜디오(이하 "회사")가 운영하는 HARI 플랫폼(이하 "서비스")의 이용 조건 및 절차, 회사와 회원 간의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
+
+      <h3>제2조 (정의)</h3>
+      <ul>
+        <li><strong>"서비스"</strong>란 회사가 제공하는 AI 기반 팬 커뮤니케이션 플랫폼 및 이에 부수하는 모든 기능을 말합니다.</li>
+        <li><strong>"회원"</strong>이란 본 약관에 동의하고 회원가입을 완료하여 서비스를 이용하는 자를 말합니다.</li>
+        <li><strong>"콘텐츠"</strong>란 회원이 서비스 내에서 생성·업로드하는 텍스트, 이미지, 파일 등 모든 정보를 말합니다.</li>
+        <li><strong>"포인트"</strong>란 서비스 내 재화로, 현금으로 환급되지 않습니다.</li>
+      </ul>
+
+      <h3>제3조 (약관의 효력 및 변경)</h3>
+      <p>본 약관은 서비스 화면에 게시하거나 기타 방법으로 공지함으로써 효력이 발생합니다. 회사는 관련 법령을 위반하지 않는 범위에서 약관을 개정할 수 있으며, 개정 시 적용 일자 및 개정 사유를 명시하여 7일 전부터 공지합니다.</p>
+
+      <h3>제4조 (서비스 이용 자격)</h3>
+      <ul>
+        <li>만 14세 미만의 아동은 보호자 동의 없이 회원가입이 제한됩니다.</li>
+        <li>타인의 정보를 도용하거나 허위 정보로 가입한 경우 이용이 제한될 수 있습니다.</li>
+        <li>회사는 회원 자격을 심사할 권리를 보유합니다.</li>
+      </ul>
+
+      <h3>제5조 (회원의 의무)</h3>
+      <p>회원은 다음 행위를 하여서는 안 됩니다.</p>
+      <ul>
+        <li>타인의 개인정보 무단 수집·이용·배포</li>
+        <li>서비스 운영을 방해하는 일체의 행위</li>
+        <li>허위 정보 등록 또는 타인 사칭</li>
+        <li>저작권 등 지식재산권을 침해하는 행위</li>
+        <li>음란·혐오·명예훼손 등 불법 콘텐츠 게시</li>
+        <li>AI 모델을 악용하거나 자동화 수단으로 서비스를 남용하는 행위</li>
+      </ul>
+
+      <h3>제6조 (서비스의 제공 및 변경)</h3>
+      <p>회사는 서비스를 연중무휴 24시간 제공을 원칙으로 합니다. 단, 시스템 점검·장애·천재지변 등의 사유로 서비스가 일시 중단될 수 있으며, 이 경우 사전 또는 사후에 공지합니다.</p>
+
+      <h3>제7조 (유료 서비스 및 환불)</h3>
+      <p>유료 포인트 또는 멤버십 구매 후 서비스 미이용 시, 구매일로부터 7일 이내에 고객센터를 통해 환불을 요청할 수 있습니다. 단, 일부 사용이 이루어진 경우 이미 사용된 분량에 해당하는 금액은 공제 후 환불됩니다.</p>
+
+      <h3>제8조 (면책사항)</h3>
+      <p>회사는 천재지변, 불가항력, 제3자의 귀책 사유 등으로 발생한 서비스 장애에 대해 책임을 지지 않습니다. AI가 생성하는 대화 내용은 창작적 결과물이며, 실제 아티스트의 공식 발언이나 입장을 대표하지 않습니다.</p>
+
+      <h3>제9조 (분쟁 해결)</h3>
+      <p>본 약관과 관련된 분쟁은 대한민국 법률을 준거법으로 하며, 분쟁 발생 시 서울중앙지방법원을 전속 관할 법원으로 합니다.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 개인정보처리방침 모달 -->
+<div class="modal-overlay" id="modal-privacy" onclick="closeModalOutside(event,'modal-privacy')">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 style="font-size:1.2rem !important;">개인정보처리방침</h2>
+      <button class="modal-close" onclick="closeModal('modal-privacy')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-badge">시행일: 2026년 3월 4일 · 최종 개정: 2026년 4월 24일</div>
+
+      <h3>1. 개인정보의 수집 및 이용 목적</h3>
+      <p>주식회사 하리스튜디오는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하고 있는 개인정보는 다음 목적 이외의 용도로 이용되지 않으며, 목적이 변경되는 경우 별도 동의를 받겠습니다.</p>
+      <ul>
+        <li>회원 가입·관리, 본인 확인, 부정 이용 방지</li>
+        <li>AI 채팅 서비스 제공 및 대화 품질 개선</li>
+        <li>멤버십·포인트 구매, 결제 처리 및 환불</li>
+        <li>고객 문의 응대 및 공지 사항 전달</li>
+        <li>서비스 이용 통계 분석 및 신규 서비스 개발</li>
+      </ul>
+
+      <h3>2. 수집하는 개인정보 항목</h3>
+      <table>
+        <thead><tr><th>구분</th><th>수집 항목</th><th>보유 기간</th></tr></thead>
+        <tbody>
+          <tr><td>필수</td><td>이름, 닉네임, 이메일, 비밀번호(암호화)</td><td>회원 탈퇴 후 즉시 삭제</td></tr>
+          <tr><td>선택</td><td>프로필 이미지, 생년월일</td><td>회원 탈퇴 후 즉시 삭제</td></tr>
+          <tr><td>자동 수집</td><td>IP, 접속 기기·OS, 쿠키, 서비스 이용 기록</td><td>수집일로부터 1년</td></tr>
+          <tr><td>결제</td><td>결제 수단 정보(마스킹 처리), 거래 내역</td><td>전자상거래법에 따라 5년</td></tr>
+        </tbody>
+      </table>
+
+      <h3>3. 개인정보의 보유 및 이용 기간</h3>
+      <p>원칙적으로 개인정보 수집·이용 목적이 달성된 후에는 해당 정보를 지체 없이 파기합니다. 단, 관계 법령에 의해 보존 의무가 있는 경우 아래와 같이 보관합니다.</p>
+      <ul>
+        <li>소비자 불만·분쟁 처리 기록: 3년 (전자상거래법)</li>
+        <li>대금 결제·재화 공급 기록: 5년 (전자상거래법)</li>
+        <li>접속 로그 기록: 3개월 (통신비밀보호법)</li>
+      </ul>
+
+      <h3>4. 개인정보의 제3자 제공</h3>
+      <p>회사는 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다. 단, 이용자 동의가 있거나 법령에 따라 수사기관 요청이 있는 경우 예외적으로 제공할 수 있습니다.</p>
+
+      <h3>5. 개인정보 처리 위탁</h3>
+      <table>
+        <thead><tr><th>수탁 업체</th><th>위탁 업무</th></tr></thead>
+        <tbody>
+          <tr><td>Amazon Web Services (AWS)</td><td>클라우드 서버 인프라 운영</td></tr>
+          <tr><td>결제 대행사 (PG사)</td><td>결제 처리 및 환불</td></tr>
+          <tr><td>이메일 발송 서비스</td><td>인증 메일·공지 발송</td></tr>
+        </tbody>
+      </table>
+
+      <h3>6. 이용자 권리</h3>
+      <p>이용자는 언제든지 다음의 권리를 행사할 수 있습니다.</p>
+      <ul>
+        <li>개인정보 열람·정정·삭제 요청</li>
+        <li>개인정보 처리 정지 요청</li>
+        <li>동의 철회 및 회원 탈퇴</li>
+      </ul>
+      <p>권리 행사는 마이페이지 &gt; 내 정보 또는 고객센터(support@hari.kr)를 통해 가능합니다.</p>
+
+      <h3>7. 쿠키(Cookie) 운영</h3>
+      <p>서비스는 로그인 상태 유지, 이용 편의 개선 등을 위해 쿠키를 사용합니다. 브라우저 설정에서 쿠키 저장을 거부할 수 있으나, 일부 서비스 이용이 제한될 수 있습니다.</p>
+
+      <h3>8. 개인정보 보호 책임자</h3>
+      <ul>
+        <li>책임자: 개인정보보호팀 (하리스튜디오)</li>
+        <li>이메일: privacy@hari.kr</li>
+        <li>개인정보 침해 신고: 개인정보분쟁조정위원회 (www.kopico.go.kr), 또는 국번 없이 118 (한국인터넷진흥원)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
 <script>
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow='';
+}
+function closeModalOutside(e,id){
+  if(e.target===document.getElementById(id)) closeModal(id);
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    ['modal-terms','modal-privacy'].forEach(closeModal);
+  }
+});
+
 function getCookie(name){
   const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
   return v ? v.pop() : '';
@@ -258,6 +447,10 @@ function doSignup(){
     showError('모든 필드를 입력해주세요.');
     return;
   }
+  if(!window.emailValidated){
+    showError('이메일 검증을 완료해주세요.');
+    return;
+  }
   if(pw.length < 8){
     showError('비밀번호는 8자 이상이어야 합니다.');
     return;
@@ -301,6 +494,78 @@ function doSignup(){
     else if(err.password1) msg = err.password1[0];
     else if(err.non_field_errors) msg = err.non_field_errors[0];
     showError(msg);
+  });
+}
+
+// 이메일 검증 전역 상태
+window.emailValidated = false;
+let emailCheckTimeout;
+
+function debounceEmailCheck(email){
+  clearTimeout(emailCheckTimeout);
+  const statusEl = document.getElementById('email-status');
+  const messageEl = document.getElementById('email-message');
+
+  if(!email){
+    statusEl.textContent = '';
+    messageEl.textContent = '';
+    window.emailValidated = false;
+    return;
+  }
+
+  statusEl.textContent = '🔄';
+  messageEl.textContent = '검증 중...';
+
+  emailCheckTimeout = setTimeout(() => {
+    checkEmailValidity(email);
+  }, 500);
+}
+
+function checkEmailValidity(email){
+  const statusEl = document.getElementById('email-status');
+  const messageEl = document.getElementById('email-message');
+
+  // 이메일 형식 검증
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!emailRegex.test(email)){
+    statusEl.textContent = '❌';
+    messageEl.textContent = '유효하지 않은 이메일 형식입니다.';
+    messageEl.style.color = '#ff7b8a';
+    window.emailValidated = false;
+    return;
+  }
+
+  // 백엔드 API로 이메일 검증
+  fetch('/api/auth/verify-email/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: JSON.stringify({ email: email })
+  })
+  .then(r => {
+    if(!r.ok) return r.json().then(d => { throw d; });
+    return r.json();
+  })
+  .then(data => {
+    if(data.valid || data.available){
+      statusEl.textContent = '✅';
+      messageEl.textContent = '사용 가능한 이메일입니다.';
+      messageEl.style.color = '#06d6a0';
+      window.emailValidated = true;
+    } else {
+      statusEl.textContent = '❌';
+      messageEl.textContent = data.message || '이미 가입된 이메일입니다.';
+      messageEl.style.color = '#ff7b8a';
+      window.emailValidated = false;
+    }
+  })
+  .catch(err => {
+    statusEl.textContent = '⚠️';
+    messageEl.textContent = '검증 서버 오류입니다.';
+    messageEl.style.color = '#ffd166';
+    window.emailValidated = false;
   });
 }
 </script>
