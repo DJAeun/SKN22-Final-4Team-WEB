@@ -1,7 +1,7 @@
 {% load static %}
 <style>
   #s4 {
-    background: #ffffff;
+    background: var(--bg);
     position: relative;
   }
 
@@ -34,6 +34,18 @@
     transition: color 0.2s;
   }
   .s4-more:hover { color: var(--ink); }
+
+  /* 다크모드 — 메타 텍스트 색상 */
+  .premium-vid-meta {
+    color: var(--dim) !important;
+  }
+
+  .premium-vid-link {
+    color: var(--dim) !important;
+  }
+  .premium-vid-link:hover {
+    color: var(--acc) !important;
+  }
 
   /* Premium Grid Layout */
   .premium-video-grid {

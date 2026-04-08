@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2210@1.0/SejongGeulgot.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<script src="{% static 'js/theme.js' %}"></script>
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 :root {
@@ -54,6 +55,136 @@
   --dim-dk: rgba(255,245,246,0.5);
   --bdr-dk: rgba(255,245,246,0.12);
 }
+
+/* ── DARK MODE ── */
+html[data-theme="dark"] {
+  --bg:     #1a1612;
+  --ink:    #f5f1ed;
+  --acc:    #ff8a9b;
+  --acc2:   #ffd977;
+  --acc3:   #1ee0a6;
+  --dim:    #9a8f87;
+  --bdr:    rgba(255,123,138,0.15);
+  --bdr2:   rgba(255,123,138,0.25);
+  --grn:    #1ee0a6;
+
+  --s1-bg:  #1a1612;
+  --s2-bg:  #251d1a;
+  --s3-bg:  #1e2724;
+  --s4-bg:  #22201a;
+  --s5-bg:  #1a1612;
+  --s6-bg:  #251d1a;
+  --s7-bg:  #0f0e0c;
+  --mem-bg: #1a1612;
+
+  --ink-on-dark: #1a1612;
+}
+
+/* 다크 모드에서 스크롤바 색상 */
+html[data-theme="dark"]::-webkit-scrollbar-thumb {
+  background: #ff8a9b;
+}
+
+/* 다크 모드에서 네비게이션 배경 */
+html[data-theme="dark"] #nav {
+  background: #1a1612;
+}
+html[data-theme="dark"] #nav.scrolled {
+  background: rgba(26,22,18,0.96);
+}
+
+/* 다크 모드에서 메뉴 버튼 색상 */
+html[data-theme="dark"] #menu-btn span {
+  background: #ff8a9b;
+}
+
+/* 다크 모드에서 인증 요소 */
+html[data-theme="dark"] #auth-overlay {
+  background: rgba(0,0,0,0.6);
+}
+html[data-theme="dark"] #auth-modal {
+  background: #1a1612;
+  border-color: rgba(255,123,138,0.2);
+}
+html[data-theme="dark"] .auth-tab {
+  color: #9e9490;
+}
+html[data-theme="dark"] .auth-tab.on {
+  color: #f5f1ed;
+  border-bottom-color: var(--acc);
+}
+html[data-theme="dark"] .auth-sub {
+  color: #b5aea8;
+}
+html[data-theme="dark"] .auth-label {
+  color: #b5aea8;
+}
+html[data-theme="dark"] .auth-inp {
+  background: rgba(61,53,48,0.6);
+  border-color: rgba(255,123,138,0.3);
+  color: #f5f1ed;
+}
+html[data-theme="dark"] .auth-inp::placeholder {
+  color: rgba(181,174,168,0.4);
+}
+html[data-theme="dark"] .auth-inp:focus {
+  background: rgba(61,53,48,0.9);
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px rgba(255,123,138,0.2);
+}
+html[data-theme="dark"] .social-btn {
+  background: #2a2420;
+  color: #f5f1ed;
+  border: 1px solid rgba(255,123,138,0.2);
+}
+html[data-theme="dark"] .social-btn:hover {
+  background: #3d3530;
+  border-color: var(--acc);
+}
+html[data-theme="dark"] .naver-btn {
+  background: #03C75A;
+  color: #fff;
+}
+html[data-theme="dark"] .naver-btn:hover {
+  background: #02b351;
+}
+html[data-theme="dark"] .auth-divider {
+  color: #9e9490;
+}
+html[data-theme="dark"] .auth-divider::before,
+html[data-theme="dark"] .auth-divider::after {
+  background: rgba(255,123,138,0.2);
+}
+html[data-theme="dark"] .auth-forgot {
+  color: #9e9490;
+  border-bottom-color: rgba(255,123,138,0.2);
+}
+html[data-theme="dark"] .auth-forgot:hover {
+  color: #f5f1ed;
+  border-bottom-color: var(--acc);
+}
+html[data-theme="dark"] .auth-check {
+  color: #b5aea8;
+}
+
+/* 다크 모드에서 사용자 드롭다운 */
+html[data-theme="dark"] .user-dropdown {
+  background: #1a1612;
+  border-color: rgba(255,123,138,0.2);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+html[data-theme="dark"] .user-dropdown a,
+html[data-theme="dark"] .user-dropdown button {
+  color: #f5f1ed;
+}
+html[data-theme="dark"] .user-dropdown a:hover,
+html[data-theme="dark"] .user-dropdown button:hover {
+  background: rgba(255,138,155,0.15);
+}
+html[data-theme="dark"] .user-dropdown .logout-btn {
+  border-top-color: rgba(255,123,138,0.2);
+}
+
 html { scroll-behavior:smooth; overflow-x:hidden; }
 body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size: 1rem; line-height: 1.5; font-weight:400; letter-spacing:-0.02em; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; overflow-x:hidden; max-width:100vw; }
 ::-webkit-scrollbar { width:6px; }
