@@ -3,6 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from .models import RpgSession
 from .engine import MainEngine, apply_status_metadata_to_session, extract_status_metadata, strip_status_content
+from .korean_text import render_user_template
 
 class RoleplayConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -75,8 +76,7 @@ class RoleplayConsumer(AsyncWebsocketConsumer):
         if first_ms_lore:
             content = first_ms_lore.lorebook
         
-        content = content.replace('{{user}}', session.user_nickname)
-        content = content.replace('{{User}}', session.user_nickname)
+        content = render_user_template(content, session.user_nickname)
         status_snapshot = extract_status_metadata(content)
         visible_content = strip_status_content(content)
         apply_status_metadata_to_session(session, status_snapshot)
