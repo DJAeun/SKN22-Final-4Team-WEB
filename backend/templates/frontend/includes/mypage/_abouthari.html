@@ -1,5 +1,5 @@
     <!-- ── 마이페이지 (기본 랜딩) ── -->
-    <div class="pg on" id="pg-abouthari">
+    <div class="pg on" id="pg-abouthari" data-title="About Bori">
 
       <!-- ① 프로필 카드: 계정정보 + 유저정보 즉시 노출 -->
       <div class="card" style="padding:0; overflow:hidden; margin-bottom:1rem;">
@@ -10,8 +10,8 @@
 
         <!-- 카드 본문 -->
         <div style="padding:0 1.8rem 1.8rem;">
-          <!-- 아바타 + 배지 행 -->
-          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1.2rem;">
+          <!-- 아바타 + 사용자명 + Fan+ 행 -->
+          <div style="display:flex; align-items:flex-start; gap:1.2rem; margin-bottom:1.8rem;">
             <!-- 아바타 (클릭 → 사진 업로드) -->
             <div class="p-av" id="avatar-btn"
                  onclick="document.getElementById('avatar-input').click()"
@@ -27,10 +27,10 @@
             <!-- 숨김 파일 입력 -->
             <input type="file" id="avatar-input" accept="image/*" style="display:none"
                    onchange="previewAvatar(this)">
-            <div class="p-badges" style="margin:0;">
-              <span class="pbadge fan">Fan+</span>
-              <span class="pbadge rank">TOP 500</span>
-              <span class="pbadge new">38일 출석</span>
+            <!-- 사용자명 + Fan+ -->
+            <div style="flex:1; padding-top:8px;">
+              <div style="font-weight:500; color:var(--ink); font-size:.95rem; margin-bottom:.3rem;">{{ user.username|default:"사용자" }}</div>
+              <span style="font-size:.7rem; color:var(--dim); letter-spacing:.05em;">Fan+ · 활성</span>
             </div>
           </div>
 
@@ -82,94 +82,33 @@
         </div>
       </div>
 
-      <!-- ② 스탯 그리드 -->
-      <div class="stat-grid">
-        <div class="sbox"><span class="sn g" id="prof-pts">3,250</span><span class="sl">보유 포인트</span></div>
-        <div class="sbox"><span class="sn">247</span><span class="sl">팬 랭킹</span></div>
-        <div class="sbox"><span class="sn gr">38</span><span class="sl">출석 일수</span></div>
-        <div class="sbox"><span class="sn">Fan+</span><span class="sl">멤버십</span></div>
+      <!-- 구독 정보 카드 -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="c-title">구독 정보</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--bdr);margin-bottom:.9rem;">
+          <div style="background:var(--bg);padding:.9rem 1rem;">
+            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.25rem;">이용 중</span>
+            <span style="font-size:.85rem;color:var(--acc);">● Fan+ · 활성</span>
+          </div>
+          <div style="background:var(--bg);padding:.9rem 1rem;">
+            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.25rem;">다음 결제</span>
+            <span style="font-size:.85rem;color:var(--ink);">2025.05.01</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:.5rem;">
+          <button class="save-btn" style="background:transparent;border:0.5px solid var(--bdr2);color:var(--dim);font-size:.6rem;box-shadow:none;" onclick="window.location.href='/membership/'">구독 관리</button>
+          <button class="save-btn" style="background:transparent;border:0.5px solid rgba(200,74,58,.35);color:#c84a3a;font-size:.6rem;box-shadow:none;" onclick="toast('구독을 취소하려면 고객센터에 문의해주세요')">구독 취소</button>
+        </div>
       </div>
 
-      <!-- ③ 하단 2컬럼 -->
-      <div class="g2">
-        <!-- 포인트 내역 -->
-        <div class="card">
-          <div class="c-title">포인트 내역</div>
-          <ul class="act-list">
-            <li class="act-item">
-              <div class="act-ico"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-              <div class="act-txt">오늘 출석 체크<small>2025.04.01 09:12</small></div>
-              <span class="act-pt">+50</span>
-            </li>
-            <li class="act-item">
-              <div class="act-ico"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div>
-              <div class="act-txt">포인트샵 — 하리 포토카드<small>2025.03.30 14:05</small></div>
-              <span class="act-pt m">-500</span>
-            </li>
-            <li class="act-item">
-              <div class="act-ico"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
-              <div class="act-txt">Fan+ 가입 보너스<small>2025.03.01 00:00</small></div>
-              <span class="act-pt">+1,000</span>
-            </li>
-            <li class="act-item">
-              <div class="act-ico"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-              <div class="act-txt">7일 연속 출석 보너스<small>2025.03.28</small></div>
-              <span class="act-pt">+200</span>
-            </li>
-            <li class="act-item">
-              <div class="act-ico"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-              <div class="act-txt">하리와 대화 참여<small>2025.03.25 21:30</small></div>
-              <span class="act-pt">+30</span>
-            </li>
-          </ul>
-        </div>
-
-        <!-- 우측 컬럼 -->
-        <div>
-          <!-- 출석 체크 -->
-          <div class="card">
-            <div class="c-title">오늘의 출석</div>
-            <button class="save-btn" style="width:100%" onclick="checkIn()">✦ 출석 체크하기 (+50 pts)</button>
-          </div>
-
-          <!-- 구독 현황 간략 -->
-          <div class="card">
-            <div class="c-title">구독 현황</div>
-            <div style="display:flex; align-items:center; justify-content:space-between; padding:.8rem 0; border-bottom:.5px solid var(--bdr); margin-bottom:.8rem;">
-              <div>
-                <div style="font-family:'NeoDunggeunmo',sans-serif; font-size:1.35rem; color:var(--ink); letter-spacing:.04em;">Fan+</div>
-                <div style="font-family:'NeoDunggeunmo',monospace; font-size:.52rem; letter-spacing:.08em; color:var(--dim); margin-top:.15rem;">₩19,900/월 · 다음 결제 2025.05.01</div>
-              </div>
-              <span style="font-size:.8rem; color:var(--grn);">● 활성</span>
-            </div>
-            <button class="save-btn" style="width:100%; background:transparent; border:.5px solid var(--bdr2); color:var(--dim); box-shadow:none;" onclick="navTo('myinfo')">구독 상세 보기 →</button>
-          </div>
-
-          <!-- 포인트 적립 방법 -->
-          <div class="card">
-            <div class="c-title">포인트 적립 방법</div>
-            <ul class="act-list">
-              <li class="act-item">
-                <div class="act-ico"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-                <div class="act-txt">매일 출석 체크<small>최대 50 pts / 일</small></div>
-                <span class="act-pt">+50</span>
-              </li>
-              <li class="act-item">
-                <div class="act-ico"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-                <div class="act-txt">하리와 대화<small>1회당 30 pts</small></div>
-                <span class="act-pt">+30</span>
-              </li>
-              <li class="act-item">
-                <div class="act-ico"><svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></div>
-                <div class="act-txt">연속 출석 보너스<small>7일·30일마다</small></div>
-                <span class="act-pt">+200~</span>
-              </li>
-              <li class="act-item">
-                <div class="act-ico"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
-                <div class="act-txt">멤버십 유지 보너스<small>매월 1일 지급</small></div>
-                <span class="act-pt">+100~</span>
-              </li>
-            </ul>
+      <!-- 계정 관리 카드 -->
+      <div class="card">
+        <div class="c-title">계정 관리</div>
+        <div class="danger-zone" style="border-radius:10px;">
+          <div class="dz-title">위험 구역</div>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+            <button class="dz-btn" onclick="window.location.href='/api/chat/logout/'">로그아웃</button>
+            <button class="dz-btn" onclick="toast('계정 탈퇴는 고객센터에 문의해주세요')">회원 탈퇴</button>
           </div>
         </div>
       </div>

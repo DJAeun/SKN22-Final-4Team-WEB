@@ -1,9 +1,8 @@
 <section id="s6">
   <div class="contact-left">
     <div>
-      <div class="sec-tag">06 — Business Inquiry</div>
       <h2 class="contact-title">CON<br>TACT</h2>
-      <p class="contact-desc">브랜드 협업, 캠페인, 미디어 출연 등<br>비즈니스 문의는 아래 양식을 이용해주세요.</p>
+      <p class="contact-desc">아래 이메일로 문의해주세요.</p>
     </div>
     <ul class="contact-info">
       <li><span class="ci-l">Email</span><span class="ci-v"><span style="color:var(--acc);">finalteam4000@gmail.com</span></span></li>
@@ -12,19 +11,29 @@
     </ul>
   </div>
   <div class="contact-right">
-    <div class="sec-tag" style="margin-bottom:1.5rem;">문의 양식</div>
-    <form class="contact-form" onsubmit="submitForm(event)">
-      <div class="cf-row">
-        <input class="cf-inp" id="contactName" name="contactName" type="text" placeholder="이름 / Name" required aria-label="이름">
-        <input class="cf-inp" id="contactEmail" name="contactEmail" type="email" placeholder="이메일 / Email" required aria-label="이메일">
+    <div class="collab-heading">협업 분야</div>
+    <div class="collab-grid">
+      <div class="collab-item">
+        <div class="collab-icon">🤝</div>
+        <div class="collab-label">브랜드 협업</div>
       </div>
-      <div class="cf-row">
-        <input class="cf-inp" id="contactCompany" name="contactCompany" type="text" placeholder="회사 / Company" aria-label="회사">
-        <select class="cf-sel" id="contactType" name="contactType" aria-label="문의 유형"><option value="" disabled selected>문의 유형</option><option>브랜드 협업</option><option>광고 캠페인</option><option>미디어 출연</option><option>이벤트</option><option>기타</option></select>
+      <div class="collab-item">
+        <div class="collab-icon">📢</div>
+        <div class="collab-label">광고 캠페인</div>
       </div>
-      <textarea class="cf-ta" id="contactMessage" name="contactMessage" placeholder="문의 내용 / Message" aria-label="문의 내용"></textarea>
-      <button class="cf-btn" type="submit">보내기 / Send →</button>
-    </form>
+      <div class="collab-item">
+        <div class="collab-icon">📹</div>
+        <div class="collab-label">미디어 출연</div>
+      </div>
+      <div class="collab-item">
+        <div class="collab-icon">🎉</div>
+        <div class="collab-label">이벤트</div>
+      </div>
+      <div class="collab-item">
+        <div class="collab-icon">✉️</div>
+        <div class="collab-label">기타 문의</div>
+      </div>
+    </div>
   </div>
 </section>
 

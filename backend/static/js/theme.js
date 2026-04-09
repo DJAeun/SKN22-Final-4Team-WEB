@@ -12,30 +12,27 @@
 
   // 초기 로드 완료 후 DOM 업데이트
   document.addEventListener('DOMContentLoaded', function() {
-    const btn = document.getElementById('theme-toggle');
-    if (btn) {
-      btn.classList.add(saved === 'dark' ? 'on' : 'off');
-    }
-    const chatBtn = document.getElementById('chat-theme-toggle');
-    if (chatBtn) {
-      chatBtn.classList.add(saved === 'dark' ? 'on' : 'off');
-    }
+    updateAllThemeButtons(saved);
   });
 
   // 페이지 로드 시에도 적용 (스크립트 로드 후 지연 적용)
   setTimeout(() => {
-    const btn = document.getElementById('theme-toggle');
-    if (btn) {
-      btn.classList.toggle('on', saved === 'dark');
-      btn.classList.toggle('off', saved !== 'dark');
-    }
-    const chatBtn = document.getElementById('chat-theme-toggle');
-    if (chatBtn) {
-      chatBtn.classList.toggle('on', saved === 'dark');
-      chatBtn.classList.toggle('off', saved !== 'dark');
-    }
+    updateAllThemeButtons(saved);
   }, 50);
 })();
+
+/**
+ * 모든 테마 버튼 업데이트
+ */
+function updateAllThemeButtons(theme) {
+  const isDark = theme === 'dark';
+
+  // 모든 theme-toggle 버튼 업데이트
+  document.querySelectorAll('#theme-toggle, #chat-theme-toggle').forEach(btn => {
+    btn.classList.toggle('on', isDark);
+    btn.classList.toggle('off', !isDark);
+  });
+}
 
 /**
  * 테마 전환 함수
@@ -51,19 +48,8 @@ function toggleTheme() {
   // 로컬스토리지에 저장
   localStorage.setItem('hari-theme', next);
 
-  // 홈페이지 버튼 상태 업데이트
-  const btn = document.getElementById('theme-toggle');
-  if (btn) {
-    btn.classList.toggle('on', next === 'dark');
-    btn.classList.toggle('off', next !== 'dark');
-  }
-
-  // 채팅 페이지 버튼 상태 업데이트
-  const chatBtn = document.getElementById('chat-theme-toggle');
-  if (chatBtn) {
-    chatBtn.classList.toggle('on', next === 'dark');
-    chatBtn.classList.toggle('off', next !== 'dark');
-  }
+  // 모든 테마 버튼 상태 업데이트
+  updateAllThemeButtons(next);
 }
 
 /**
