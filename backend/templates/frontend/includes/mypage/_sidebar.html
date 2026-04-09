@@ -1,27 +1,26 @@
 
   <!-- SIDEBAR -->
   <nav id="sidebar">
-    <!-- tier card -->
-    <div class="sb-tier">
-      <div class="sb-tier-head">
-        <span class="sb-tier-name">Fan+ 멤버</span>
-        <span class="sb-tier-tag">Fan+</span>
+    <!-- user profile card -->
+    <div class="sb-profile" style="display:flex; flex-direction:column; align-items:center; gap:.6rem; padding:1.2rem; background:var(--bg2); border-radius:10px; margin-bottom:.8rem;">
+      <!-- 프로필 이미지 -->
+      <div id="sb-avatar-btn" onclick="document.getElementById('sb-avatar-input').click()" style="width:64px; height:64px; background:var(--acc); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:1.6rem; flex-shrink:0; cursor:pointer; overflow:hidden; position:relative;">
+        <img id="sb-avatar-preview" src="" alt="" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:50%;">
+        <span id="sb-avatar-initial">{{ user.username|first|upper|default:"?" }}</span>
       </div>
-      <div class="sb-xp-bg"><div class="sb-xp-fill" style="width:68%"></div></div>
-      <span class="sb-xp-txt">다음 등급까지 1,750 pts</span>
+      <input type="file" id="sb-avatar-input" accept="image/*" style="display:none" onchange="previewSidebarAvatar(this)">
+      <!-- FAN+ 정보 -->
+      <span style="font-size:.65rem; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); font-weight:500;">FAN+</span>
+      <!-- 사용자 이름 입력 -->
+      <input type="text" id="sb-username" placeholder="사용자 이름" value="{{ user.username|default:'' }}" style="width:100%; padding:.5rem .6rem; border:0.5px solid var(--bdr2); background:var(--bg); border-radius:6px; font-size:.8rem; color:var(--ink); text-align:center;" />
+      <!-- 자기소개 입력 -->
+      <textarea id="sb-bio" placeholder="자기소개" rows="2" style="width:100%; padding:.5rem .6rem; border:0.5px solid var(--bdr2); background:var(--bg); border-radius:6px; font-size:.75rem; color:var(--ink); resize:none; line-height:1.4;"></textarea>
     </div>
     <div class="sb-hr"></div>
     <div class="sb-lbl">메뉴</div>
     <ul class="sb-nav">
       <li><a class="sb-link on" href="#" onclick="navTo('abouthari');return false">
-        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>About Hari
-      </a></li>
-    </ul>
-    <div class="sb-hr"></div>
-    <div class="sb-lbl">계정</div>
-    <ul class="sb-nav">
-      <li><a class="sb-link" href="#" onclick="navTo('myinfo');return false">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>설정
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>About Bori
       </a></li>
     </ul>
   </nav>

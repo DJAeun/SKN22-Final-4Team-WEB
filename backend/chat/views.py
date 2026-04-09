@@ -13,7 +13,10 @@ from rest_framework.decorators import api_view, permission_classes as perm_class
 from rest_framework.response import Response
 from dj_rest_auth.jwt_auth import JWTCookieAuthentication
 from .models import Message, ChatMemory, HariKnowledge, GeneratedContent, VisitLog, UserPersona
-from .serializers import MessageSerializer, ChatMemorySerializer, UserNameSerializer
+from .serializers import (
+    MessageSerializer, ChatMemorySerializer, UserNameSerializer,
+    UserPreferenceSerializer,
+)
 
 
 def _try_jwt_auth(request):
@@ -127,6 +130,76 @@ def user_name_view(request):
     )
 
     return Response({'name': name}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET', 'POST'])
+@perm_classes([permissions.IsAuthenticated])
+def user_preference_view(request):
+    """
+    GET: return {"tone": "casual"|"formal", "title": str|null} — Hari's speech
+    tone and the honorific she uses for the user. Defaults to casual / no title.
+    POST: partial update — any subset of {"tone", "title"}. Passing
+    title as "" or null clears it.
+    """
+    user = request.user
+
+    def _current():
+        rows = UserPersona.objects.filter(
+            user=user,
+            category='preference',
+            is_active=True,
+        ).order_by('-importance')
+        tone = 'casual'
+        title = None
+        for r in rows:
+            if r.trait_key == 'tone' and r.trait_value in ('casual', 'formal'):
+                tone = r.trait_value
+            elif r.trait_key == 'title' and r.trait_value:
+                title = r.trait_value
+        return {'tone': tone, 'title': title}
+
+    if request.method == 'GET':
+        return Response(_current())
+
+    serializer = UserPreferenceSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    data = serializer.validated_data
+
+    if 'tone' in data:
+        UserPersona.objects.filter(
+            user=user,
+            category='preference',
+            trait_key='tone',
+            is_active=True,
+        ).update(is_active=False)
+        UserPersona.objects.create(
+            user=user,
+            category='preference',
+            trait_key='tone',
+            trait_value=data['tone'],
+            importance=7,
+            is_active=True,
+        )
+
+    if 'title' in data:
+        UserPersona.objects.filter(
+            user=user,
+            category='preference',
+            trait_key='title',
+            is_active=True,
+        ).update(is_active=False)
+        title_val = data['title']
+        if title_val:  # only create row if non-empty; empty clears the title
+            UserPersona.objects.create(
+                user=user,
+                category='preference',
+                trait_key='title',
+                trait_value=title_val.strip(),
+                importance=7,
+                is_active=True,
+            )
+
+    return Response(_current(), status=status.HTTP_200_OK)
 
 
 def login_view(request):

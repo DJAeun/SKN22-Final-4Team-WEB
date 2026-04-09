@@ -49,6 +49,22 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 .gl-nav-back svg{transition:transform .2s;}
 .gl-nav-back:hover svg{transform:translateX(-3px);}
 
+/* THEME TOGGLE */
+.gl-theme-wrap{display:flex;align-items:center;gap:.4rem;flex-shrink:0;margin-left:auto;}
+#theme-toggle{position:relative;width:44px;height:26px;background:#ddd;border:none;border-radius:20px;cursor:pointer;transition:background .3s ease,box-shadow .2s ease;display:flex;align-items:center;padding:0 2px;box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);flex-shrink:0;}
+#theme-toggle::after{content:'';position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;left:2px;transition:left .3s cubic-bezier(0.45,0,0.15,1),background .3s ease;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
+#theme-toggle.off{background:#e8e8e8;}
+#theme-toggle.off::after{left:2px;background:#fff;}
+#theme-toggle.on{background:var(--ink);}
+#theme-toggle.on::after{left:20px;background:#fff;}
+#theme-toggle:hover{box-shadow:inset 0 1px 3px rgba(0,0,0,0.15),0 0 8px rgba(255,123,138,0.2);}
+#theme-toggle.on:hover{box-shadow:inset 0 1px 3px rgba(0,0,0,0.2),0 0 8px rgba(255,123,138,0.3);}
+.gl-theme-ico{font-size:.85rem;opacity:.65;transition:opacity .2s;white-space:nowrap;flex-shrink:0;}
+
+html[data-theme="dark"] .gl-nav{background:rgba(26,22,18,0.95);}
+html[data-theme="dark"] #theme-toggle.on{background:#f5f1ed;}
+html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
+
 /* GRID */
 .gl-grid{padding:2rem 2.5rem 4rem;display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
 .gl-item{overflow:hidden;cursor:pointer;position:relative;}
@@ -96,6 +112,11 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
   <a class="gl-nav-logo" href="/">
     <img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI">
   </a>
+  <div class="gl-theme-wrap">
+    <span class="gl-theme-ico">☀️</span>
+    <button id="theme-toggle" class="off" onclick="toggleTheme()" aria-label="다크 모드 전환" title="다크/라이트 모드 전환"></button>
+    <span class="gl-theme-ico">🌙</span>
+  </div>
   <a class="gl-nav-back" href="/">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     홈으로
@@ -105,7 +126,6 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 <!-- HEADER -->
 <div class="gl-header">
   <div class="gl-header-left">
-    <div class="gl-eyebrow">02 — Photo Gallery</div>
     <div class="gl-title">GALLERY</div>
     <div class="gl-count">총 <em id="visible-count">17</em>장의 사진</div>
   </div>
