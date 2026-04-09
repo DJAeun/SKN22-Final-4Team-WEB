@@ -22,7 +22,7 @@
       <span class="chat-theme-icon" title="다크 모드">🌙</span>
     </div>
     <button class="header-btn" onclick="openSearch()">🔍 Search</button>
-    <button class="header-btn" id="settingsBtn" onclick="toggleSettingsPanel(event)" aria-label="설정">⚙ 설정</button>
+    <button class="header-btn" id="settingsBtn" type="button" aria-label="설정">⚙ 설정</button>
   </div>
 </div>
 
@@ -39,12 +39,12 @@
     하리 말투
   </div>
   <div id="tonePrefRow" style="display:flex; gap:8px; margin-bottom:16px;">
-    <button type="button" class="tone-seg" data-tone="casual" onclick="setHariTone('casual')"
+    <button type="button" class="tone-seg" data-tone="casual"
             style="flex:1; padding:9px 0; border-radius:10px; border:1px solid var(--border);
                    background:#fff; cursor:pointer; font-size:0.85rem; transition:all 0.15s;">
       반말
     </button>
-    <button type="button" class="tone-seg" data-tone="formal" onclick="setHariTone('formal')"
+    <button type="button" class="tone-seg" data-tone="formal"
             style="flex:1; padding:9px 0; border-radius:10px; border:1px solid var(--border);
                    background:#fff; cursor:pointer; font-size:0.85rem; transition:all 0.15s;">
       존댓말
@@ -63,12 +63,12 @@
                 border-radius:10px; font-size:0.85rem; box-sizing:border-box;
                 font-family:inherit;">
   <div style="display:flex; gap:8px; margin-top:10px;">
-    <button type="button" onclick="clearHariTitle()"
+    <button type="button" id="titleClearBtn"
             style="flex:1; padding:8px 0; border-radius:10px; border:1px solid var(--border);
                    background:#fff; cursor:pointer; font-size:0.78rem; color:var(--text-dim);">
       호칭 없이
     </button>
-    <button type="button" onclick="submitHariTitleInput()"
+    <button type="button" id="titleApplyBtn"
             style="flex:1; padding:8px 0; border-radius:10px; border:1px solid var(--hari-pink);
                    background:var(--hari-pink); color:#fff; cursor:pointer; font-size:0.78rem;">
       적용
@@ -125,7 +125,10 @@
       c.type = 'button';
       c.className = 'title-chip' + (currentTitle === t ? ' active' : '');
       c.textContent = t;
-      c.onclick = () => window.setHariTitle(t);
+      c.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        savePref({ title: t });
+      });
       host.appendChild(c);
     });
     const input = qs('titlePrefInput');
@@ -147,7 +150,8 @@
     if (panelHydrated) return;
     try {
       const resp = await fetch('/api/chat/api/user-preference/', {
-        headers: { 'X-CSRFToken': (window.csrfToken || '') }
+        headers: { 'X-CSRFToken': (window.csrfToken || '') },
+        credentials: 'same-origin',
       });
       if (!resp.ok) return;
       const data = await resp.json();
@@ -170,6 +174,7 @@
           'Content-Type': 'application/json',
           'X-CSRFToken': (window.csrfToken || ''),
         },
+        credentials: 'same-origin',
         body: JSON.stringify(payload),
       });
       if (!resp.ok) throw new Error('save failed');
@@ -186,7 +191,7 @@
     }
   }
 
-  window.toggleSettingsPanel = function (ev) {
+  function togglePanel(ev) {
     if (ev) ev.stopPropagation();
     const popover = qs('hari-settings-popover');
     const btn = qs('settingsBtn');
@@ -201,28 +206,69 @@
     popover.style.left = Math.max(12, rect.right + window.scrollX - 280) + 'px';
     popover.style.display = 'block';
     loadPrefs();
-  };
+  }
 
-  window.setHariTone = function (tone) {
-    if (tone !== 'casual' && tone !== 'formal') return;
-    if (tone === currentTone) return;
-    savePref({ tone });
-  };
+  // Expose for legacy callers / debugging
+  window.toggleSettingsPanel = togglePanel;
 
-  window.setHariTitle = function (title) {
-    savePref({ title });
-  };
+  function wireUp() {
+    const btn = qs('settingsBtn');
+    if (btn && !btn.dataset.bound) {
+      btn.dataset.bound = '1';
+      btn.addEventListener('click', togglePanel);
+    }
 
-  window.clearHariTitle = function () {
-    savePref({ title: '' });
-  };
+    document.querySelectorAll('.tone-seg').forEach(function (el) {
+      if (el.dataset.bound) return;
+      el.dataset.bound = '1';
+      el.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        const tone = el.dataset.tone;
+        if (tone !== 'casual' && tone !== 'formal') return;
+        if (tone === currentTone) return;
+        savePref({ tone });
+      });
+    });
 
-  window.submitHariTitleInput = function () {
+    const clearBtn = qs('titleClearBtn');
+    if (clearBtn && !clearBtn.dataset.bound) {
+      clearBtn.dataset.bound = '1';
+      clearBtn.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        savePref({ title: '' });
+      });
+    }
+
+    const applyBtn = qs('titleApplyBtn');
+    if (applyBtn && !applyBtn.dataset.bound) {
+      applyBtn.dataset.bound = '1';
+      applyBtn.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        const input = qs('titlePrefInput');
+        if (!input) return;
+        savePref({ title: (input.value || '').trim() });
+      });
+    }
+
     const input = qs('titlePrefInput');
-    if (!input) return;
-    const val = (input.value || '').trim();
-    savePref({ title: val });
-  };
+    if (input && !input.dataset.bound) {
+      input.dataset.bound = '1';
+      input.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          savePref({ title: (input.value || '').trim() });
+        }
+      });
+      // Prevent popover's outside-click from firing when typing
+      input.addEventListener('click', function (ev) { ev.stopPropagation(); });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wireUp);
+  } else {
+    wireUp();
+  }
 
   // Close on outside click
   document.addEventListener('click', function (e) {
