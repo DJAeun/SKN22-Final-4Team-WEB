@@ -135,6 +135,18 @@ class ChatLog(models.Model):
         blank=True,
         help_text="Parsed in-game status snapshot for this message",
     )
+    image_command = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text='Validated image command for this message, e.g. "daily_thinking"',
+    )
+    image_url = models.CharField(
+        max_length=500,
+        null=True,
+        blank=True,
+        help_text="Resolved character image URL for this message",
+    )
     token_count = models.IntegerField(
         default=0,
         help_text="Token count for this individual message",
