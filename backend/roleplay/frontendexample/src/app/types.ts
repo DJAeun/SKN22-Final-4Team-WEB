@@ -38,6 +38,8 @@ export interface ChatHistoryItem {
   role: string;
   content: string;
   status_snapshot?: StatusSnapshot | null;
+  image_command?: string | null;
+  image_url?: string | null;
   created_at: string;
 }
 

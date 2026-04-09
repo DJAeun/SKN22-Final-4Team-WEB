@@ -108,6 +108,7 @@ export function MainGamePage({ bootstrap }: MainGamePageProps) {
   const [currentText, setCurrentText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showCursor, setShowCursor] = useState(true);
+  const [typingDots, setTypingDots] = useState(0);
   const [isBusy, setIsBusy] = useState(false);
   const [connectionState, setConnectionState] = useState<'idle' | 'loading' | 'connecting' | 'ready' | 'processing' | 'error'>('idle');
   const [systemNotice, setSystemNotice] = useState('Create a session or load an existing one to begin.');
@@ -175,6 +176,19 @@ export function MainGamePage({ bootstrap }: MainGamePageProps) {
 
     return () => window.clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (connectionState !== 'processing') {
+      setTypingDots(0);
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setTypingDots((previous) => (previous + 1) % 4);
+    }, 420);
+
+    return () => window.clearInterval(interval);
+  }, [connectionState]);
 
   useEffect(() => {
     return () => {
@@ -788,7 +802,7 @@ export function MainGamePage({ bootstrap }: MainGamePageProps) {
 
                   {connectionState === 'processing' && (
                     <div className="mt-6 text-xs uppercase tracking-[0.2em] opacity-50">
-                      Hari is typing...
+                      {`Hari is typing${'.'.repeat(typingDots)}`}
                     </div>
                   )}
                 </div>

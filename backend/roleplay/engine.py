@@ -4,8 +4,18 @@ from pathlib import Path
 from django.template import Template, Context
 from django.conf import settings
 from django.utils import timezone
-from .models import RpgSession, RpgChatLog, RpgHyperMemory, RpgLorebook
+from .models import RpgSession, RpgChatLog, RpgHyperMemory, RpgLorebook, RpgCharacterImage
 from .korean_text import build_user_placeholder_context
+
+
+IMAGE_COMMAND_PATTERN = re.compile(r'<img="([a-z0-9_]+)">', re.IGNORECASE)
+ALLOWED_IMAGE_CLOTHES = {'suit', 'daily', 'baking'}
+ALLOWED_IMAGE_EMOTIONS = {
+    'serious', 'depressed', 'angry', 'aroused', 'bored', 'curious', 'disgust',
+    'embarrassed', 'excited', 'happy', 'happy_tears', 'nervous', 'neutral',
+    'panic', 'pout', 'proud', 'sad', 'sleepy', 'smug', 'surprised', 'thinking',
+    'worried',
+}
 
 
 def _extract_meta_value(source_text: str, label: str) -> str:
@@ -73,6 +83,72 @@ def strip_status_content(text: str) -> str:
     cleaned = re.sub(r'</?(Planning|Draft|Review|Revision)>', '', cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
     return cleaned.strip()
+
+
+def extract_image_command(text: str) -> str:
+    match = IMAGE_COMMAND_PATTERN.search(text)
+    if not match:
+        return ''
+    return match.group(1).strip().lower()
+
+
+def strip_image_command(text: str) -> str:
+    cleaned = IMAGE_COMMAND_PATTERN.sub('', text)
+    cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
+    return cleaned.strip()
+
+
+def parse_image_command(command: str) -> tuple[str, str] | None:
+    clothes, separator, emotion = command.partition('_')
+    if not separator or not clothes or not emotion:
+        return None
+    return clothes.lower(), emotion.lower()
+
+
+def get_latest_image_command_for_session(session: RpgSession) -> str:
+    latest_command = (
+        RpgChatLog.objects.filter(session=session, role='NPC Engine')
+        .exclude(image_command__isnull=True)
+        .exclude(image_command__exact='')
+        .order_by('-id')
+        .values_list('image_command', flat=True)
+        .first()
+    )
+    return (latest_command or '').strip().lower()
+
+
+def resolve_image_metadata(session: RpgSession, text: str) -> dict:
+    command = extract_image_command(text)
+    if not command:
+        return {}
+
+    parsed = parse_image_command(command)
+    if not parsed:
+        return {}
+
+    clothes, emotion = parsed
+    if clothes not in ALLOWED_IMAGE_CLOTHES or emotion not in ALLOWED_IMAGE_EMOTIONS:
+        return {}
+
+    if get_latest_image_command_for_session(session) == command:
+        return {}
+
+    matched_image = (
+        RpgCharacterImage.objects.filter(
+            clothes=clothes,
+            emotion=emotion,
+            is_active=True,
+        )
+        .order_by('-created_at')
+        .first()
+    )
+    if not matched_image:
+        return {}
+
+    return {
+        'image_command': command,
+        'image_url': matched_image.image_url,
+    }
 
 
 def apply_status_metadata_to_session(session: RpgSession, status_metadata: dict) -> None:
@@ -291,10 +367,22 @@ class MainEngine:
             contents=prompt,
             config=types.GenerateContentConfig(
                 safety_settings=[
-                    types.SafetySetting(category="HATE_SPEECH", threshold="BLOCK_NONE"),
-                    types.SafetySetting(category="HARASSMENT", threshold="BLOCK_NONE"),
-                    types.SafetySetting(category="SEXUALLY_EXPLICIT", threshold="BLOCK_NONE"),
-                    types.SafetySetting(category="DANGEROUS_CONTENT", threshold="BLOCK_NONE"),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    ),
                 ],
                 temperature=1.0,
             )
@@ -305,6 +393,7 @@ class MainEngine:
         status_metadata = extract_status_metadata(raw_text)
         apply_status_metadata_to_session(self.session, status_metadata)
         status_snapshot = build_status_snapshot(status_metadata)
+        image_metadata = resolve_image_metadata(self.session, raw_text)
 
         # Parse <Revision>...</Revision>
         parsed_content = self._parse_revision(raw_text)
@@ -317,6 +406,8 @@ class MainEngine:
                 raw_content=raw_text,
                 content=parsed_content,
                 status_snapshot=status_snapshot,
+                image_command=image_metadata.get('image_command'),
+                image_url=image_metadata.get('image_url'),
                 token_count=len(raw_text) // 4  # rough heuristic, better to count properly if possible
             )
             
@@ -348,6 +439,8 @@ class MainEngine:
             'content': parsed_content,
             'raw': raw_text,
             'status_snapshot': status_snapshot,
+            'image_command': image_metadata.get('image_command'),
+            'image_url': image_metadata.get('image_url'),
         }
 
     def _touch_session(self) -> None:
@@ -361,7 +454,7 @@ class MainEngine:
         """
         match = re.search(r'<Revision>(.*?)</Revision>', text, re.DOTALL)
         if match:
-            return strip_status_content(match.group(1).strip())
+            return strip_image_command(strip_status_content(match.group(1).strip()))
         
         # Fallback handles the cases where LLM forgets the tag
-        return strip_status_content(text.strip())
+        return strip_image_command(strip_status_content(text.strip()))
