@@ -526,7 +526,7 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 .sec-more { font-family:'DM Mono',monospace; font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:var(--acc); text-decoration:none; border-bottom:0.5px solid var(--acc); padding-bottom:1px; transition:color .2s, border-color .2s; }
 .sec-more:hover { color:var(--ink); border-color:var(--acc); }
 .sec-header { padding:2.5rem 2.5rem 1.5rem; border-bottom:0.5px solid var(--bdr); display:flex; align-items:flex-end; justify-content:space-between; }
-.sec-title { font-family:'Bebas Neue',sans-serif; font-size:clamp(2.5rem,5vw,5rem); line-height:1; color:var(--ink); }
+.sec-title { font-family:'Bebas Neue',sans-serif; font-size:clamp(2.5rem,5vw,5rem); line-height:1.1; letter-spacing:-0.02em; color:var(--ink); }
 
 /* §1 HERO */
 #s1 { min-height:100vh; padding:64px 0 0; display:grid; grid-template-rows:1fr auto; background:var(--s1-bg); position:relative; overflow:hidden; }
@@ -594,7 +594,7 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 
 .profile-info-content { display:flex; flex-direction:column; gap:2.5rem; }
 .profile-name-row { display:flex; align-items:baseline; justify-content:space-between; border-bottom:0.5px solid var(--bdr); padding-bottom:1.5rem; }
-.profile-char-name { font-family:var(--f-playful); font-size:4rem; color:var(--ink); line-height:1; }
+.profile-char-name { font-family:var(--f-playful); font-size:4rem; color:var(--ink); line-height:1.1; letter-spacing:-0.02em; }
 .profile-more-link { font-family:var(--f-pixel); font-size:.85rem; color:var(--acc); text-decoration:none; border-bottom:1px solid var(--acc); padding-bottom:2px; }
 
 .profile-sns-row { display:flex; gap:1.5rem; flex-wrap:wrap; }
@@ -603,7 +603,7 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 .sns-icon-wrap { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
 .sns-icon-name { font-family:var(--f-pixel); font-size:.75rem; color:var(--dim); text-transform:uppercase; letter-spacing:.05em; }
 
-.profile-desc-box { font-family:var(--f-thin); font-size:1.15rem; line-height:1.8; color:var(--ink); background:rgba(255,123,138,0.03); padding:2rem; border-left:3px solid var(--acc); }
+.profile-desc-box { font-family:'Noto Sans KR',Pretendard,'Apple SD Gothic Neo',sans-serif; font-size:1.05rem; line-height:1.8; letter-spacing:-0.01em; font-weight:400; color:var(--ink); background:rgba(255,123,138,0.03); padding:2rem; border-left:3px solid var(--acc); }
 
 @media(max-width:1024px){
   .profile-main-container { flex-direction:column; gap:3rem; }
@@ -1508,6 +1508,9 @@ function getCookie(name){
 // 이메일 검증 전역 상태
 window.emailValidated=false;
 let emailCheckTimeout;
+// 비밀번호 검증 전역 상태
+window.passwordValidated=false;
+let passwordCheckTimeout;
 function debounceEmailCheck(email){
   clearTimeout(emailCheckTimeout);
   const statusEl=document.getElementById('email-status');
@@ -1561,6 +1564,38 @@ function checkEmailValidity(email){
     window.emailValidated=false;
   });
 }
+// 비밀번호 검증
+function debouncePasswordCheck(password){
+  clearTimeout(passwordCheckTimeout);
+  const statusEl=document.getElementById('password-status');
+  const messageEl=document.getElementById('password-message');
+  if(!password){
+    statusEl.textContent='';
+    messageEl.textContent='';
+    window.passwordValidated=false;
+    return;
+  }
+  statusEl.textContent='🔄';
+  messageEl.textContent='검증 중...';
+  passwordCheckTimeout=setTimeout(()=>{
+    checkPasswordValidity(password);
+  },300);
+}
+function checkPasswordValidity(password){
+  const statusEl=document.getElementById('password-status');
+  const messageEl=document.getElementById('password-message');
+  if(password.length<8){
+    statusEl.textContent='❌';
+    messageEl.textContent='8자 이상이어야 합니다.';
+    messageEl.style.color='#ff7b8a';
+    window.passwordValidated=false;
+  }else{
+    statusEl.textContent='✅';
+    messageEl.textContent='사용 가능한 비밀번호입니다.';
+    messageEl.style.color='#06d6a0';
+    window.passwordValidated=true;
+  }
+}
 function doSignup(){
   const btn=document.querySelector('#panel-signup .auth-submit');
   const panel=document.getElementById('panel-signup');
@@ -1571,7 +1606,7 @@ function doSignup(){
   const agreed=panel.querySelector('input[type="checkbox"][required]');
   if(!email||!pw){alert('이메일과 비밀번호를 입력해주세요.');return;}
   if(!window.emailValidated){alert('이메일 검증을 완료해주세요.');return;}
-  if(pw.length<8){alert('비밀번호는 8자 이상이어야 합니다.');return;}
+  if(!window.passwordValidated){alert('비밀번호 검증을 완료해주세요.');return;}
   if(!agreed.checked){alert('이용약관에 동의해주세요.');return;}
   btn.textContent='가입 중...'; btn.disabled=true;
   fetch('/api/auth/registration/',{
