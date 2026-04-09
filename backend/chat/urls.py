@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    MessageViewSet, ChatMemoryViewSet, user_name_view,
+    MessageViewSet, ChatMemoryViewSet, user_name_view, user_preference_view,
     chat_index, login_view, signup_view, logout_view, signup_success,
 )
 
@@ -16,5 +16,6 @@ urlpatterns = [
     path('signup/success/', signup_success, name='signup_success'),
     path('logout/', logout_view, name='logout'),
     path('api/user-name/', user_name_view, name='user-name'),
+    path('api/user-preference/', user_preference_view, name='user-preference'),
     path('api/', include(router.urls)),
 ]
