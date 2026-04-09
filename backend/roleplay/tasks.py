@@ -46,10 +46,20 @@ def run_hypermemory_task(session_id: str):
     prompt = prompt_sys.replace('{{slot}}', relay_novel)
     
     from google import genai
+    from google.genai import types
     client = genai.Client()
     response = client.models.generate_content(
         model='gemini-3-flash-preview',
         contents=prompt,
+        config=types.GenerateContentConfig(
+            safety_settings=[
+                types.SafetySetting(category="HATE_SPEECH", threshold="BLOCK_NONE"),
+                types.SafetySetting(category="HARASSMENT", threshold="BLOCK_NONE"),
+                types.SafetySetting(category="SEXUALLY_EXPLICIT", threshold="BLOCK_NONE"),
+                types.SafetySetting(category="DANGEROUS_CONTENT", threshold="BLOCK_NONE"),
+            ],
+            temperature=1.0,
+        )
     )
     raw_text = response.text
     

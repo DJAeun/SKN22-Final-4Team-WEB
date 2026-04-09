@@ -240,6 +240,8 @@ class PromptBuilder:
         return final_prompt
 
 from google import genai
+from google.genai import types
+
 import os
 from django.db import transaction
 
@@ -264,10 +266,19 @@ class MainEngine:
 
         prompt = self.builder.assemble_final_prompt(user_input)
         
-        # Invoke LLM natively
+        # Invoke LLM natively with relaxed safety settings
         response = self.client.models.generate_content(
             model='gemini-3.1-pro-preview',
             contents=prompt,
+            config=types.GenerateContentConfig(
+                safety_settings=[
+                    types.SafetySetting(category="HATE_SPEECH", threshold="BLOCK_NONE"),
+                    types.SafetySetting(category="HARASSMENT", threshold="BLOCK_NONE"),
+                    types.SafetySetting(category="SEXUALLY_EXPLICIT", threshold="BLOCK_NONE"),
+                    types.SafetySetting(category="DANGEROUS_CONTENT", threshold="BLOCK_NONE"),
+                ],
+                temperature=1.0,
+            )
         )
         raw_text = response.text
         
