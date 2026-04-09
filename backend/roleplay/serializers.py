@@ -51,5 +51,5 @@ class RpgSessionSerializer(serializers.ModelSerializer):
 class RpgChatLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = RpgChatLog
-        fields = ['id', 'session', 'role', 'content', 'status_snapshot', 'created_at']
-        read_only_fields = ['id', 'session', 'role', 'content', 'status_snapshot', 'created_at']
+        fields = ['id', 'session', 'role', 'content', 'status_snapshot', 'image_command', 'image_url', 'created_at']
+        read_only_fields = ['id', 'session', 'role', 'content', 'status_snapshot', 'image_command', 'image_url', 'created_at']

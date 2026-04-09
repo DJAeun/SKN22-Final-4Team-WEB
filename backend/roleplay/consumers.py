@@ -2,7 +2,14 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from .models import RpgSession
-from .engine import MainEngine, apply_status_metadata_to_session, extract_status_metadata, strip_status_content
+from .engine import (
+    MainEngine,
+    apply_status_metadata_to_session,
+    extract_status_metadata,
+    resolve_image_metadata,
+    strip_image_command,
+    strip_status_content,
+)
 from .korean_text import render_user_template
 
 class RoleplayConsumer(AsyncWebsocketConsumer):
@@ -61,6 +68,8 @@ class RoleplayConsumer(AsyncWebsocketConsumer):
             'type': 'chat_message',
             'message': engine_response['content'],
             'status_snapshot': engine_response.get('status_snapshot', {}),
+            'image_command': engine_response.get('image_command'),
+            'image_url': engine_response.get('image_url'),
         }))
 
     @sync_to_async
@@ -78,7 +87,8 @@ class RoleplayConsumer(AsyncWebsocketConsumer):
         
         content = render_user_template(content, session.user_nickname)
         status_snapshot = extract_status_metadata(content)
-        visible_content = strip_status_content(content)
+        image_metadata = resolve_image_metadata(session, content)
+        visible_content = strip_image_command(strip_status_content(content))
         apply_status_metadata_to_session(session, status_snapshot)
 
         new_log = RpgChatLog.objects.create(
@@ -94,11 +104,15 @@ class RoleplayConsumer(AsyncWebsocketConsumer):
                 'crack_stage': status_snapshot.get('crack_stage'),
                 'thought': status_snapshot.get('thought', ''),
             },
+            image_command=image_metadata.get('image_command'),
+            image_url=image_metadata.get('image_url'),
             token_count=len(content) // 4
         )
         return {
             'content': visible_content,
             'status_snapshot': new_log.status_snapshot,
+            'image_command': new_log.image_command,
+            'image_url': new_log.image_url,
         }
 
     async def _send_first_message_if_needed(self, session):
@@ -109,6 +123,8 @@ class RoleplayConsumer(AsyncWebsocketConsumer):
                 'type': 'chat_message',
                 'message': first_message['content'],
                 'status_snapshot': first_message.get('status_snapshot', {}),
+                'image_command': first_message.get('image_command'),
+                'image_url': first_message.get('image_url'),
             }))
 
     @sync_to_async
