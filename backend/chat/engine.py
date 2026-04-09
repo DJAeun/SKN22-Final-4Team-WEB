@@ -314,9 +314,17 @@ COBOL이나 메인프레임 같은 옛날 기술은 잘 몰라.
             input_class = self._classify_input(user_input)
 
             # ── Assemble system prompt with user-specific tone + time/title hints ──
-            from django.utils import timezone as _tz
+            from datetime import datetime as _dt
+            try:
+                from zoneinfo import ZoneInfo
+                _now = _dt.now(ZoneInfo("Asia/Seoul"))
+            except Exception:
+                # Fallback: use Django's timezone helpers. Guard against USE_TZ=False,
+                # where timezone.now() returns a naive datetime and localtime() would fail.
+                from django.utils import timezone as _tz
+                _raw = _tz.now()
+                _now = _tz.localtime(_raw) if _tz.is_aware(_raw) else _raw
             _weekdays = ('월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일')
-            _now = _tz.localtime()
             _now_label = (
                 f"{_now.year}년 {_now.month}월 {_now.day}일 "
                 f"{_weekdays[_now.weekday()]} "
