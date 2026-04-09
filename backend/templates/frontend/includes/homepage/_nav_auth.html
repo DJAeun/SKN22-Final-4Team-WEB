@@ -246,9 +246,8 @@
     </div>
 
     <a href="#s2" class="nav-gnb-item">About Hari</a>
-    <a href="/gallery/" class="nav-gnb-item">Gallery</a>
-    <a href="/video/" class="nav-gnb-item">Videos</a>
-    <a href="#s6" class="nav-gnb-item">Contact</a>
+    <a href="#s3" class="nav-gnb-item">Gallery</a>
+    <a href="#s4" class="nav-gnb-item">Videos</a>
   </div>
 
   <!-- 우측: 액션 버튼 + 인증 -->
@@ -325,12 +324,6 @@
       <a href="/video/" onclick="closeDrawer()">
         <span>Videos</span>
         <span class="d-num">03</span>
-      </a>
-    </li>
-    <li>
-      <a href="#s6" onclick="closeDrawer()">
-        <span>Contact</span>
-        <span class="d-num">04</span>
       </a>
     </li>
     <li>
@@ -467,15 +460,19 @@
       </div>
       <div class="auth-field">
         <label class="auth-label" for="signup-pw">비밀번호</label>
-        <div class="pw-wrap">
-          <input class="auth-inp" id="signup-pw" name="signup-pw" type="password" placeholder="8자 이상" oninput="checkStrength(this)">
-          <button class="pw-toggle" type="button" onclick="togglePw('signup-pw',this)">표시</button>
+        <div style="position:relative; display:flex; align-items:center; gap:0.5rem;">
+          <div class="pw-wrap" style="flex:1;">
+            <input class="auth-inp" id="signup-pw" name="signup-pw" type="password" placeholder="8자 이상" oninput="checkStrength(this); debouncePasswordCheck(this.value)">
+            <button class="pw-toggle" type="button" onclick="togglePw('signup-pw',this)">표시</button>
+          </div>
+          <span id="password-status" style="font-size:1.2rem; min-width:24px; text-align:center; flex-shrink:0;"></span>
         </div>
         <div class="pw-strength" id="pw-bars">
           <div class="pw-bar" id="bar1"></div>
           <div class="pw-bar" id="bar2"></div>
           <div class="pw-bar" id="bar3"></div>
         </div>
+        <div id="password-message" style="font-size:0.75rem; margin-top:0.3rem; min-height:16px; color:#ff7b8a;"></div>
       </div>
 
       <label class="auth-check" for="signup-terms">
@@ -625,7 +622,7 @@ if (typeof closeTermsModal === 'undefined') {
 
 <div id="ticker">
   <div class="ticker-track">
-    <span><em>✦</em>HARI ARTIST</span><span><em>✦</em>하리 공식 팬클럽</span><span><em>✦</em>FASHION × MUSIC × CULTURE</span><span><em>✦</em>SEOUL · GLOBAL</span><span><em>✦</em>NEW SINGLE OUT NOW</span><span><em>✦</em>CHAT WITH HARI</span>
-    <span><em>✦</em>HARI ARTIST</span><span><em>✦</em>하리 공식 팬클럽</span><span><em>✦</em>FASHION × MUSIC × CULTURE</span><span><em>✦</em>SEOUL · GLOBAL</span><span><em>✦</em>NEW SINGLE OUT NOW</span><span><em>✦</em>CHAT WITH HARI</span>
+    <span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span><span><em>✦</em></span>
   </div>
 </div>
+

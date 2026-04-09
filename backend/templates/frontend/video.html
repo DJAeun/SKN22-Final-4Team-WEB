@@ -58,6 +58,21 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 .vd-nav-back:hover svg{transform:translateX(-3px);}
 .vd-nav-back svg{transition:transform .2s;}
 
+/* THEME TOGGLE */
+.vd-theme-wrap{display:flex;align-items:center;gap:.4rem;flex-shrink:0;margin-right:1rem;}
+#theme-toggle{position:relative;width:44px;height:26px;background:#ddd;border:none;border-radius:20px;cursor:pointer;transition:background .3s ease,box-shadow .2s ease;display:flex;align-items:center;padding:0 2px;box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);flex-shrink:0;}
+#theme-toggle::after{content:'';position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;left:2px;transition:left .3s cubic-bezier(0.45,0,0.15,1),background .3s ease;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
+#theme-toggle.off{background:#e8e8e8;}
+#theme-toggle.off::after{left:2px;background:#fff;}
+#theme-toggle.on{background:var(--ink);}
+#theme-toggle.on::after{left:20px;background:#fff;}
+#theme-toggle:hover{box-shadow:inset 0 1px 3px rgba(0,0,0,0.15),0 0 8px rgba(255,123,138,0.2);}
+#theme-toggle.on:hover{box-shadow:inset 0 1px 3px rgba(0,0,0,0.2),0 0 8px rgba(255,123,138,0.3);}
+.vd-theme-ico{font-size:.85rem;opacity:.65;transition:opacity .2s;white-space:nowrap;flex-shrink:0;}
+
+html[data-theme="dark"] #theme-toggle.on{background:#f5f1ed;}
+html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
+
 /* ── HEADER ── */
 .vd-header{
   margin-top:64px;padding:4rem 2.5rem 2.5rem;
@@ -106,23 +121,58 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 }
 .vd-mobile-bar::-webkit-scrollbar{display:none;}
 
-/* ── VIDEO GRID ── */
-.vd-grid{
-  padding:2.5rem;
-  overflow:hidden;
-}
-.vd-grid-inner{
+/* ── VIDEO SLIDER ── */
+.vd-slider-wrapper{
   display:flex;
-  flex-wrap:wrap;
-  gap:24px;
+  align-items:center;
+  padding:2.5rem 2.5rem 1.5rem;
+  gap:1rem;
 }
+.vd-slider-outer{
+  overflow:hidden;
+  flex:1;
+  min-width:0;
+}
+.vd-slider-track{
+  display:flex;
+  gap:16px;
+  transition:transform 0.45s cubic-bezier(0.2,0.8,0.2,1);
+  will-change:transform;
+}
+.vd-slider-btn{
+  flex-shrink:0;
+  width:44px;height:44px;
+  border-radius:50%;
+  border:1.5px solid var(--bdr2);
+  background:var(--bg);
+  color:var(--ink);
+  font-size:1.5rem;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s,color .2s,border-color .2s;
+  line-height:1;
+  padding:0;
+}
+.vd-slider-btn:hover:not(:disabled){
+  background:var(--acc);color:#fff;border-color:var(--acc);
+}
+.vd-slider-btn:disabled{opacity:.2;cursor:default;}
+.vd-slider-dots{
+  display:flex;justify-content:center;gap:8px;
+  padding:0 0 2.5rem;
+}
+.vd-slider-dot{
+  width:7px;height:7px;border-radius:50%;border:none;
+  background:var(--bdr2);cursor:pointer;padding:0;
+  transition:background .2s,transform .2s;
+}
+.vd-slider-dot.active{background:var(--acc);transform:scale(1.5);}
 
 /* ── PREMIUM VIDEO CARD (메인 페이지 동기화) ── */
 .premium-vid-card {
   display: flex;
   flex-direction: column;
-  width: 100%;
-  max-width: 260px; /* 전체 페이지이므로 메인보다 살짝 크게 여유있게 배치 */
+  flex: 0 0 auto;
   transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .premium-vid-card:hover {
@@ -131,13 +181,13 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 
 .premium-vid-thumb {
   position: relative;
-  width: 100%;
-  padding-bottom: 177.78%; 
+  width: 70%;
+  padding-bottom: 120%;
   background: #111;
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 16px 36px rgba(0,0,0,0.14);
-  margin-bottom: 1.4rem;
+  margin-bottom: 1rem;
 }
 
 .premium-vid-thumb iframe {
@@ -212,19 +262,12 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 .vd-empty p{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:1rem;}
 .vd-empty a{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);text-decoration:none;border-bottom:.5px solid var(--acc);}
 
-/* CONTAINER QUERY — 비디오 그리드 기준 */
-.vd-grid { container-type: inline-size; container-name: vd-grid; }
-@container vd-grid (max-width: 640px) {
-  .vd-grid-inner { justify-content: center; }
-  .premium-vid-card { max-width: 280px; }
+@media(max-width:900px){
+  .vd-slider-wrapper{padding:1.5rem 1.5rem 1rem;}
 }
-@container vd-grid (max-width: 400px) {
-  .premium-vid-card { max-width: 100%; }
-  .premium-vid-title { font-size: 0.95rem; }
-}
-
-@media(max-width:768px){
-  .vd-grid-inner{justify-content:center;}
+@media(max-width:600px){
+  .vd-slider-wrapper{padding:1rem 1rem 0.5rem;gap:0.5rem;}
+  .vd-slider-btn{width:36px;height:36px;font-size:1.2rem;}
 }
 
 /* ── FOOTER ── */
@@ -267,6 +310,11 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
   <a class="vd-nav-logo" href="/">
     <img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI">
   </a>
+  <div class="vd-theme-wrap">
+    <span class="vd-theme-ico">☀️</span>
+    <button id="theme-toggle" class="off" onclick="toggleTheme()" aria-label="다크 모드 전환" title="다크/라이트 모드 전환"></button>
+    <span class="vd-theme-ico">🌙</span>
+  </div>
   <a class="vd-nav-back" href="/">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     홈으로
@@ -277,12 +325,11 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 <div class="vd-header">
   <div class="vd-header-bg"></div>
   <div style="position:relative;z-index:1;">
-    <div class="vd-eyebrow">03 — YouTube Channel</div>
     <div class="vd-title">VID<em>EOS</em></div>
   </div>
   <div class="vd-header-right" style="position:relative;z-index:1;">
     <div class="vd-count">
-      <span id="video-total-count">4</span>
+      <span id="video-total-count">5</span>
       <small>Total Videos</small>
     </div>
     <a class="vd-yt-link" href="https://www.youtube.com/@Hari-o5m2r" target="_blank" rel="noopener">
@@ -291,11 +338,49 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
   </div>
 </div>
 
-<!-- VIDEO GRID -->
-<div class="vd-grid" id="vd-grid">
-  <div class="vd-grid-inner">
+<!-- VIDEO SLIDER -->
+<div class="vd-slider-wrapper">
+  <button class="vd-slider-btn" id="vd-prev" aria-label="이전">&#8249;</button>
+  <div class="vd-slider-outer">
+    <div class="vd-slider-track" id="vd-track">
 
     <!-- Video 1 -->
+    <article class="premium-vid-card">
+      <div class="premium-vid-thumb">
+        <iframe src="https://www.youtube.com/embed/HaFkIrE6p00?mute=1&amp;loop=1&amp;playlist=HaFkIrE6p00" title="YouTube Shorts" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+        <span class="premium-shorts-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
+          Shorts
+        </span>
+      </div>
+      <div class="premium-vid-info">
+        <div class="premium-vid-title">&lt;테크뉴스&gt; 복붙 시대의 종말</div>
+        <div class="premium-vid-meta">Tech Issue</div>
+        <a class="premium-vid-link" href="https://www.youtube.com/shorts/HaFkIrE6p00" target="_blank" rel="noopener">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg> YouTube 앱에서 보기 ↗
+        </a>
+      </div>
+    </article>
+
+    <!-- Video 2 -->
+    <article class="premium-vid-card">
+      <div class="premium-vid-thumb">
+        <iframe src="https://www.youtube.com/embed/q1pjnuHOl1M?mute=1&amp;loop=1&amp;playlist=q1pjnuHOl1M" title="YouTube Shorts" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+        <span class="premium-shorts-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>
+          Shorts
+        </span>
+      </div>
+      <div class="premium-vid-info">
+        <div class="premium-vid-title">&lt;테크뉴스&gt; 엔비디아의 숨겨온 계획</div>
+        <div class="premium-vid-meta">Tech Issue</div>
+        <a class="premium-vid-link" href="https://www.youtube.com/shorts/q1pjnuHOl1M" target="_blank" rel="noopener">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg> YouTube 앱에서 보기 ↗
+        </a>
+      </div>
+    </article>
+
+    <!-- Video 3 -->
     <article class="premium-vid-card">
       <div class="premium-vid-thumb">
         <iframe src="https://www.youtube.com/embed/TdvvozjmKJQ?mute=1&amp;loop=1&amp;playlist=TdvvozjmKJQ" title="YouTube Shorts" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
@@ -349,13 +434,11 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
       </div>
     </article>
 
-    <div class="vd-empty" id="vd-empty">
-      <p>해당 카테고리에 영상이 없어요</p>
-      <a href="https://www.youtube.com/@Hari-o5m2r" target="_blank" rel="noopener">YouTube 채널 방문하기 ↗</a>
     </div>
-
   </div>
+  <button class="vd-slider-btn" id="vd-next" aria-label="다음">&#8250;</button>
 </div>
+<div class="vd-slider-dots" id="vd-dots"></div>
 
 <!-- FOOTER -->
 <footer class="vd-footer">
@@ -368,10 +451,58 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 </footer>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const total = document.querySelectorAll('.premium-vid-card').length;
-  const el = document.getElementById('video-total-count');
+document.addEventListener('DOMContentLoaded', function() {
+  // 총 영상 카운트
+  var total = document.querySelectorAll('.premium-vid-card').length;
+  var el = document.getElementById('video-total-count');
   if (el) el.textContent = total;
+
+  // 슬라이더
+  var track = document.getElementById('vd-track');
+  var prev  = document.getElementById('vd-prev');
+  var next  = document.getElementById('vd-next');
+  var dots  = document.getElementById('vd-dots');
+  if (!track) return;
+  var cards = track.querySelectorAll('.premium-vid-card');
+  var cur = 0;
+  var GAP = 16;
+
+  function getVisible() {
+    var w = track.parentElement.offsetWidth;
+    if (w < 480) return 1;
+    if (w < 780) return 2;
+    return 3;
+  }
+
+  function getCardW() {
+    var vis = getVisible();
+    return (track.parentElement.offsetWidth - GAP * (vis - 1)) / vis;
+  }
+
+  function update() {
+    var vis = getVisible();
+    var max = cards.length - vis;
+    if (cur > max) cur = max;
+    if (cur < 0)  cur = 0;
+    var cw = getCardW();
+    cards.forEach(function(c) { c.style.width = cw + 'px'; });
+    track.style.transform = 'translateX(-' + (cur * (cw + GAP)) + 'px)';
+    prev.disabled = cur === 0;
+    next.disabled = cur >= max;
+    dots.innerHTML = '';
+    for (var i = 0; i <= max; i++) {
+      var d = document.createElement('button');
+      d.className = 'vd-slider-dot' + (i === cur ? ' active' : '');
+      d.setAttribute('aria-label', (i + 1) + '번째');
+      (function(idx) { d.onclick = function() { cur = idx; update(); }; })(i);
+      dots.appendChild(d);
+    }
+  }
+
+  prev.onclick = function() { cur--; update(); };
+  next.onclick = function() { cur++; update(); };
+  window.addEventListener('resize', update);
+  update();
 });
 </script>
 </body>
