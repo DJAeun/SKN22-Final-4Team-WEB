@@ -1,0 +1,26 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+.book-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #7a5a35 transparent;
+}
+
+.book-scrollbar::-webkit-scrollbar {
+  width: 12px;
+}
+
+.book-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.book-scrollbar::-webkit-scrollbar-thumb {
+  background: #7a5a35;
+  border: 0;
+  border-radius: 9999px;
+}
+
+.book-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #8b6942;
+}

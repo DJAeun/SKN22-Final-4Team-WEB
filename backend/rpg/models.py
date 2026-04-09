@@ -130,6 +130,11 @@ class ChatLog(models.Model):
         blank=True,
         help_text="Full LLM response with hidden tags (debug only)",
     )
+    status_snapshot = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="Parsed in-game status snapshot for this message",
+    )
     token_count = models.IntegerField(
         default=0,
         help_text="Token count for this individual message",

@@ -15,6 +15,12 @@
     </div>
   </div>
   <div class="header-right">
+    <!-- 테마 토글 -->
+    <div class="chat-theme-toggle">
+      <span class="chat-theme-icon" title="라이트 모드">☀️</span>
+      <button id="chat-theme-toggle" class="off" onclick="toggleTheme()" aria-label="다크 모드 전환" title="다크/라이트 모드 전환"></button>
+      <span class="chat-theme-icon" title="다크 모드">🌙</span>
+    </div>
     <button class="header-btn" onclick="openSearch()">🔍 Search</button>
     <button class="header-btn" id="settingsBtn" onclick="toggleSettingsPanel(event)" aria-label="설정">⚙ 설정</button>
   </div>

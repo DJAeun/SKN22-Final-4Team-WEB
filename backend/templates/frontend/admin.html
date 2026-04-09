@@ -8,6 +8,7 @@
   <link rel="icon" type="image/png" href="{% static 'images/hari_favicon.png' %}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/NeoDunggeunmo.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSSaemmul.css">
+  <script src="{% static 'js/theme.js' %}"></script>
   <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
@@ -25,6 +26,21 @@
     --f-pixel:   'DOSSaemmul', sans-serif;
     --f-neo:     'NeoDunggeunmo', sans-serif;
   }
+
+  /* 다크 모드 */
+  html[data-theme="dark"] {
+    --bg:        #1a1612;
+    --ink:       #f5f1ed;
+    --acc:       #ff8a9b;
+    --acc2:      #ffd977;
+    --acc3:      #1ee0a6;
+    --dim:       #9a8f87;
+    --bdr:       rgba(255,123,138,0.15);
+    --bdr2:      rgba(255,123,138,0.25);
+    --surface:   #251d1a;
+  }
+  html[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #ff8a9b; }
+
   body {
     background: var(--surface);
     color: var(--ink);

@@ -3,7 +3,118 @@ import os
 from pathlib import Path
 from django.template import Template, Context
 from django.conf import settings
+from django.utils import timezone
 from .models import RpgSession, RpgChatLog, RpgHyperMemory, RpgLorebook
+
+
+def _extract_meta_value(source_text: str, label: str) -> str:
+    patterns = [
+        rf'{label}:\s*(.+?)(?=\s*\|\s*[A-Za-z ]+:|\s*\]|\n|$)',
+        rf'^{label}:\s*(.+)$',
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, source_text, re.IGNORECASE | re.MULTILINE | re.DOTALL)
+        if match:
+            return normalize_meta_text(match.group(1))
+
+    return ''
+
+
+def extract_status_metadata(text: str) -> dict:
+    status_block_match = re.search(r'<Status>(.*?)</Status>', text, re.DOTALL | re.IGNORECASE)
+    source_text = status_block_match.group(1) if status_block_match else text
+
+    stress_value = _extract_meta_value(source_text, 'Stress')
+    stress_match = re.search(r'(\d+)', stress_value)
+
+    stage_value = _extract_meta_value(source_text, 'Crack Stage')
+    stage_match = re.search(r'(\d+)', stage_value, re.IGNORECASE)
+
+    thought = ''
+    for label in ['Current Thought', 'Inner Thought', 'Thought']:
+        thought = _extract_meta_value(source_text, label)
+        if thought:
+            break
+
+    return {
+        'date': _extract_meta_value(source_text, 'Date'),
+        'time': _extract_meta_value(source_text, 'Time'),
+        'location': _extract_meta_value(source_text, 'Location'),
+        'stress': int(stress_match.group(1)) if stress_match else None,
+        'crack_stage': int(stage_match.group(1)) if stage_match else None,
+        'thought': thought,
+    }
+
+
+def normalize_meta_text(value: str) -> str:
+    cleaned = value.strip()
+    cleaned = re.sub(r'^[\s\[\]\(\)\{\}",\'`]+', '', cleaned)
+    cleaned = re.sub(r'[\s\[\]\(\)\{\}",\'`]+$', '', cleaned)
+    cleaned = re.sub(r'^\s*-\s*', '', cleaned)
+    return cleaned.strip()
+
+
+def strip_status_content(text: str) -> str:
+    cleaned = re.sub(r'<Status>.*?</Status>', '', text, flags=re.DOTALL | re.IGNORECASE)
+    cleaned = re.sub(
+        r'\[\s*Date:.*?(?:Thought|Inner Thought|Current Thought)\s*:\s*.*?\]',
+        '',
+        cleaned,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    cleaned = re.sub(
+        r'^[\s\[\]\(\)\{\}",\'`-]*(Stress|Crack Stage|Current Thought|Inner Thought|Thought|Location|Date|Time)\s*:\s*.*$',
+        '',
+        cleaned,
+        flags=re.IGNORECASE | re.MULTILINE,
+    )
+    cleaned = re.sub(r'</?(Planning|Draft|Review|Revision)>', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
+    return cleaned.strip()
+
+
+def apply_status_metadata_to_session(session: RpgSession, status_metadata: dict) -> None:
+    fields_to_update = []
+
+    if status_metadata.get('stress') is not None:
+        session.stress = status_metadata['stress']
+        fields_to_update.append('stress')
+    if status_metadata.get('crack_stage') is not None:
+        session.crack_stage = status_metadata['crack_stage']
+        fields_to_update.append('crack_stage')
+
+    session.updated_at = timezone.now()
+    fields_to_update.append('updated_at')
+    session.save(update_fields=fields_to_update)
+
+
+def build_status_snapshot(status_metadata: dict) -> dict:
+    return {
+        'date': normalize_meta_text(status_metadata.get('date', '')),
+        'time': normalize_meta_text(status_metadata.get('time', '')),
+        'location': normalize_meta_text(status_metadata.get('location', '')),
+        'stress': status_metadata.get('stress'),
+        'crack_stage': status_metadata.get('crack_stage'),
+        'thought': normalize_meta_text(status_metadata.get('thought', '')),
+    }
+
+
+def get_latest_status_snapshot_for_session(session: RpgSession) -> dict:
+    latest_engine_log = (
+        RpgChatLog.objects.filter(session=session, role='NPC Engine')
+        .exclude(raw_content__isnull=True)
+        .exclude(raw_content__exact='')
+        .order_by('-id')
+        .first()
+    )
+    if not latest_engine_log:
+        return build_status_snapshot({})
+
+    if latest_engine_log.status_snapshot:
+        return latest_engine_log.status_snapshot
+
+    return build_status_snapshot(extract_status_metadata(latest_engine_log.raw_content))
 
 class PromptBuilder:
     def __init__(self, session: RpgSession):
@@ -143,8 +254,13 @@ class MainEngine:
         """
         Receives user input, builds the prompt, invokes LLM, and parses output.
         """
-        # Save user input to chat log immediately
-        RpgChatLog.objects.create(session=self.session, role=self.session.user_nickname, content=user_input)
+        # Save user input to chat log immediately with the latest known story-state snapshot
+        RpgChatLog.objects.create(
+            session=self.session,
+            role=self.session.user_nickname,
+            content=user_input,
+            status_snapshot=get_latest_status_snapshot_for_session(self.session),
+        )
 
         prompt = self.builder.assemble_final_prompt(user_input)
         
@@ -155,20 +271,10 @@ class MainEngine:
         )
         raw_text = response.text
         
-        # Parse Status Block (Stress, Crack Stage)
-        import re
-        stress_match = re.search(r'Stress:\s*(\d+)%', raw_text, re.IGNORECASE)
-        stage_match = re.search(r'Crack Stage:\s*Stage\s*(\d+)', raw_text, re.IGNORECASE)
-        fields_to_update = []
-        if stress_match:
-            self.session.stress = int(stress_match.group(1))
-            fields_to_update.append('stress')
-        if stage_match:
-            self.session.crack_stage = int(stage_match.group(1))
-            fields_to_update.append('crack_stage')
-            
-        if fields_to_update:
-            self.session.save(update_fields=fields_to_update)
+        # Parse Status Block (Date, Time, Location, Stress, Crack Stage, Thought)
+        status_metadata = extract_status_metadata(raw_text)
+        apply_status_metadata_to_session(self.session, status_metadata)
+        status_snapshot = build_status_snapshot(status_metadata)
 
         # Parse <Revision>...</Revision>
         parsed_content = self._parse_revision(raw_text)
@@ -180,6 +286,7 @@ class MainEngine:
                 role="NPC Engine",  # Needs to extract actual character name later or keep generic
                 raw_content=raw_text,
                 content=parsed_content,
+                status_snapshot=status_snapshot,
                 token_count=len(raw_text) // 4  # rough heuristic, better to count properly if possible
             )
             
@@ -205,20 +312,26 @@ class MainEngine:
                 self.session.total_tokens = 0
                 self.session.save(update_fields=['total_tokens'])
 
+            self._touch_session()
+
         return {
             'content': parsed_content,
-            'raw': raw_text
+            'raw': raw_text,
+            'status_snapshot': status_snapshot,
         }
+
+    def _touch_session(self) -> None:
+        self.session.updated_at = timezone.now()
+        self.session.save(update_fields=['updated_at'])
 
     def _parse_revision(self, text: str) -> str:
         """
         Extracts content inside <Revision> block.
         Fallback to whole text if not found.
         """
-        import re
         match = re.search(r'<Revision>(.*?)</Revision>', text, re.DOTALL)
         if match:
-            return match.group(1).strip()
+            return strip_status_content(match.group(1).strip())
         
         # Fallback handles the cases where LLM forgets the tag
-        return text.strip()
+        return strip_status_content(text.strip())

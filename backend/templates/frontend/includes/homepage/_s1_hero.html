@@ -1,5 +1,5 @@
 {% load static %}
-<section id="s1" style="position:relative;height:100vh;overflow:hidden;background-image:linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.3)),url({% static 'images/hari_image5.png' %});background-size:cover;background-position:center;background-repeat:no-repeat;">
+<section id="s1" class="hero-section" style="position:relative;height:100vh;overflow:hidden;background-size:cover;background-position:center;background-repeat:no-repeat;">
 
   <!-- 로고 -->
   <div style="position:absolute;top:60px;left:60px;z-index:10;pointer-events:none;">
@@ -20,6 +20,14 @@
 </section>
 
 <style>
+/* 히어로 이미지 — 라이트/다크 모드 분기 */
+#s1.hero-section {
+  background-image: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.3)), url("{% static 'images/hari_hero_image4.png' %}");
+}
+html[data-theme="dark"] #s1.hero-section {
+  background-image: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.3)), url("{% static 'images/hari_hero_image1.png' %}");
+}
+
 /* 메인 히어로 하단 스크롤 영역 오버레이 디자인 수정 */
 #s1 .hero-bottom {
   position: absolute;
