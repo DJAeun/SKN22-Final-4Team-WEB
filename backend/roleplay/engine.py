@@ -5,6 +5,7 @@ from django.template import Template, Context
 from django.conf import settings
 from django.utils import timezone
 from .models import RpgSession, RpgChatLog, RpgHyperMemory, RpgLorebook
+from .korean_text import build_user_placeholder_context
 
 
 def _extract_meta_value(source_text: str, label: str) -> str:
@@ -161,6 +162,21 @@ class PromptBuilder:
         text = text.replace('{{/if_pure}}', '{% endif %}')
         return text
 
+    def _build_template_context(self, kwargs: dict) -> dict:
+        status_toggle = 1 if self.session.status_window_enabled else 0
+        context_dict = build_user_placeholder_context(self.session.user_nickname)
+        context_dict.update({
+            'toggle_status_window': status_toggle,
+            'toggle_perspective': kwargs.get('perspective', 1),
+            'toggle_impersonation': kwargs.get('impersonation', 1),
+            'toggle_attempt': kwargs.get('attempt', 0),
+            'toggle_input_impersonation': kwargs.get('input_impersonation', 0),
+        })
+        return context_dict
+
+    def _render_template_text(self, text: str, kwargs: dict) -> str:
+        return Template(text).render(Context(self._build_template_context(kwargs)))
+
     def build_system_prompt(self, kwargs: dict) -> str:
         """
         Loads the rule markdown, converts macros to Django templating, 
@@ -172,6 +188,7 @@ class PromptBuilder:
 
         raw_text = self.rule_file_path.read_text(encoding='utf-8')
         django_template_str = self._convert_risu_to_django_template(raw_text)
+        return self._render_template_text(django_template_str, kwargs)
         
         t = Template(django_template_str)
         
@@ -201,6 +218,8 @@ class PromptBuilder:
         # Assuming higher priority number means it should be injected closer to the end, or just grouped.
         lorebooks = RpgLorebook.objects.filter(is_active=True).order_by('priority').values_list('lorebook', flat=True)
         prologue_text = "\n\n".join(lorebooks)
+        rendered_lorebooks = [self._render_template_text(lorebook, kwargs) for lorebook in lorebooks]
+        prologue_text = "\n\n".join(rendered_lorebooks)
         
         # 3. Past Records (HyperMemory)
         # Fetch latest hyper memory for the session
@@ -240,6 +259,8 @@ class PromptBuilder:
         return final_prompt
 
 from google import genai
+from google.genai import types
+
 import os
 from django.db import transaction
 
@@ -264,10 +285,19 @@ class MainEngine:
 
         prompt = self.builder.assemble_final_prompt(user_input)
         
-        # Invoke LLM natively
+        # Invoke LLM natively with relaxed safety settings
         response = self.client.models.generate_content(
             model='gemini-3.1-pro-preview',
             contents=prompt,
+            config=types.GenerateContentConfig(
+                safety_settings=[
+                    types.SafetySetting(category="HATE_SPEECH", threshold="BLOCK_NONE"),
+                    types.SafetySetting(category="HARASSMENT", threshold="BLOCK_NONE"),
+                    types.SafetySetting(category="SEXUALLY_EXPLICIT", threshold="BLOCK_NONE"),
+                    types.SafetySetting(category="DANGEROUS_CONTENT", threshold="BLOCK_NONE"),
+                ],
+                temperature=1.0,
+            )
         )
         raw_text = response.text
         
