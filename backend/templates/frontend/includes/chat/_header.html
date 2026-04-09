@@ -16,8 +16,226 @@
   </div>
   <div class="header-right">
     <button class="header-btn" onclick="openSearch()">🔍 Search</button>
+    <button class="header-btn" id="settingsBtn" onclick="toggleSettingsPanel(event)" aria-label="설정">⚙ 설정</button>
   </div>
 </div>
+
+<!-- ── Hari settings popover (말투 + 호칭) ── -->
+<div id="hari-settings-popover" style="
+  display:none; position:absolute; z-index:1500;
+  background:#fff; border:1px solid var(--border);
+  border-radius:14px; box-shadow:0 12px 30px rgba(0,0,0,0.12);
+  padding:18px 18px 16px; width:280px;
+  font-family:'Pretendard', sans-serif;
+">
+  <div style="font-size:0.78rem; font-weight:700; color:var(--text-dim);
+              letter-spacing:0.05em; text-transform:uppercase; margin-bottom:8px;">
+    하리 말투
+  </div>
+  <div id="tonePrefRow" style="display:flex; gap:8px; margin-bottom:16px;">
+    <button type="button" class="tone-seg" data-tone="casual" onclick="setHariTone('casual')"
+            style="flex:1; padding:9px 0; border-radius:10px; border:1px solid var(--border);
+                   background:#fff; cursor:pointer; font-size:0.85rem; transition:all 0.15s;">
+      반말
+    </button>
+    <button type="button" class="tone-seg" data-tone="formal" onclick="setHariTone('formal')"
+            style="flex:1; padding:9px 0; border-radius:10px; border:1px solid var(--border);
+                   background:#fff; cursor:pointer; font-size:0.85rem; transition:all 0.15s;">
+      존댓말
+    </button>
+  </div>
+
+  <div style="font-size:0.78rem; font-weight:700; color:var(--text-dim);
+              letter-spacing:0.05em; text-transform:uppercase; margin-bottom:8px;">
+    하리가 부를 호칭
+  </div>
+  <div id="titlePrefChips" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+    <!-- chips injected below -->
+  </div>
+  <input id="titlePrefInput" type="text" maxlength="20" placeholder="직접 입력 (예: 대장)"
+         style="width:100%; padding:9px 11px; border:1px solid var(--border);
+                border-radius:10px; font-size:0.85rem; box-sizing:border-box;
+                font-family:inherit;">
+  <div style="display:flex; gap:8px; margin-top:10px;">
+    <button type="button" onclick="clearHariTitle()"
+            style="flex:1; padding:8px 0; border-radius:10px; border:1px solid var(--border);
+                   background:#fff; cursor:pointer; font-size:0.78rem; color:var(--text-dim);">
+      호칭 없이
+    </button>
+    <button type="button" onclick="submitHariTitleInput()"
+            style="flex:1; padding:8px 0; border-radius:10px; border:1px solid var(--hari-pink);
+                   background:var(--hari-pink); color:#fff; cursor:pointer; font-size:0.78rem;">
+      적용
+    </button>
+  </div>
+  <div id="settingsStatus" style="font-size:0.72rem; color:var(--text-dim); margin-top:10px; min-height:14px;"></div>
+</div>
+
+<style>
+  .tone-seg.active {
+    background: var(--hari-pink) !important;
+    border-color: var(--hari-pink) !important;
+    color: #fff !important;
+  }
+  .title-chip {
+    padding: 6px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.78rem;
+    transition: all 0.15s;
+  }
+  .title-chip:hover { border-color: var(--hari-pink); }
+  .title-chip.active {
+    background: var(--hari-pink);
+    border-color: var(--hari-pink);
+    color: #fff;
+  }
+</style>
+
+<script>
+/* ── Hari settings panel (말투 + 호칭) ── */
+(function () {
+  const TITLE_PRESETS = ['오빠', '언니', '형', '누나', '선배', '님'];
+  let currentTone = 'casual';
+  let currentTitle = null;
+  let panelHydrated = false;
+
+  function qs(id) { return document.getElementById(id); }
+
+  function renderTone() {
+    document.querySelectorAll('.tone-seg').forEach(b => {
+      b.classList.toggle('active', b.dataset.tone === currentTone);
+    });
+  }
+
+  function renderTitleChips() {
+    const host = qs('titlePrefChips');
+    if (!host) return;
+    host.innerHTML = '';
+    TITLE_PRESETS.forEach(t => {
+      const c = document.createElement('button');
+      c.type = 'button';
+      c.className = 'title-chip' + (currentTitle === t ? ' active' : '');
+      c.textContent = t;
+      c.onclick = () => window.setHariTitle(t);
+      host.appendChild(c);
+    });
+    const input = qs('titlePrefInput');
+    if (input && currentTitle && !TITLE_PRESETS.includes(currentTitle)) {
+      input.value = currentTitle;
+    } else if (input && !currentTitle) {
+      input.value = '';
+    }
+  }
+
+  function setStatus(msg, isError) {
+    const el = qs('settingsStatus');
+    if (!el) return;
+    el.textContent = msg || '';
+    el.style.color = isError ? '#d33' : 'var(--text-dim)';
+  }
+
+  async function loadPrefs() {
+    if (panelHydrated) return;
+    try {
+      const resp = await fetch('/api/chat/api/user-preference/', {
+        headers: { 'X-CSRFToken': (window.csrfToken || '') }
+      });
+      if (!resp.ok) return;
+      const data = await resp.json();
+      currentTone = data.tone || 'casual';
+      currentTitle = data.title || null;
+      panelHydrated = true;
+      renderTone();
+      renderTitleChips();
+    } catch (err) {
+      console.error('Error loading Hari preferences:', err);
+    }
+  }
+
+  async function savePref(payload) {
+    try {
+      setStatus('저장 중...');
+      const resp = await fetch('/api/chat/api/user-preference/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': (window.csrfToken || ''),
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!resp.ok) throw new Error('save failed');
+      const data = await resp.json();
+      currentTone = data.tone || 'casual';
+      currentTitle = data.title || null;
+      renderTone();
+      renderTitleChips();
+      setStatus('저장됐어!');
+      setTimeout(() => setStatus(''), 1500);
+    } catch (err) {
+      console.error('Error saving Hari preference:', err);
+      setStatus('저장 실패', true);
+    }
+  }
+
+  window.toggleSettingsPanel = function (ev) {
+    if (ev) ev.stopPropagation();
+    const popover = qs('hari-settings-popover');
+    const btn = qs('settingsBtn');
+    if (!popover || !btn) return;
+    const isOpen = popover.style.display === 'block';
+    if (isOpen) {
+      popover.style.display = 'none';
+      return;
+    }
+    const rect = btn.getBoundingClientRect();
+    popover.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+    popover.style.left = Math.max(12, rect.right + window.scrollX - 280) + 'px';
+    popover.style.display = 'block';
+    loadPrefs();
+  };
+
+  window.setHariTone = function (tone) {
+    if (tone !== 'casual' && tone !== 'formal') return;
+    if (tone === currentTone) return;
+    savePref({ tone });
+  };
+
+  window.setHariTitle = function (title) {
+    savePref({ title });
+  };
+
+  window.clearHariTitle = function () {
+    savePref({ title: '' });
+  };
+
+  window.submitHariTitleInput = function () {
+    const input = qs('titlePrefInput');
+    if (!input) return;
+    const val = (input.value || '').trim();
+    savePref({ title: val });
+  };
+
+  // Close on outside click
+  document.addEventListener('click', function (e) {
+    const popover = qs('hari-settings-popover');
+    const btn = qs('settingsBtn');
+    if (!popover || popover.style.display !== 'block') return;
+    if (popover.contains(e.target) || (btn && btn.contains(e.target))) return;
+    popover.style.display = 'none';
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      const popover = qs('hari-settings-popover');
+      if (popover) popover.style.display = 'none';
+    }
+  });
+})();
+</script>
 
 <!-- ── 카카오톡 스타일 프로필 모달 ── -->
 <div id="hari-profile-overlay" onclick="closeHariProfile(event)" style="

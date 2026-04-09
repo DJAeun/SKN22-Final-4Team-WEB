@@ -18,3 +18,18 @@ class ChatMemorySerializer(serializers.ModelSerializer):
 
 class UserNameSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
+
+
+class UserPreferenceSerializer(serializers.Serializer):
+    tone = serializers.ChoiceField(choices=['casual', 'formal'], required=False)
+    title = serializers.CharField(
+        max_length=20,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+    )
+
+    def validate(self, attrs):
+        if 'tone' not in attrs and 'title' not in attrs:
+            raise serializers.ValidationError("Provide at least one of 'tone' or 'title'.")
+        return attrs
