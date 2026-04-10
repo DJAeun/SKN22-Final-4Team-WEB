@@ -260,6 +260,84 @@ def _upsert_user_persona_sync(user_id: int, fact: ExtractedFact, vector_str: str
     )
 
 
+# ── Preference / identity helpers ─────────────────────────────────────────────
+#
+# Used by both the conversational preference-intent path (engine.get_response)
+# and the hidden debug view (views.user_preference_view / user_name_view).
+# Uses exact-key deactivate-then-insert (no vector contradiction check) because
+# preference keys are exact and there's nothing to compare by similarity.
+
+def _deactivate_then_insert_persona(
+    user_id: int,
+    category: str,
+    trait_key: str,
+    trait_value: str,
+    importance: int,
+) -> None:
+    from .models import UserPersona
+    UserPersona.objects.filter(
+        user_id=user_id,
+        category=category,
+        trait_key=trait_key,
+        is_active=True,
+    ).update(is_active=False)
+    UserPersona.objects.create(
+        user_id=user_id,
+        category=category,
+        trait_key=trait_key,
+        trait_value=trait_value,
+        importance=importance,
+        is_active=True,
+    )
+
+
+def _deactivate_persona(user_id: int, category: str, trait_key: str) -> None:
+    from .models import UserPersona
+    UserPersona.objects.filter(
+        user_id=user_id,
+        category=category,
+        trait_key=trait_key,
+        is_active=True,
+    ).update(is_active=False)
+
+
+def update_user_preference(
+    user_id: int,
+    *,
+    tone: str | None = None,
+    title: str | None = None,
+    name: str | None = None,
+) -> None:
+    """
+    Synchronously persist any subset of tone/title/name to UserPersona.
+
+    - tone:  "casual" | "formal"           → preference/tone
+    - title: "오빠" etc., or "" to clear   → preference/title (empty clears)
+    - name:  proper name string            → identity/name
+    """
+    if tone in ("casual", "formal"):
+        _deactivate_then_insert_persona(
+            user_id, "preference", "tone", tone, importance=7,
+        )
+
+    if title is not None:
+        title_val = (title or "").strip()
+        if title_val:
+            _deactivate_then_insert_persona(
+                user_id, "preference", "title", title_val, importance=7,
+            )
+        else:
+            # Empty string → explicit clear.
+            _deactivate_persona(user_id, "preference", "title")
+
+    if name:
+        name_val = name.strip()
+        if name_val:
+            _deactivate_then_insert_persona(
+                user_id, "identity", "name", name_val, importance=9,
+            )
+
+
 # ── hari_knowledge persistence ────────────────────────────────────────────────
 
 def _upsert_hari_knowledge_sync(fact: ExtractedFact, vector_str: str | None) -> None:
