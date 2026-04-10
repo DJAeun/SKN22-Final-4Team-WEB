@@ -714,7 +714,7 @@ export function MainGamePage({ bootstrap }: MainGamePageProps) {
               <div className="pointer-events-none absolute left-0 top-0 h-8 w-full bg-gradient-to-b from-black/5 to-transparent" />
 
               <div className="flex h-full flex-col text-[#4A3728]" style={{ fontFamily: "'Noto Serif KR', serif" }}>
-                <div className="mb-8 border-b border-[#4A3728]/20 pb-4 text-center">
+                <div className="mb-2 border-b border-[#4A3728]/20 pb-3 text-center">
                   <h2 className="text-xl" style={{ fontFamily: "'Crimson Text', serif" }}>
                     Hari Record
                   </h2>
@@ -737,7 +737,7 @@ export function MainGamePage({ bootstrap }: MainGamePageProps) {
                     {archivedMessages.map((message) => (
                       <div key={message.id} className="text-sm leading-relaxed">
                         {shouldShowStoryContext(message) && (
-                          <div className="sticky top-0 z-10 mb-2 border-b border-[#4A3728]/10 bg-[#F4ECD8]/95 py-1 text-xs opacity-70 backdrop-blur-sm">
+                          <div className="sticky top-0 z-10 mb-1 border-b border-[#4A3728]/10 bg-[#F4ECD8] py-1 text-xs">
                             {message.storyContext}
                           </div>
                         )}
@@ -785,7 +785,7 @@ export function MainGamePage({ bootstrap }: MainGamePageProps) {
                       return (
                         <div key={message.id} className="whitespace-pre-wrap">
                           {shouldShowStoryContext(message) && (
-                            <div className="sticky top-0 z-10 mb-2 border-b border-[#4A3728]/10 bg-[#F4ECD8]/95 py-1 text-xs opacity-70 backdrop-blur-sm">
+                            <div className="sticky top-0 z-10 mb-2 border-b border-[#4A3728]/10 bg-[#F4ECD8] py-1 text-xs">
                               {message.storyContext}
                             </div>
                           )}
