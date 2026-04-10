@@ -6,6 +6,7 @@ from .engine import (
     MainEngine,
     apply_status_metadata_to_session,
     extract_status_metadata,
+    get_first_message_lorebook,
     resolve_image_metadata,
     strip_image_command,
     strip_status_content,
@@ -79,8 +80,8 @@ class RoleplayConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async
     def _create_and_get_first_message(self, session):
-        from .models import RpgLorebook, RpgChatLog
-        first_ms_lore = RpgLorebook.objects.filter(keywords='{FirstMessage}').first()
+        from .models import RpgChatLog
+        first_ms_lore = get_first_message_lorebook()
         content = "안녕!"
         if first_ms_lore:
             content = first_ms_lore.lorebook
