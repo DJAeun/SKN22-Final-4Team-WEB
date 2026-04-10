@@ -1,0 +1,311 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}HARI Admin — {{ block.super }}{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <style>
+    /* ── 테마 고정 (다크/라이트 모드 비활성화) ── */
+    :root { color-scheme: light !important; }
+
+    /* ── CSS 변수 (Django base.css 바로 뒤 로드) ── */
+    :root {
+      --primary:               #ff7b8a;
+      --secondary:             #ff5566;
+      --accent:                #ff7b8a;
+      --primary-fg:            #ffffff;
+      --header-color:          #ffffff;
+      --header-branding-color: #ffffff;
+      --header-bg:             #1a1018;
+      --header-link-color:     #ffffff;
+      --breadcrumbs-link-fg:   #ff7b8a;
+      --link-fg:               #ff7b8a;
+      --link-hover-color:      #ff5566;
+      --link-selected-fg:      #ff5566;
+      --button-fg:             #ffffff;
+      --button-bg:             #ff7b8a;
+      --button-hover-bg:       #ff5566;
+      --selected-bg:           #fff0f1;
+      --selected-row:          #fff0f1;
+      --darkened-bg:           #fdf4f4;
+      --body-bg:               #fdf8f8;
+    }
+
+    /* ── 직접 규칙 (변수가 안 먹힐 경우 백업) ── */
+    #header                                { background: #1a1018 !important; }
+    #header a:link, #header a:visited      { color: #ffffff !important; }
+    #user-tools a:link, #user-tools a:visited { color: rgba(255,255,255,0.7) !important; }
+    #user-tools a:hover                    { color: #ffffff !important; }
+
+    a:link, a:visited                      { color: #ff7b8a !important; }
+    a:hover, a:active                      { color: #ff5566 !important; }
+
+    .button, input[type="submit"],
+    input[type="button"], a.button         { background: #ff7b8a !important; border-color: #ff7b8a !important; }
+    .button:hover, input[type="submit"]:hover,
+    input[type="button"]:hover             { background: #ff5566 !important; }
+    .button.default, input[type="submit"].default { background: #1a1018 !important; }
+
+    div.breadcrumbs                        { background: #ff7b8a !important; }
+    div.breadcrumbs a:link,
+    div.breadcrumbs a:visited              { color: rgba(255,255,255,0.85) !important; }
+
+    #changelist-filter h2                  { background: #ff7b8a !important; }
+    #changelist-filter li.selected a       { color: #ff7b8a !important; }
+
+    .module h2, .module caption            { background: #fff0f1 !important; color: #cc4455 !important; }
+
+    tr.selected td                         { background: #fff0f1 !important; }
+    .object-tools a:hover                  { background: #ff5566 !important; }
+  </style>
+{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Django admin CSS 변수 전체 덮어쓰기 ── */
+    :root {
+      --primary:                  #ff7b8a;
+      --secondary:                #ff5566;
+      --accent:                   #ff7b8a;
+      --primary-fg:               #ffffff;
+
+      --body-fg:                  #2a2420;
+      --body-bg:                  #fdf8f8;
+      --body-quiet-color:         #7a6b68;
+      --body-loud-color:          #2a2420;
+
+      --header-color:             #ffffff;
+      --header-branding-color:    #ffffff;
+      --header-bg:                #1a1018;
+      --header-link-color:        #ffffff;
+
+      --breadcrumbs-fg:           #7a6b68;
+      --breadcrumbs-link-fg:      #ff7b8a;
+      --breadcrumbs-bg:           #ffffff;
+
+      --link-fg:                  #ff7b8a;
+      --link-hover-color:         #ff5566;
+      --link-selected-fg:         #ff5566;
+
+      --hairline-color:           #f0e8e8;
+      --border-color:             #f0e8e8;
+
+      --darkened-bg:              #fdf4f4;
+      --selected-bg:              #fff0f1;
+      --selected-row:             #fff0f1;
+
+      --button-fg:                #ffffff;
+      --button-bg:                #ff7b8a;
+      --button-hover-bg:          #ff5566;
+      --default-button-bg:        #1a1018;
+      --default-button-hover-bg:  #2a1f1f;
+      --close-button-bg:          #9e8f8c;
+      --close-button-hover-bg:    #7a6b68;
+      --delete-button-bg:         #ef4444;
+      --delete-button-hover-bg:   #dc2626;
+
+      --object-tools-fg:          #ffffff;
+      --object-tools-bg:          #9e8f8c;
+      --object-tools-hover-bg:    #7a6b68;
+
+      /* 내부 추가 변수 */
+      --radius:                   6px;
+    }
+
+    /* ── 기본 ── */
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+      font-size: 0.875rem !important;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── 헤더 ── */
+    #header {
+      height: 56px !important;
+      line-height: 56px !important;
+      padding: 0 24px !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+
+    #branding { flex: 1; }
+
+    #site-name {
+      font-size: 0.875rem !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.02em !important;
+      line-height: 1 !important;
+    }
+
+    #user-tools {
+      font-size: 0.75rem !important;
+      line-height: 1 !important;
+    }
+
+    /* ── 브레드크럼 ── */
+    div.breadcrumbs {
+      padding: 10px 24px !important;
+      font-size: 0.78rem !important;
+    }
+
+    /* ── 모듈 (본문 영역) ── */
+    .module {
+      border: 1px solid var(--border-color) !important;
+      border-radius: var(--radius) !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+      overflow: hidden;
+      margin-bottom: 20px !important;
+    }
+
+    .module h2,
+    .module caption {
+      font-size: 0.65rem !important;
+      font-weight: 600 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.07em !important;
+      padding: 10px 16px !important;
+    }
+
+    .module table td,
+    .module table th {
+      padding: 10px 16px !important;
+    }
+
+    /* ── 사이드바 ── */
+    #nav-sidebar .module {
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      margin-bottom: 0 !important;
+    }
+
+    #nav-sidebar .module caption {
+      font-size: 0.6rem !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.1em !important;
+      padding: 8px 12px !important;
+      text-transform: uppercase !important;
+    }
+
+    #nav-sidebar .module table th a:link,
+    #nav-sidebar .module table th a:visited,
+    #nav-sidebar .module table th a {
+      font-size: 0.8rem !important;
+      font-weight: 600 !important;
+      color: #2a1018 !important;
+    }
+
+    #nav-sidebar .module table th a:hover {
+      color: #ff5566 !important;
+      text-decoration: none !important;
+    }
+
+    #nav-sidebar .module table td a:link,
+    #nav-sidebar .module table td a:visited,
+    #nav-sidebar .module table td a {
+      color: #7a5060 !important;
+      font-size: 0.77rem !important;
+    }
+
+    #nav-sidebar .module table td a:hover {
+      color: #ff5566 !important;
+      text-decoration: none !important;
+    }
+
+    #nav-sidebar .module table td,
+    #nav-sidebar .module table th {
+      border-bottom: 1px solid #f5dde0 !important;
+      padding: 7px 12px !important;
+    }
+
+    #nav-sidebar .module tbody tr:hover {
+      background: #fff0f2 !important;
+    }
+
+    /* ── 버튼 ── */
+    .button,
+    input[type="submit"],
+    input[type="button"],
+    .submit-row input,
+    a.button {
+      border-radius: var(--radius) !important;
+      font-family: inherit !important;
+      font-size: 0.8rem !important;
+      font-weight: 500 !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+
+    .button:hover,
+    input[type="submit"]:hover,
+    input[type="button"]:hover {
+      box-shadow: none !important;
+      transform: none !important;
+    }
+
+    /* ── 폼 인풋 ── */
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="url"],
+    input[type="number"],
+    textarea,
+    select {
+      border-radius: var(--radius) !important;
+      font-family: inherit !important;
+      font-size: 0.82rem !important;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    input[type="email"]:focus,
+    textarea:focus,
+    select:focus {
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15) !important;
+    }
+
+    /* ── 체인지리스트 헤더 ── */
+    #changelist table thead th {
+      font-size: 0.65rem !important;
+      font-weight: 600 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.07em !important;
+      padding: 10px 16px !important;
+    }
+
+    /* ── 메시지 ── */
+    .messagelist li {
+      border-radius: var(--radius) !important;
+      font-size: 0.82rem !important;
+      padding: 10px 16px !important;
+      margin-bottom: 8px !important;
+    }
+
+    /* ── 서밋 로우 ── */
+    .submit-row {
+      padding: 14px 16px !important;
+    }
+
+    /* ── 테마 전환 버튼 숨김 (다크/라이트 모드 불필요) ── */
+    #theme-toggle { display: none !important; }
+    .theme-toggle { display: none !important; }
+
+    /* ── 스크롤바 ── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
+  </style>
+{% endblock %}
+
+{% block branding %}
+  <h1 id="site-name" style="display:flex; align-items:center; gap:10px;">
+    <a href="{% url 'admin:index' %}" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit;">
+      <img src="{% static 'images/hari_logo_none.png' %}" alt="HARI" style="height:28px; width:auto; filter: brightness(0) invert(1);">
+      HARI Admin
+    </a>
+  </h1>
+{% endblock %}
