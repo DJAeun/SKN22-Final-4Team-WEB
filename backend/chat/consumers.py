@@ -52,6 +52,33 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             logger.info(f"WS connected: thread={self.thread_id}, message_count={self.message_count}")
 
+            # First-time user: Hari opens the conversation herself. The opening
+            # is LLM-generated and seeded into the LangGraph checkpoint so the
+            # model has full context when the user replies (prevents the "민제"
+            # regression where a hardcoded greeting wasn't in the LLM's history).
+            if (
+                self.user_id is not None
+                and self.message_count == 0
+                and await self._needs_opening()
+            ):
+                try:
+                    from .engine import engine
+                    loop = asyncio.get_running_loop()
+                    opening = await asyncio.wait_for(
+                        loop.run_in_executor(
+                            None, engine.generate_opening, self.user_id, self.thread_id
+                        ),
+                        timeout=15.0,
+                    )
+                    if opening:
+                        await self.save_message(sender_type=False, content=opening)
+                        await self.send(text_data=json.dumps({
+                            'message': opening,
+                            'sender': 'hari',
+                        }))
+                except Exception as e:
+                    logger.error(f"Opening generation failed: {e}", exc_info=True)
+
         except Exception as e:
             logger.error(f"WS connect error: {e}", exc_info=True)
             await self.close()
@@ -163,6 +190,29 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def get_message_count(self):
         """Return the number of messages already saved for this user."""
         return Message.objects.filter(user_id=self.user_id).count()
+
+    @database_sync_to_async
+    def _needs_opening(self):
+        """
+        True only when:
+          • the user has no identity/name persona row (first-time user), AND
+          • no Hari message exists for this user yet (guards against re-entry
+            after a disconnect that already generated an opening).
+        """
+        from .models import UserPersona
+        has_name = UserPersona.objects.filter(
+            user_id=self.user_id,
+            category='identity',
+            trait_key='name',
+            is_active=True,
+        ).exists()
+        if has_name:
+            return False
+        has_hari_msg = Message.objects.filter(
+            user_id=self.user_id,
+            sender_type=False,
+        ).exists()
+        return not has_hari_msg
 
     @database_sync_to_async
     def save_message(self, sender_type, content, used_web_search=False):
