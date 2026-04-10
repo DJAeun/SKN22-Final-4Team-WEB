@@ -244,12 +244,12 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
   line-height:1.2;
 }
 
-/* 메뉴 버튼 — 두꺼운 줄 3개 (이미지 스타일) */
+/* 메뉴 버튼 — 두꺼운 줄 3개 (데스크탑 숨김, 모바일 노출) */
 #menu-btn {
   background:transparent; border:none;
   width:36px; height:36px; cursor:pointer;
-  display:flex; flex-direction:column; align-items:flex-end; justify-content:center; gap:6px;
-  margin-left:2rem; flex-shrink:0;
+  display:none; flex-direction:column; align-items:flex-end; justify-content:center; gap:6px;
+  margin-left:auto; flex-shrink:0;
   padding:0;
 }
 #menu-btn span {
@@ -895,12 +895,15 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 }
 
 @media (max-width: 768px) {
-  #nav { height: 56px; padding: 0 1rem; justify-content: space-between; }
-  .nav-logo, #auth-btn { display: flex !important; }
+  #nav { height: 56px; padding: 0 1rem; justify-content: space-between; gap: 0.5rem; }
+  .nav-logo { display: flex !important; }
   
-  /* 모바일에서 데스크탑 전용 메뉴만 숨기고 나머지는 노출 */
-  .nav-center { display: flex !important; margin-left: auto; gap: 0.8rem; }
+  /* 모바일에서 데스크탑 전용 메뉴 대폭 정리 */
+  .nav-center { display: none !important; }
   .nav-desktop-menu { display: none !important; }
+  #auth-btn { display: none !important; } /* 드로어 내부로 이동 */
+  
+  #menu-btn { display: flex !important; margin-left: 0; }
   
   #drawer { top: 56px; }
   

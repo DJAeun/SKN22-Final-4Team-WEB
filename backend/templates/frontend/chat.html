@@ -1306,6 +1306,16 @@ html[data-theme="dark"] .date-divider-text {
   from { opacity: 0; transform: translateX(20px); }
   to { opacity: 1; transform: translateX(0); }
 }
+
+@keyframes highlightMessage {
+  0% { background-color: transparent; }
+  15% { background-color: rgba(255, 123, 138, 0.2); border-radius: 12px; }
+  85% { background-color: rgba(255, 123, 138, 0.2); border-radius: 12px; }
+  100% { background-color: transparent; border-radius: 12px; }
+}
+.highlight-anim {
+  animation: highlightMessage 2s ease-out;
+}
 </style>
 
 <script id="django-data" type="application/json">
@@ -1351,6 +1361,8 @@ let isUserTyping = false;
 const IDLE_FLUSH_DELAY = 2500;   // ms after last Enter, if not typing
 const TYPING_STOP_DELAY = 1500;  // ms after user stops typing to re-check flush
 const MAX_WAIT_DELAY = 10000;    // safety net: always flush within 10s
+let messageCounter = 0;          // Auto-increment message ID
+
 
 /**
  * ═══════════════════════════════════════
@@ -1535,10 +1547,11 @@ function renderSingleHariBubble(text, options = {}) {
   const timeStr = formatTime(now);
   const dateKey = checkAndAddDateDivider(now);
   
-  chatHistory.push({ date: dateKey, time: timeStr, sender: 'hari', text: text });
+  const msgId = 'msg-' + (++messageCounter);
+  chatHistory.push({ id: msgId, date: dateKey, time: timeStr, sender: 'hari', text: text });
 
   const html = `
-    <div class="message-group other ${animate ? '' : 'no-animate'}">
+    <div class="message-group other ${animate ? '' : 'no-animate'}" id="${msgId}">
       <div class="msg-profile" style="${isFirst ? '' : 'visibility: hidden; height: 0; margin-top: -8px;'}">
         <img src="{% static 'images/hari_image1.png' %}" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
       </div>
@@ -1610,11 +1623,12 @@ function addMessage(sender, content, type = 'text', timestamp = null) {
   const timeStr = formatTime(now);
   const displayContent = type === 'text' ? escapeHtml(content) : content;
   
-  chatHistory.push({ date: dateKey, time: timeStr, sender: sender, text: type === 'text' ? content : '[파일]' });
+  const msgId = 'msg-' + (++messageCounter);
+  chatHistory.push({ id: msgId, date: dateKey, time: timeStr, sender: sender, text: type === 'text' ? content : '[파일]' });
   
   if (sender === 'me') {
     const html = `
-      <div class="message-group me">
+      <div class="message-group me" id="${msgId}">
         <div class="msg-content">
           <div class="msg-bubble-row">
             <div class="msg-meta"><span class="msg-time">${timeStr}</span></div>
@@ -1765,7 +1779,7 @@ function displaySearchResults(results, keyword = null) {
       preview = preview.replace(regex, '<mark>$1</mark>');
     }
     html += `
-      <div class="search-result-item" onclick="alert('이동 기능 준비 중!')">
+      <div class="search-result-item" onclick="scrollToMessage('${msg.id}')" style="cursor: pointer;">
         <div class="search-result-date">${msg.date} ${msg.time}</div>
         <div class="search-result-preview">${preview}</div>
         <div class="search-result-sender">${msg.sender === 'hari' ? '하리' : '나'}</div>
@@ -1773,6 +1787,18 @@ function displaySearchResults(results, keyword = null) {
     `;
   });
   container.innerHTML = html;
+}
+
+function scrollToMessage(id) {
+  closeSearch();
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('highlight-anim');
+    setTimeout(() => el.classList.remove('highlight-anim'), 2000);
+  } else {
+    alert("이전 메시지를 불러오는 중이거나 찾을 수 없습니다.");
+  }
 }
 
 /**
