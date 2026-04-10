@@ -112,22 +112,8 @@ def user_name_view(request):
     serializer.is_valid(raise_exception=True)
     name = serializer.validated_data['name']
 
-    # Deactivate old name records, then create new one
-    UserPersona.objects.filter(
-        user=user,
-        category='identity',
-        trait_key='name',
-        is_active=True,
-    ).update(is_active=False)
-
-    UserPersona.objects.create(
-        user=user,
-        category='identity',
-        trait_key='name',
-        trait_value=name,
-        importance=9,
-        is_active=True,
-    )
+    from .memory_extractor import update_user_preference
+    update_user_preference(user.id, name=name)
 
     return Response({'name': name}, status=status.HTTP_200_OK)
 
@@ -165,39 +151,14 @@ def user_preference_view(request):
     serializer.is_valid(raise_exception=True)
     data = serializer.validated_data
 
+    from .memory_extractor import update_user_preference
+    kwargs = {}
     if 'tone' in data:
-        UserPersona.objects.filter(
-            user=user,
-            category='preference',
-            trait_key='tone',
-            is_active=True,
-        ).update(is_active=False)
-        UserPersona.objects.create(
-            user=user,
-            category='preference',
-            trait_key='tone',
-            trait_value=data['tone'],
-            importance=7,
-            is_active=True,
-        )
-
+        kwargs['tone'] = data['tone']
     if 'title' in data:
-        UserPersona.objects.filter(
-            user=user,
-            category='preference',
-            trait_key='title',
-            is_active=True,
-        ).update(is_active=False)
-        title_val = data['title']
-        if title_val:  # only create row if non-empty; empty clears the title
-            UserPersona.objects.create(
-                user=user,
-                category='preference',
-                trait_key='title',
-                trait_value=title_val.strip(),
-                importance=7,
-                is_active=True,
-            )
+        # empty string / None → explicit clear; helper interprets "" as clear
+        kwargs['title'] = data['title'] or ''
+    update_user_preference(user.id, **kwargs)
 
     return Response(_current(), status=status.HTTP_200_OK)
 

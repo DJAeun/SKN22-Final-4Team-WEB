@@ -313,6 +313,66 @@ COBOL이나 메인프레임 같은 옛날 기술은 잘 몰라.
             # timestamp prefix we add below.
             input_class = self._classify_input(user_input)
 
+            # ── Preference intent extraction ─────────────────────────────
+            # Listen for "오빠라고 불러줘" / "말 편하게 해" / "나 준호야" style
+            # utterances and update UserPersona immediately so this same turn's
+            # reply already reflects the change. Runs on raw input; cheap on
+            # the common case (regex prefilter short-circuits, zero LLM calls).
+            pref_reinforcement = None
+            try:
+                if input_class == 'normal':
+                    from .preference_intent import extract_preference_intent
+                    from .memory_extractor import update_user_preference
+                    intent = extract_preference_intent(user_input)
+                    if (
+                        intent is not None
+                        and intent.confidence == "high"
+                        and (intent.tone or intent.title is not None or intent.name)
+                    ):
+                        update_user_preference(
+                            user_id,
+                            tone=intent.tone,
+                            title=intent.title,
+                            name=intent.name,
+                        )
+
+                        # Apply immediately to in-memory prefs so the system
+                        # prompt assembled below already reflects the change.
+                        if intent.tone in ("casual", "formal"):
+                            tone_pref = intent.tone
+                        if intent.title is not None:
+                            title_pref = (intent.title or None) or None
+                            if intent.title == "":
+                                title_pref = None
+                            elif intent.title:
+                                title_pref = intent.title.strip()
+
+                        # Build a turn-local reinforcement so Hari acknowledges
+                        # the change like a human — not like a settings panel.
+                        parts = []
+                        if intent.name:
+                            parts.append(f'유저가 자기 이름이 "{intent.name}"라고 했어.')
+                        if intent.title == "":
+                            parts.append("유저가 호칭 빼고 그냥 이름으로 불러달래.")
+                        elif intent.title:
+                            parts.append(
+                                f'유저가 자기를 "{intent.title}"라고 불러달래. '
+                                f'이번 답변부터 자연스럽게 그렇게 불러.'
+                            )
+                        if intent.tone == "casual":
+                            parts.append("유저가 말 편하게 해달래. 이번 답변부터 반말로.")
+                        elif intent.tone == "formal":
+                            parts.append("유저가 존댓말로 해달래. 이번 답변부터 해요체로.")
+                        if parts:
+                            pref_reinforcement = SystemMessage(content=(
+                                "[유저 선호 반영]\n"
+                                + " ".join(parts)
+                                + "\n설정을 바꿨다거나 시스템 알림처럼 말하지 마. "
+                                "진짜 사람처럼 \"아 그렇구나ㅎㅎ\" 같은 자연스러운 반응을 먼저 해."
+                            ))
+            except Exception as e:
+                logger.error(f"Preference intent handling failed: {e}", exc_info=True)
+
             # ── Assemble system prompt with user-specific tone + time/title hints ──
             from datetime import datetime as _dt
             try:
@@ -414,6 +474,11 @@ COBOL이나 메인프레임 같은 옛날 기술은 잘 몰라.
                 else:
                     messages = [system_msg, input_message]
 
+            # Turn-local preference acknowledgment — inject right before the
+            # HumanMessage so Hari sees it as the freshest instruction.
+            if pref_reinforcement is not None:
+                messages.insert(-1, pref_reinforcement)
+
             # Open the psycopg connection purely inside the worker thread
             with psycopg.connect(conninfo=self.db_uri, autocommit=True, prepare_threshold=0) as conn:
                 checkpointer = PostgresSaver(conn)
@@ -435,6 +500,92 @@ COBOL이나 메인프레임 같은 옛날 기술은 잘 몰라.
         except Exception as e:
             logger.error(f"Error generating AI response: {e}", exc_info=True)
             return f"아 뭔가 인터넷이 이상한가ㅠㅠ 다시 말해줘 (에러: {str(e)})", False
+
+    def generate_opening(self, user_id: int, session_id) -> str:
+        """
+        Generates Hari's first message for a brand-new user and seeds it into
+        the LangGraph checkpoint for the thread as an AIMessage — so when the
+        user's first real message runs through get_response, the replayed
+        history starts with Hari's own question and the model has full context.
+
+        Runs synchronously inside run_in_executor from ChatConsumer.connect().
+        """
+        _FALLBACK_OPENING = (
+            "안녕~ 나 하리야 ㅎㅎ 너 이름 뭐야? 어떻게 부르면 될지도 알려줘!"
+        )
+
+        try:
+            from langchain_core.messages import AIMessage
+
+            # Assemble the default system prompt (casual, no name known yet).
+            from datetime import datetime as _dt
+            try:
+                from zoneinfo import ZoneInfo
+                _now = _dt.now(ZoneInfo("Asia/Seoul"))
+            except Exception:
+                from django.utils import timezone as _tz
+                _raw = _tz.now()
+                _now = _tz.localtime(_raw) if _tz.is_aware(_raw) else _raw
+            _weekdays = ('월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일')
+            _now_label = (
+                f"{_now.year}년 {_now.month}월 {_now.day}일 "
+                f"{_weekdays[_now.weekday()]}"
+            )
+
+            base_prompt = self._prompt_head + self._tone_casual + self._prompt_tail
+            time_block = (
+                "\n\n[시간 감각]\n"
+                f"지금 이 순간은 {_now_label}이야. "
+                "유저 메시지 앞에는 나중에 [전송 시각: ...] 태그가 붙을 거야. "
+                "이 태그는 절대 입에 올리지 마."
+            )
+            honorific_block = (
+                "\n\n[호칭]\n"
+                "아직 이 유저 이름도 모르고 어떻게 부르면 좋을지도 모르니까 "
+                "호칭 없이 대화해. 이름을 알게 되면 그때부터 자연스럽게 써."
+            )
+            main_system = SystemMessage(
+                content=base_prompt + time_block + honorific_block
+            )
+            opener_system = SystemMessage(content=(
+                "[첫 만남]\n"
+                "이 사람이랑 지금 처음 얘기하는 거야. "
+                "먼저 짧게 인사하고, 이름이 뭔지 그리고 어떻게 불러주면 편한지"
+                "(오빠/언니/형/누나/선배/그냥 이름 등) 가볍게 하나의 질문으로 물어봐. "
+                "2문장 이내. 설정을 묻는 것처럼 들리지 않게, "
+                "친구가 처음 만나서 궁금해하는 느낌으로."
+            ))
+
+            try:
+                result = self.llm.invoke([main_system, opener_system])
+                opening_text = (result.content or "").strip() or _FALLBACK_OPENING
+            except Exception as e:
+                logger.error(f"Opening LLM call failed: {e}", exc_info=True)
+                opening_text = _FALLBACK_OPENING
+
+            # Seed the LangGraph checkpoint with exactly one AIMessage — no
+            # fake HumanMessage or SystemMessage polluting future turn history.
+            try:
+                config = {"configurable": {"thread_id": str(session_id)}}
+                with psycopg.connect(
+                    conninfo=self.db_uri, autocommit=True, prepare_threshold=0
+                ) as conn:
+                    checkpointer = PostgresSaver(conn)
+                    if not self.setup_done:
+                        checkpointer.setup()
+                        self.setup_done = True
+                    app = self.workflow.compile(checkpointer=checkpointer)
+                    app.update_state(
+                        config, {"messages": [AIMessage(content=opening_text)]}
+                    )
+            except Exception as e:
+                logger.error(f"Opening checkpoint seed failed: {e}", exc_info=True)
+
+            return opening_text
+
+        except Exception as e:
+            logger.error(f"generate_opening failed: {e}", exc_info=True)
+            return _FALLBACK_OPENING
 
 # Singleton instance
 engine = HariAIEngine()
