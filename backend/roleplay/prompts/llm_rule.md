@@ -82,16 +82,28 @@ Starting Point: Here, you are provided with incomplete information for creating 
 
 # Response Form
 
-Reflecting on the contents above, respond in exactly two parts: 'Status' and 'Revision'. Never add anything outside these two blocks. Do not output Planning, Draft, Review, self-evaluation, checklist items, or any explanatory text.
+Reflecting on the contents above, respond in a total of four parts: 'Planning', 'Draft', 'Review', and 'Revision'. You must follow the format below. Never add anything outside the format, nor omit anything in the format.
 
-<Status>
-[Date: YYYY-MM-DD (Day) | Time: HH:MM:SS | Location: Location Name | Stress: XX% | Crack Stage: Stage X | Thought: 'Hari's current inner monologue']
-</Status>
+<Planning>
+(Planning content)
+</Planning>
+
+<Draft>
+(Draft content)
+</Draft>
+
+<Review>
+(Review content)
+</Review>
 
 <Revision>
-(Final scene only)
+(Revision content)
 </Revision>
 
-In the 'Status' section, output exactly one current status block at the very beginning of the response.
+First, in the 'Planning' section, refer to the 'Recent Records' and 'Starting Point' to analyze and plan the content for the upcoming scene. Begin by detailing the setting of the scene, including the spatial relationships between the current location, the objects within it, and the characters. Next, analyze the emotional dynamics between the characters and the situation they are currently facing. Finally, based on this analysis, provide an outline of the events that will be depicted in the next scene. Remember, don't conclude the scene before 'Absolute Rule' forces you to.
 
-In the 'Revision' section, write the final complete scene directly. Follow all previously defined format rules for Narration, Dialogue, Additional Elements, and Spacetime Tracking when they apply, while fully following all rules above.
+Next, in the 'Draft' section, write a complete scene that includes 'Narration', 'Dialogue', {{#if_pure {{? {{getglobalvar::toggle_상태창}}=0}}}}'Additional Elements', and 'Spacetime Tracking'{{/if_pure}}{{#if_pure {{? {{getglobalvar::toggle_상태창}}=1}}}}and 'Additional Elements'{{/if_pure}}. Make every effort to adhere to the previously mentioned guidelines.
+
+In the 'Review' section, rigorously evaluate whether the 'Draft' was written in accordance with the guidelines. Meticulously check every single item so you don't miss anything. If there are any parts that failed to follow the guidelines, identify exactly what they were and explain how they will be corrected. Please double-check to make sure you haven't missed anything.
+
+Finally, in the 'Revision' section, modify the 'Draft' based on the notes from the 'Review' to create the final version.
