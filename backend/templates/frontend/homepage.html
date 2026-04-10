@@ -924,6 +924,18 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
   .yt-grid { grid-template-columns: 1fr; }
   
   #auth-btn { font-size: 0.8rem; padding: 0.4rem 0.8rem; } /* 아주 작은 화면에서 폰트 깨짐 방지 */
+
+  /* 로그인 모달 최적화 */
+  #auth-modal { padding: 1.8rem 1.5rem 1.5rem; }
+  .auth-title { font-size: 1.8rem; }
+  .social-row, .auth-inp-row { grid-template-columns: 1fr; gap: 0.5rem; }
+  .social-btn { padding: .75rem; font-size: .9rem; } /* 세로 배치로 인한 상하 패딩 축소 */
+  
+  /* 갤러리 슬라이드 최적화 (모바일) */
+  .swiper-gl .swiper-slide { width: 85vw; height: 110vw; max-height: 400px; }
+
+  /* 푸터 로고 모바일 최적화 */
+  .ft-big-logo-img { height: 60px !important; }
 }
 
 /* §5 NEWS */

@@ -2,8 +2,8 @@
 <section id="s1" class="hero-section" style="position:relative;height:100vh;overflow:hidden;background-size:cover;background-position:center;background-repeat:no-repeat;">
 
   <!-- 로고 -->
-  <div style="position:absolute;top:60px;left:60px;z-index:10;pointer-events:none;">
-    <img src="{% static 'images/hari_logo_none.png' %}?v=3" alt="HARI" style="height:140px;width:auto;filter:brightness(0);">
+  <div class="hero-logo-wrap" style="position:absolute;top:60px;left:60px;z-index:10;pointer-events:none;">
+    <img class="hero-logo-img" src="{% static 'images/hari_logo_none.png' %}?v=3" alt="HARI" style="height:140px;width:auto;filter:brightness(0);">
   </div>
 
   <!-- 하단 -->
@@ -45,5 +45,11 @@ html[data-theme="dark"] #s1.hero-section {
 
 #s1 .hero-scroll-hint {
   letter-spacing: 0.25em;
+}
+
+@media (max-width: 480px) {
+  .hero-logo-wrap { top: 20px !important; left: 20px !important; }
+  .hero-logo-img { height: 80px !important; }
+  #s1 .hero-bottom { padding: 4rem 1.5rem 1.5rem 1.5rem; }
 }
 </style>
