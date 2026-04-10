@@ -1,9 +1,12 @@
-import os
 import json
+import os
 import zipfile
-from django.core.management.base import BaseCommand
+
 from django.conf import settings
-from roleplay.models import RpgLorebook, RpgCharacterImage
+from django.core.management.base import BaseCommand
+
+from roleplay.models import RpgCharacterImage, RpgLorebook
+
 
 class Command(BaseCommand):
     help = 'Seeds RpgLorebook and RpgCharacterImage from a RisuAI .charx file'
@@ -21,7 +24,7 @@ class Command(BaseCommand):
             card_json = z.read('card.json').decode('utf-8')
             card_data = json.loads(card_json).get('data', {})
 
-            # Wipe existing to prevent duplicates
+            # Wipe existing to prevent duplicates.
             RpgLorebook.objects.all().delete()
             RpgCharacterImage.objects.all().delete()
             self.stdout.write("Deleted existing RpgLorebook and RpgCharacterImage entries.")
@@ -33,21 +36,21 @@ class Command(BaseCommand):
             base_content += f"Scenario: {card_data.get('scenario', '')}\n"
 
             RpgLorebook.objects.create(
-                keywords="{기본프로필,페르소나,핵심설정}",
+                keywords=["기본프로필", "페르소나", "핵심설정"],
                 lorebook=base_content,
                 priority=100,  # Base profile usually highest priority to stay
                 is_constant=True,
-                is_active=True
+                is_active=True,
             )
             self.stdout.write(self.style.SUCCESS("Seeded Base Profile into RpgLorebook"))
 
-            # Save the First Message separately
+            # Save the First Message separately.
             RpgLorebook.objects.create(
-                keywords="{FirstMessage}",
+                keywords=["FirstMessage"],
                 lorebook=card_data.get('first_mes', '안녕!'),
                 priority=0,
                 is_constant=False,
-                is_active=True
+                is_active=True,
             )
             self.stdout.write(self.style.SUCCESS("Seeded First Message"))
 
@@ -60,11 +63,11 @@ class Command(BaseCommand):
                 content = entry.get('content', '')
                 if keys and content:
                     RpgLorebook.objects.create(
-                        keywords="{" + ",".join(keys) + "}",
+                        keywords=keys,
                         lorebook=content,
                         priority=entry.get('priority', 50),
                         is_constant=entry.get('constant', False),
-                        is_active=True
+                        is_active=True,
                     )
                     count += 1
             self.stdout.write(self.style.SUCCESS(f"Seeded {count} Lorebook entries"))
@@ -80,18 +83,18 @@ class Command(BaseCommand):
                     basename, ext = os.path.splitext(filename)
                     if not ext:
                         continue
-                        
+
                     target_path = os.path.join(media_dir, filename)
                     with open(target_path, 'wb') as f:
                         f.write(z.read(name))
-                    
+
                     rel_url = f'character_images/{filename}'
                     RpgCharacterImage.objects.create(
                         clothes=basename,
                         emotion="neutral",
                         image_url=rel_url,
-                        is_active=True
+                        is_active=True,
                     )
                     img_count += 1
-            
+
             self.stdout.write(self.style.SUCCESS(f"Extracted and seeded {img_count} images into RpgCharacterImage"))

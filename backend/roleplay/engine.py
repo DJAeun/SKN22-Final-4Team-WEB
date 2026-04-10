@@ -16,6 +16,44 @@ ALLOWED_IMAGE_EMOTIONS = {
     'panic', 'pout', 'proud', 'sad', 'sleepy', 'smug', 'surprised', 'thinking',
     'worried',
 }
+FIRST_MESSAGE_KEYWORDS = {'firstmessage', 'first message'}
+SECTION_NAMES = ('Planning', 'Draft', 'Review', 'Revision')
+
+
+def normalize_lorebook_keywords(raw_keywords) -> list[str]:
+    if raw_keywords is None:
+        return []
+
+    if isinstance(raw_keywords, str):
+        stripped = raw_keywords.strip()
+        if stripped.startswith('{') and stripped.endswith('}'):
+            stripped = stripped[1:-1]
+        keywords = [part.strip() for part in stripped.split(',')]
+    elif isinstance(raw_keywords, (list, tuple, set)):
+        keywords = [str(part).strip() for part in raw_keywords]
+    else:
+        keywords = [str(raw_keywords).strip()]
+
+    return [keyword for keyword in keywords if keyword]
+
+
+def keyword_matches_text(keyword: str, text: str) -> bool:
+    normalized_keyword = keyword.casefold()
+    normalized_text = text.casefold()
+    return normalized_keyword in normalized_text if normalized_keyword else False
+
+
+def is_first_message_keywords(raw_keywords) -> bool:
+    normalized_keywords = normalize_lorebook_keywords(raw_keywords)
+    return any(keyword.casefold() in FIRST_MESSAGE_KEYWORDS for keyword in normalized_keywords)
+
+
+def get_first_message_lorebook() -> RpgLorebook | None:
+    lorebooks = RpgLorebook.objects.filter(is_active=True).order_by('priority', 'created_at')
+    for lorebook in lorebooks:
+        if is_first_message_keywords(lorebook.keywords):
+            return lorebook
+    return None
 
 
 def _extract_meta_value(source_text: str, label: str) -> str:
@@ -66,8 +104,33 @@ def normalize_meta_text(value: str) -> str:
     return cleaned.strip()
 
 
+def extract_named_section(text: str, name: str) -> str:
+    tag_patterns = [
+        rf'<\s*{name}\s*>(.*?)</\s*{name}\s*>',
+        rf'<\s*{name}\s*>(.*)$',
+    ]
+
+    for pattern in tag_patterns:
+        match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+
+    heading_pattern = rf'(?ims)^\s*#{{0,6}}\s*{name}\s*:?\s*$\s*(.*?)(?=^\s*#{{0,6}}\s*(?:{"|".join(SECTION_NAMES)})\s*:?\s*$|\Z)'
+    heading_match = re.search(heading_pattern, text)
+    if heading_match:
+        return heading_match.group(1).strip()
+
+    return ''
+
+
 def strip_status_content(text: str) -> str:
     cleaned = re.sub(r'<Status>.*?</Status>', '', text, flags=re.DOTALL | re.IGNORECASE)
+    cleaned = re.sub(
+        r'<\s*Status\s*>\s*\[\s*Date:.*?(?:Thought|Inner Thought|Current Thought)\s*:\s*.*?\]\s*</\s*Status\s*>',
+        '',
+        cleaned,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
     cleaned = re.sub(
         r'\[\s*Date:.*?(?:Thought|Inner Thought|Current Thought)\s*:\s*.*?\]',
         '',
@@ -81,6 +144,7 @@ def strip_status_content(text: str) -> str:
         flags=re.IGNORECASE | re.MULTILINE,
     )
     cleaned = re.sub(r'</?(Planning|Draft|Review|Revision)>', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'^\s*#{0,6}\s*(Planning|Draft|Review|Revision)\s*:?\s*$', '', cleaned, flags=re.IGNORECASE | re.MULTILINE)
     cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
     return cleaned.strip()
 
@@ -253,6 +317,52 @@ class PromptBuilder:
     def _render_template_text(self, text: str, kwargs: dict) -> str:
         return Template(text).render(Context(self._build_template_context(kwargs)))
 
+    def _build_lorebook_lookup_corpus(self, user_input: str, recent_records_text: str, latest_memory: RpgHyperMemory | None) -> str:
+        corpus_parts = [user_input, recent_records_text]
+
+        if latest_memory:
+            corpus_parts.extend([
+                latest_memory.location_transition or '',
+                latest_memory.context_overview or '',
+                latest_memory.emotional_dynamics or '',
+                "\n".join(latest_memory.events or []),
+                "\n".join(latest_memory.infos or []),
+                "\n".join(latest_memory.dialogues or []),
+                ", ".join(latest_memory.characters_present or []),
+            ])
+
+        return "\n".join(part for part in corpus_parts if part).casefold()
+
+    def _select_lorebook_texts(
+        self,
+        user_input: str,
+        recent_records_text: str,
+        latest_memory: RpgHyperMemory | None,
+        kwargs: dict,
+    ) -> list[str]:
+        lorebooks = RpgLorebook.objects.filter(is_active=True).order_by('priority', 'created_at')
+        lookup_corpus = self._build_lorebook_lookup_corpus(user_input, recent_records_text, latest_memory)
+        selected_texts: list[str] = []
+        first_message_text = ''
+
+        for lorebook in lorebooks:
+            rendered_text = self._render_template_text(lorebook.lorebook, kwargs)
+            normalized_keywords = normalize_lorebook_keywords(lorebook.keywords)
+
+            if is_first_message_keywords(normalized_keywords):
+                first_message_text = rendered_text
+                continue
+
+            if lorebook.is_constant:
+                selected_texts.append(rendered_text)
+                continue
+
+            if normalized_keywords and any(keyword_matches_text(keyword, lookup_corpus) for keyword in normalized_keywords):
+                selected_texts.append(rendered_text)
+
+        if first_message_text:
+            return [first_message_text, *selected_texts]
+        return selected_texts
     def build_system_prompt(self, kwargs: dict) -> str:
         """
         Loads the rule markdown, converts macros to Django templating, 
@@ -289,15 +399,8 @@ class PromptBuilder:
         """
         # 1. System Prompt (llm_rule.md)
         system_base = self.build_system_prompt(kwargs)
-        
-        # 2. Prologue (Lorebook & Setting)
-        # Assuming higher priority number means it should be injected closer to the end, or just grouped.
-        lorebooks = RpgLorebook.objects.filter(is_active=True).order_by('priority').values_list('lorebook', flat=True)
-        prologue_text = "\n\n".join(lorebooks)
-        rendered_lorebooks = [self._render_template_text(lorebook, kwargs) for lorebook in lorebooks]
-        prologue_text = "\n\n".join(rendered_lorebooks)
-        
-        # 3. Past Records (HyperMemory)
+
+        # 2. Past Records (HyperMemory)
         # Fetch latest hyper memory for the session
         latest_memory = RpgHyperMemory.objects.filter(session=self.session).order_by('-created_at').first()
         past_records_text = ""
@@ -320,6 +423,17 @@ class PromptBuilder:
         recent_records_text = "\n".join([f"{log.role}: {log.content}" for log in recent_logs])
         if not recent_records_text:
             recent_records_text = "(No recent records)"
+
+        # 4. Prologue (always-on lorebooks + keyword-triggered lorebooks + canonical first message)
+        rendered_lorebooks = self._select_lorebook_texts(
+            user_input=user_input,
+            recent_records_text=recent_records_text,
+            latest_memory=latest_memory,
+            kwargs=kwargs,
+        )
+        prologue_text = "\n\n".join(rendered_lorebooks)
+        if not prologue_text:
+            prologue_text = "(No prologue)"
         
         # 5. Starting Point (User Input)
         # TODO: Implement optional Vector DB RAG injection here
@@ -452,9 +566,12 @@ class MainEngine:
         Extracts content inside <Revision> block.
         Fallback to whole text if not found.
         """
-        match = re.search(r'<Revision>(.*?)</Revision>', text, re.DOTALL)
-        if match:
-            return strip_image_command(strip_status_content(match.group(1).strip()))
-        
+        revision_text = extract_named_section(text, 'Revision')
+        if revision_text:
+            return strip_image_command(strip_status_content(revision_text))
+
+        draft_text = extract_named_section(text, 'Draft')
+        if draft_text:
+            return strip_image_command(strip_status_content(draft_text))
         # Fallback handles the cases where LLM forgets the tag
         return strip_image_command(strip_status_content(text.strip()))
