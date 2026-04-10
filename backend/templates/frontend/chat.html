@@ -45,15 +45,15 @@
 
 /* 다크 모드 */
 html[data-theme="dark"] {
-  --bg-main: rgba(45, 35, 25, 0.85);
-  --bg-gradient: rgba(45, 35, 25, 0.85);
-  --bubble-hari: linear-gradient(135deg, #5a5248 0%, #4a423a 100%);
+  --bg-main: rgba(55, 35, 50, 0.88);
+  --bg-gradient: rgba(55, 35, 50, 0.88);
+  --bubble-hari: linear-gradient(135deg, #7a5a6a 0%, #5a3a5a 100%);
   --bubble-me: linear-gradient(135deg, #ff8a9b 0%, #ffaa88 100%);
   --bubble-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
   --text-main: #fff9f7;
-  --text-dim: #d4cac5;
-  --text-time: #b5aea8;
-  --header-bg: rgba(42, 36, 32, 0.98);
+  --text-dim: #e0c8d0;
+  --text-time: #d0b8c5;
+  --header-bg: rgba(55, 35, 50, 0.98);
   --border: rgba(255, 138, 155, 0.25);
 }
 
@@ -63,24 +63,25 @@ html[data-theme="dark"] .sidebar-left {
 }
 
 html[data-theme="dark"] .sidebar-left::after {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.6) 60%, rgba(26, 22, 18, 0.95) 100%) !important;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.4) 60%, rgba(55, 35, 50, 0.95) 100%) !important;
 }
 
 html[data-theme="dark"] .sidebar-right {
-  background: #1f1812 !important;
+  background: #3d2838 !important;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3) !important;
 }
 
 html[data-theme="dark"] .chat-container {
-  background: rgba(26, 22, 18, 0.75) !important;
+  background: rgba(55, 35, 50, 0.75) !important;
 }
 
 html[data-theme="dark"] .header {
-  background: rgba(26, 22, 18, 0.75) !important;
+  background: rgba(55, 35, 50, 0.75) !important;
   backdrop-filter: blur(8px);
 }
 
 html[data-theme="dark"] .input-area {
-  background: rgba(60, 48, 36, 0.8) !important;
+  background: rgba(60, 40, 55, 0.8) !important;
 }
 
 html[data-theme="dark"] #messageInput {
@@ -186,8 +187,8 @@ html, body {
    ═══════════════════════════════════════ */
 .sidebar-right {
   width: 320px;
-  background: white;
-  border-left: 1px solid var(--border);
+  background: var(--bg-main);
+  border-left: none;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;

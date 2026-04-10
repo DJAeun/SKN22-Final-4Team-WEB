@@ -1,0 +1,189 @@
+{% extends "admin/base_site.html" %}
+{% load admin_urls static admin %}
+
+{% block title %}{{ cl.opts.verbose_name_plural | capfirst }} | HARI 관리자{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <style>
+    /* ── 목록 헤더 ────────────────────────────────────────── */
+    .changelist-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .changelist-header h1 {
+      font-size: 24px;
+      color: #2a2420;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .changelist-filters {
+      float: right;
+      margin-left: 20px;
+      width: 240px;
+    }
+
+    .changelist-filters h2 {
+      color: #2a2420;
+      font-size: 14px;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #ff7b8a;
+      font-weight: 600;
+    }
+
+    .changelist-filters ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .changelist-filters li {
+      padding: 8px 0;
+    }
+
+    .changelist-filters a {
+      color: #ff7b8a;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      display: block;
+      transition: all 0.2s ease;
+    }
+
+    .changelist-filters a:hover {
+      background: rgba(255, 123, 138, 0.1);
+      color: #ff5566;
+    }
+
+    .changelist-filters a.selected {
+      background: #ff7b8a;
+      color: white;
+      font-weight: 600;
+    }
+
+    /* ── 변경 목록 테이블 ────────────────────────────────────────── */
+    #changelist {
+      clear: left;
+    }
+
+    #changelist table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    #changelist thead th {
+      background: #f8f5f2;
+      color: #2a2420;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid #ff7b8a;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    #changelist tbody tr {
+      border-bottom: 1px solid #eee;
+      transition: background-color 0.2s ease;
+    }
+
+    #changelist tbody tr:hover {
+      background-color: rgba(255, 123, 138, 0.05);
+    }
+
+    #changelist td {
+      padding: 15px;
+      color: #555;
+    }
+
+    #changelist .field-checkbox {
+      text-align: center;
+    }
+
+    /* ── 검색 폼 및 제출 ────────────────────────────────────────── */
+    .submit-row {
+      background: white;
+      padding: 20px 0;
+      border-top: 1px solid #ddd;
+      margin-top: 20px;
+    }
+
+    .search-form {
+      margin-bottom: 20px;
+    }
+
+    .search-form input[type="text"] {
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      min-width: 250px;
+    }
+
+    .search-form input[type="submit"] {
+      margin-left: 10px;
+    }
+
+    /* ── 페이지네이터 ────────────────────────────────────────── */
+    .paginator {
+      margin-top: 20px;
+      padding: 15px 0;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .paginator a {
+      padding: 8px 12px;
+      margin: 0 2px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      text-decoration: none;
+      color: #ff7b8a;
+    }
+
+    .paginator a:hover {
+      background: #ff7b8a;
+      color: white;
+    }
+
+    .paginator .step-links {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+  </style>
+{% endblock %}
+
+{% block content_title %}
+  <h1>{{ cl.opts.verbose_name_plural | capfirst }}</h1>
+{% endblock %}
+
+{% block search %}
+  {% search_form cl %}
+{% endblock %}
+
+{% block date_hierarchy %}
+  {% date_hierarchy cl %}
+{% endblock %}
+
+{% block filters %}
+  {% admin_list_filter cl %}
+{% endblock %}
+
+{% block result_list %}
+  {% result_list cl %}
+{% endblock %}
+
+{% block pagination %}
+  {% pagination cl %}
+{% endblock %}
