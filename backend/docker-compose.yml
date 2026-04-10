@@ -35,7 +35,7 @@ services:
 
   celery:
     build: .
-    command: sh -c "export PYTHONPATH=$PYTHONPATH:/app && celery -A config worker --loglevel=info --concurrency=2"
+    command: sh -c "export PYTHONPATH=$PYTHONPATH:/app && celery -A config worker --loglevel=info --concurrency=1"
     env_file:
       - .env
     environment:

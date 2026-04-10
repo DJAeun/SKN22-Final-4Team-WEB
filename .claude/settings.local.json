@@ -20,7 +20,16 @@
       "Bash(curl -sS -v https://chatting-hari.com/)",
       "Bash(aws elbv2 describe-load-balancers:*)",
       "Bash(chmod +x c:/Workspaces/SKN22-Final-4Team-WEB/backend/.platform/hooks/prebuild/01-docker-build.sh)",
-      "Bash(git update-index:*)"
+      "Bash(git update-index:*)",
+      "Bash(curl -sS -o /tmp/hari_api.txt -w \"HTTP:%{http_code}\\\\nTIME:%{time_total}\\\\n\" https://chatting-hari.com/api/)",
+      "Read(//tmp/**)",
+      "Bash(aws ec2:*)",
+      "Bash(aws elbv2 describe-target-groups:*)",
+      "Bash(aws elbv2 describe-target-health:*)",
+      "Bash(aws autoscaling describe-auto-scaling-groups:*)",
+      "Bash(aws elbv2 deregister-targets:*)",
+      "Bash(curl:*)",
+      "Bash(xargs grep:*)"
     ]
   }
 }
