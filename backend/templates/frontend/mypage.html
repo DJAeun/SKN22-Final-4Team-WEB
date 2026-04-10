@@ -234,7 +234,25 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
   :root { --sw: 200px; }
 }
 @media(max-width:800px){
-  #sidebar{ display:none; }
+  #sb-toggle-btn { display: block !important; margin-right: 0.5rem; }
+  #sidebar {
+    position: fixed;
+    top: var(--th);
+    left: -100%;
+    height: calc(100vh - var(--th));
+    width: 260px;
+    z-index: 200;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--bg);
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    display: flex;
+  }
+  #sidebar.open { left: 0; }
+  #sidebar-overlay { 
+     display: none; position: fixed; inset: 0; top: var(--th); 
+     background: rgba(0,0,0,0.4); z-index: 199; backdrop-filter: blur(2px);
+  }
+  #sidebar.open ~ #sidebar-overlay { display: block; }
 }
 @media(max-width:480px){
   #topbar{ padding:0 1rem 0 0; }
