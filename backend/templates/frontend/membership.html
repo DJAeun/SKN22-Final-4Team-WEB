@@ -251,21 +251,23 @@
 
     @media (max-width: 1024px) {
       .plans-wrapper { gap: 16px; }
-      .plan-card { padding: 24px 20px; }
+      .plan-card { padding: 18px 16px; }
     }
     @media (max-width: 768px) {
+      .container { padding-bottom: 180px; } /* 쌓인 모바일 버튼 높이 대비 여백 증가 */
       .plans-wrapper { grid-template-columns: 1fr; }
       .main-title { font-size: 26px; }
       header { height: 75px; }
       .header-logo { height: 35px; }
       .cta-inner { flex-direction: column; }
-      .back-btn { order: 2; height: 50px; font-size: 16px; }
       .next-btn { order: 1; height: 60px; font-size: 20px; }
+      .cancel-btn { order: 2; height: 50px; font-size: 16px; }
+      .back-btn { order: 3; height: 50px; font-size: 16px; }
     }
     @media (max-width: 480px) {
       .main-title { font-size: 22px; }
-      .plan-price { font-size: 28px; }
-      .plan-card { padding: 20px 16px; }
+      .plan-price-val { font-size: 20px; }
+      .plan-card { padding: 14px 12px; }
       header { height: 60px; padding: 0 1rem; }
       .header-logo { height: 28px; }
       .header-right a { font-size: 15px; }
@@ -273,8 +275,8 @@
     }
     @media (max-width: 360px) {
       .main-title { font-size: 18px; }
-      .plan-price { font-size: 24px; }
-      .plan-card { padding: 16px 12px; }
+      .plan-price-val { font-size: 18px; }
+      .plan-card { padding: 12px 10px; }
       header { height: 54px; }
       .header-right a { font-size: 13px; }
     }
