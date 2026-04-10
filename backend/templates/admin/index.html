@@ -1,0 +1,278 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block title %}대시보드 | HARI Admin{% endblock %}
+
+{% block content %}
+<style>
+  /* ── 대시보드 헤더 (연분홍) ── */
+  .dash-header {
+    background: #fff0f2;
+    border: 1px solid #ffc9ce;
+    border-radius: 10px;
+    padding: 22px 26px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .dash-header-text h1 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #c03048;
+    margin-bottom: 3px;
+    letter-spacing: 0.01em;
+  }
+
+  .dash-header-text p {
+    font-size: 0.75rem;
+    color: #e0808a;
+    margin: 0;
+  }
+
+  .dash-header-badge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #ff7b8a;
+    background: #ffffff;
+    border: 1px solid #ffc9ce;
+    border-radius: 20px;
+    padding: 4px 12px;
+    white-space: nowrap;
+  }
+
+  /* ── 섹션 타이틀 ── */
+  .section-label {
+    font-size: 0.61rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #e06070;
+    margin-bottom: 11px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #f5dde0;
+  }
+
+  .app-section {
+    margin-bottom: 28px;
+  }
+
+  /* ── 모델 카드 ── */
+  .model-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+  }
+
+  .model-card {
+    background: #ffffff;
+    border: 1px solid #f0e0e3;
+    border-radius: 8px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.18s, border-color 0.18s;
+  }
+
+  .model-card:hover {
+    border-color: #ffb0bb;
+    box-shadow: 0 3px 12px rgba(255,100,120,0.09);
+  }
+
+  .model-card h4 {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #2a1018;
+    margin-bottom: 12px;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 7px;
+  }
+
+  .card-actions a {
+    flex: 1;
+    padding: 6px 10px;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 0.71rem;
+    font-weight: 500;
+    text-decoration: none !important;
+    transition: background 0.15s;
+  }
+
+  .btn-manage {
+    background: #ff7b8a;
+    color: #ffffff !important;
+    border: 1px solid transparent;
+  }
+
+  .btn-manage:hover {
+    background: #f56070 !important;
+    color: #ffffff !important;
+  }
+
+  .btn-add {
+    background: transparent;
+    color: #d95060 !important;
+    border: 1px solid #f0b8be;
+  }
+
+  .btn-add:hover {
+    background: #fff0f2 !important;
+    color: #d95060 !important;
+  }
+
+  /* ── 콘텐츠 관리 섹션 ── */
+  .upcoming-section {
+    margin-bottom: 28px;
+  }
+
+  .upcoming-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+  }
+
+  /* ── 최근 활동 ── */
+  .recent-section {
+    background: #ffffff;
+    border: 1px solid #f0e0e3;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    overflow: hidden;
+    margin-top: 4px;
+  }
+
+  .recent-header {
+    padding: 11px 18px;
+    border-bottom: 1px solid #f5dde0;
+    font-size: 0.61rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #e06070;
+    background: #fffbfb;
+  }
+
+  .recent-list {
+    list-style: none;
+  }
+
+  .recent-list li {
+    padding: 9px 18px;
+    border-bottom: 1px solid #f9eef0;
+    font-size: 0.79rem;
+    color: #3a2028;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .recent-list li:last-child { border-bottom: none; }
+  .recent-list li:hover { background: #fffbfb; }
+  .recent-list li a { color: #e06070 !important; }
+
+  .empty-msg {
+    padding: 28px;
+    text-align: center;
+    color: #c9a0aa;
+    font-size: 0.79rem;
+  }
+</style>
+
+<div id="content-main">
+
+  <!-- ── 헤더 ── -->
+  <div class="dash-header">
+    <div class="dash-header-text">
+      <h1>HARI 관리자 대시보드</h1>
+      <p>데이터 확인·수정·추가는 아래 모델 카드에서 진행하세요.</p>
+    </div>
+    <span class="dash-header-badge">HARI Admin</span>
+  </div>
+
+  <!-- ── 현재 활성 모델 ── -->
+  {% if app_list %}
+    {% for app in app_list %}
+      <div class="app-section">
+        <div class="section-label">{{ app.name }}</div>
+        <div class="model-grid">
+          {% for model in app.models %}
+            <div class="model-card">
+              <h4>{{ model.name }}</h4>
+              <div class="card-actions">
+                {% if model.change_url %}
+                  <a href="{{ model.change_url }}" class="btn-manage">목록 보기</a>
+                {% endif %}
+                {% if model.add_url %}
+                  <a href="{{ model.add_url }}" class="btn-add">추가</a>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-msg">접근 가능한 모델이 없습니다.</div>
+  {% endif %}
+
+  <!-- ── 콘텐츠 관리 (백엔드 모델 생성 후 연결 예정) ── -->
+  <div class="upcoming-section">
+    <div class="section-label">콘텐츠 관리</div>
+    <div class="upcoming-grid">
+
+      <div class="model-card">
+        <h4>Gallery Images</h4>
+        <div class="card-actions">
+          <a href="#" class="btn-add">추가</a>
+        </div>
+      </div>
+
+      <div class="model-card">
+        <h4>News &amp; Events</h4>
+        <div class="card-actions">
+          <a href="#" class="btn-add">추가</a>
+        </div>
+      </div>
+
+      <div class="model-card">
+        <h4>Video Contents</h4>
+        <div class="card-actions">
+          <a href="#" class="btn-add">추가</a>
+        </div>
+      </div>
+
+      <div class="model-card">
+        <h4>Contact Submissions</h4>
+        <div class="card-actions">
+          <a href="#" class="btn-add">추가</a>
+        </div>
+      </div>
+
+      <div class="model-card">
+        <h4>User Memberships</h4>
+        <div class="card-actions">
+          <a href="#" class="btn-add">추가</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── 최근 활동 ── -->
+  {% if recent_actions %}
+    <div class="recent-section">
+      <div class="recent-header">최근 활동</div>
+      <ul class="recent-list">
+        {% for action in recent_actions %}
+          <li>{{ action }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

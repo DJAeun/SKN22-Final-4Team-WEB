@@ -22,6 +22,7 @@ from django.views.generic import RedirectView
 from django.http import HttpResponse
 from chat.views import health_check, homepage, mypage, frontend_chat, admin_dashboard, admin_toggle_content, admin_toggle_knowledge, abouthari_page, gallery_page, news_page, video_page, membership_page, contact_form
 
+
 def robots_txt(_request):
     return HttpResponse('User-agent: *\nAllow: /\n', content_type='text/plain')
 
