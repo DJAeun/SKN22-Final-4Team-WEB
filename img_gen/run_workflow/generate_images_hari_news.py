@@ -13,7 +13,7 @@ import websocket  # pip install websocket-client
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-COMFYUI_URL = "https://3tsd8pc9yqt4rz-8188.proxy.runpod.net"
+COMFYUI_URL = "https://5r8nlrq0r1pl6j-8188.proxy.runpod.net/"
 SAVE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "generated_images", "hari_news")
 NUM_IMAGES = 500
 
@@ -25,13 +25,13 @@ RAW_PROMPT_TEXT = (
 
     "03. [SUBJECT & PHYSIOLOGY]:hari, exuding a confident, sexy tech-influencer aura. an unwavering gaze directly into the lens."
 
-    "04. [WARDROBE & TEXTILE]: Tops: ({solid | striped | plaid | floral | polka_dot | geometric | sheer | }| ){white | black | gray | beige | tan | blue | navy | red | pastel_pink | pastel_yellow | pastel_green | cream}_ {tshirt, short_sleeve | tank_top, sleeveless | button_shirt, rolled_sleeves | crop_top, fitted | linen_blouse, loose_fit | polo_shirt, collar | camisole, thin_straps}, Outerwear: {({solid | striped | plaid | floral | polka_dot | geometric | sheer | }| ){white | black | gray | beige | tan | blue | navy | red | pastel_pink | pastel_yellow | pastel_green | cream}_ {denim_jacket | light_cardigan | open_shirt} | }, Accessories: {({solid | striped | plaid | floral | polka_dot | geometric | sheer | }| ){white | black | gray | beige | tan | blue | navy | red | pastel_pink | pastel_yellow | pastel_green | cream}_ sun_hat | {white | black | gray | beige | tan | blue | navy | red | pastel_pink | pastel_yellow | pastel_green | cream}_ {sunglasses | hairband | necklace | bracelet} | }, made of {cotton | linen | silk | rayon | jersey | chiffon}"
+    "04. [WARDROBE & TEXTILE]: Tops: ({crisp white oversized Oxford cotton shirt with rolled-up sleeves|sleek black turtleneck made of high-density merino wool|minimalist grey structured blazer over a matte silk camisole | Black Business suit | Black Leather Jacket with white t-shirt, deep scoop neck | solid | striped | plaid | floral | polka_dot | geometric | sheer | }| ){white | black | gray | beige | tan | blue | navy | red | pastel_pink | pastel_yellow | pastel_green | cream}_ {tshirt, short_sleeve | tank_top, sleeveless | button_shirt, rolled_sleeves | crop_top, fitted | linen_blouse, loose_fit | polo_shirt, collar | camisole, thin_straps}, Outerwear: {({solid | striped | plaid | floral | polka_dot | geometric | sheer | }| ){white | black | gray | beige | tan | blue | navy | red | pastel_pink | pastel_yellow | pastel_green | cream}_ {denim_jacket | light_cardigan | open_shirt} | } "
 
     "05. [ENVIRONMENT & ARCHITECTURE]: The environment is a meticulously curated high-end tech YouTuber studio setup. A sleek matte black walnut wood desk occupies the immediate foreground, anchoring the composition. In the softly blurred background, subtle RGB accent lighting in cyan and magenta washes over premium acoustic foam panels. A secondary monitor displaying data analytics and a professional broadcast microphone on a boom arm complete the technologically advanced, crisp atmosphere. "
 
-    "06. [ACTION & POSTURE]: The subject is seated perfectly in the center of the frame, maintaining an upright, confident, and highly professional posture. Her shoulders are relaxed yet poised, demonstrating a natural ease before recording. Her hands rest delicately on the desk, with her finger joints gently curved. Her gaze and faint smile are directed exactly at the camera lens, effectively projecting absolute readiness to deliver tech news. "
+    "06. [ACTION & POSTURE]: The subject is seated perfectly in the center of the frame, maintaining an upright, confident, and highly professional posture. Her shoulders are relaxed, demonstrating a natural ease before recording. Her hands rest delicately on the desk, with her finger joints gently curved. Her gaze is directed exactly at the camera lens, effectively projecting absolute readiness to deliver tech news. "
 
-    "06. [ACTION & POSTURE]: Seated elegantly behind the desk, her posture is relaxed. She leans slightly forward, resting her forearms gently on the desk edge, creating a subtle compression of her top that accentuates her cleavage. Her gaze is locked directly into the lens with a captivating, faint smile. Her delicate fingers are subtly intertwined."
+    "06. [ACTION & POSTURE]: Seated elegantly behind the desk, her posture is relaxed. She leans slightly forward, resting her forearms gently on the desk edge, creating a subtle compression of her top that accentuates her cleavage. Her gaze is locked directly into the lens. Her delicate fingers are subtly intertwined."
 )
 
 # ── Wildcard resolver ─────────────────────────────────────────────────────────

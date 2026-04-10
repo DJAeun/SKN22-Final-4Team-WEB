@@ -55,6 +55,137 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
 # ============================================================
+# 자막 관련 유틸리티
+# ============================================================
+def format_srt_time(seconds: float) -> str:
+    """초(float) → SRT 타임스탬프 문자열 (HH:MM:SS,mmm)"""
+    h = int(seconds // 3600)
+    m = int((seconds % 3600) // 60)
+    s = int(seconds % 60)
+    ms = int((seconds % 1) * 1000)
+    return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
+
+
+def extract_audio_from_video(video_path: str) -> str:
+    """영상에서 오디오를 MP3로 추출 (HeyGen 렌더링 타이밍 기준 싱크)."""
+    extracted_path = os.path.splitext(video_path)[0] + "_audio.mp3"
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", video_path,
+        "-vn",
+        "-codec:a", "libmp3lame",
+        "-qscale:a", "2",
+        extracted_path,
+    ]
+    print(f"\n🔊 영상에서 오디오 추출 중... → {os.path.basename(extracted_path)}")
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"ffmpeg 오디오 추출 실패: {result.stderr.strip()}")
+    print(f"   ✅ 추출 완료! ({os.path.getsize(extracted_path):,} bytes)")
+    return extracted_path
+
+
+def generate_srt_from_audio(audio_path: str, script_text: str | None = None) -> str:
+    """Whisper API로 오디오를 전사하고 SRT 자막 파일 생성.
+
+    싱크 소스: raw_{ts}.mp4에서 추출한 오디오 사용.
+    HeyGen 렌더링 과정의 미세한 타이밍 보정이 반영된 기준점.
+    """
+    from openai import OpenAI
+
+    client = OpenAI()
+
+    # 고유명사/외래어를 프롬프트 앞에 배치하여 Whisper 정확도 향상
+    # 스크립트 첫 500자: 도메인 특화 용어(HeyGen→헤이젠, Shorts→쇼츠 등)가
+    # 앞에 나올수록 전사 정확도가 올라감
+    prompt_hint = script_text[:500] if script_text else None
+
+    print(f"\n📝 Whisper API로 자막 생성 중... ({os.path.basename(audio_path)})")
+    with open(audio_path, "rb") as audio_file:
+        transcription = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_file,
+            response_format="verbose_json",
+            language="ko",
+            prompt=prompt_hint,
+        )
+
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    srt_path = os.path.join(OUTPUT_DIR, f"subtitles_{ts}.srt")
+
+    with open(srt_path, "w", encoding="utf-8") as f:
+        for i, seg in enumerate(transcription.segments, 1):
+            start = format_srt_time(seg["start"])
+            end = format_srt_time(seg["end"])
+            f.write(f"{i}\n{start} --> {end}\n{seg['text'].strip()}\n\n")
+
+    print(f"   ✅ SRT 생성 완료! ({len(transcription.segments)}개 세그먼트) → {srt_path}")
+    return srt_path
+
+
+def download_script_from_s3(s3_key: str, bucket: str | None = None) -> str:
+    """S3에서 스크립트 .txt 파일을 다운로드하고 텍스트 반환."""
+    import boto3
+
+    bucket = bucket or os.environ.get("S3_BUCKET")
+    if not bucket:
+        raise ValueError("S3_BUCKET 환경변수가 설정되지 않았습니다.")
+
+    s3 = boto3.client("s3")
+    local_path = os.path.join(INPUT_AUDIO_DIR, os.path.basename(s3_key))
+
+    print(f"\n📥 S3에서 스크립트 다운로드 중... s3://{bucket}/{s3_key}")
+    s3.download_file(bucket, s3_key, local_path)
+
+    with open(local_path, "r", encoding="utf-8") as f:
+        text = f.read()
+    print(f"   ✅ 다운로드 완료! ({len(text)} chars)")
+    return text
+
+
+def burn_subtitles(video_path: str, srt_path: str) -> str:
+    """ffmpeg로 SRT 자막을 영상에 하드코딩.
+
+    Windows 절대경로 처리:
+      ffmpeg subtitles 필터는 역슬래시→슬래시, 콜론 이스케이프 필요.
+      e.g. C:/path/to/file.srt → C\\:/path/to/file.srt
+    """
+    output_path = video_path.replace(".mp4", "_subtitled.mp4")
+
+    srt_escaped = srt_path.replace("\\", "/").replace(":", "\\:")
+
+    # 1080x1920 세로 영상 (YouTube Shorts) 최적화 스타일
+    # MarginV=180: 좋아요·채널명 등 Shorts UI 요소에 가려지지 않도록
+    force_style = (
+        "FontName=Malgun Gothic,"
+        "FontSize=60,"
+        "PrimaryColour=&H00FFFFFF,"
+        "OutlineColour=&H00000000,"
+        "BorderStyle=1,"
+        "Outline=2,"
+        "Shadow=1,"
+        "MarginV=180,"
+        "Alignment=2"
+    )
+    vf = f"subtitles='{srt_escaped}':force_style='{force_style}'"
+
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", video_path,
+        "-vf", vf,
+        "-c:a", "copy",
+        output_path,
+    ]
+
+    print(f"\n🔤 자막 합성 중... → {os.path.basename(output_path)}")
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"ffmpeg 자막 합성 실패: {result.stderr.strip()}")
+    print(f"   ✅ 자막 합성 완료! ({os.path.getsize(output_path):,} bytes)")
+    return output_path
+
+
+# ============================================================
 # 1. WAV → MP3 변환
 # ============================================================
 def convert_wav_to_mp3(wav_path: str) -> str:
@@ -306,7 +437,13 @@ def register_content(script_text: str, video_path: str | None = None, content_ur
 # ============================================================
 # 파이프라인 실행
 # ============================================================
-def run_pipeline(wav_path: str | None = None, script_text: str | None = None, content_url: str | None = None):
+def run_pipeline(
+    wav_path: str | None = None,
+    script_text: str | None = None,
+    content_url: str | None = None,
+    s3_script_key: str | None = None,
+    skip_subtitles: bool = False,
+):
     """
     WAV 오디오 기반 HeyGen 영상 생성 파이프라인.
 
@@ -314,6 +451,8 @@ def run_pipeline(wav_path: str | None = None, script_text: str | None = None, co
         wav_path: WAV 파일 경로. None이면 input_audio 폴더에서 최신 파일 사용.
         script_text: 영상 대본. 제공 시 DB에 자동 등록 + 임베딩 생성.
         content_url: S3 등 외부 URL (선택).
+        s3_script_key: S3 스크립트 키 (예: scripts/20260320.txt). 제공 시 S3에서 다운로드.
+        skip_subtitles: True면 자막 생성·합성 단계를 건너뜀.
     """
     # WAV 파일 결정
     if wav_path is None:
@@ -351,7 +490,26 @@ def run_pipeline(wav_path: str | None = None, script_text: str | None = None, co
 
     # ── Step 5: 영상 다운로드
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    final_path = download_video(video_url, f"final_{ts}.mp4")
+    raw_path = download_video(video_url, f"raw_{ts}.mp4")
+
+    # ── Step 5.5a: S3에서 스크립트 다운로드 (필요 시)
+    if s3_script_key and not script_text:
+        try:
+            script_text = download_script_from_s3(s3_script_key)
+        except Exception as e:
+            print(f"\n   S3 스크립트 다운로드 실패 (자막 없이 계속): {e}")
+
+    # ── Step 5.5b+c: 자막 생성 및 합성
+    final_path = raw_path
+    if not skip_subtitles:
+        try:
+            # 싱크 소스: 업로드한 원본 MP3가 아닌 다운받은 영상에서 추출한 오디오 사용
+            # → HeyGen 렌더링 중 발생한 미세 타이밍 보정이 반영된 기준점
+            extracted_audio = extract_audio_from_video(raw_path)
+            srt_path = generate_srt_from_audio(extracted_audio, script_text=script_text)
+            final_path = burn_subtitles(raw_path, srt_path)
+        except Exception as e:
+            print(f"\n   자막 처리 실패 (원본 영상 사용): {e}")
 
     # ── Step 6: 스크립트가 있으면 DB 자동 등록
     if script_text:
@@ -362,7 +520,8 @@ def run_pipeline(wav_path: str | None = None, script_text: str | None = None, co
 
     print("\n" + "=" * 60)
     print("전체 완료!")
-    print(f"   최종 영상 : {final_path}")
+    print(f"   원본 영상    : {raw_path}")
+    print(f"   최종 영상    : {final_path}")
     print("=" * 60)
     return final_path
 
@@ -376,6 +535,8 @@ if __name__ == "__main__":
     parser.add_argument("--script", type=str, default=None, help="Script text (inline)")
     parser.add_argument("--script-file", type=str, default=None, help="Path to script .txt file")
     parser.add_argument("--content-url", type=str, default=None, help="S3 or external URL for the content")
+    parser.add_argument("--s3-script-key", type=str, default=None, help="S3 key for script .txt (e.g. scripts/20260320.txt)")
+    parser.add_argument("--skip-subtitles", action="store_true", help="Skip subtitle generation and burning")
     args = parser.parse_args()
 
     script = args.script
@@ -383,4 +544,10 @@ if __name__ == "__main__":
         with open(args.script_file, "r", encoding="utf-8") as f:
             script = f.read()
 
-    run_pipeline(wav_path=args.wav, script_text=script, content_url=args.content_url)
+    run_pipeline(
+        wav_path=args.wav,
+        script_text=script,
+        content_url=args.content_url,
+        s3_script_key=args.s3_script_key,
+        skip_subtitles=args.skip_subtitles,
+    )
