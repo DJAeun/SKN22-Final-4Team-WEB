@@ -20,7 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
 from django.http import HttpResponse
-from chat.views import health_check, homepage, mypage, frontend_chat, admin_dashboard, admin_toggle_content, admin_toggle_knowledge, abouthari_page, gallery_page, news_page, video_page, membership_page, contact_form
+from chat.views import health_check, homepage, mypage, frontend_chat, admin_dashboard, admin_toggle_content, admin_toggle_knowledge, abouthari_page, gallery_page, news_page, video_page, membership_page, contact_form, frontend_signup_view
 
 
 def robots_txt(_request):
@@ -51,6 +51,7 @@ urlpatterns = [
     path('google840fb0dac52a59f6.html', google_verify),
     path('accounts/', include('allauth.urls')),
     path('api/auth/', include('dj_rest_auth.urls')),
+    path('api/auth/registration/', frontend_signup_view, name='frontend_registration'),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
     path('api/chat/', include('chat.urls')),
     path('api/roleplay/', include('roleplay.urls')),

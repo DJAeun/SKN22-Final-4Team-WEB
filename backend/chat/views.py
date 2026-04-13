@@ -15,7 +15,7 @@ from dj_rest_auth.jwt_auth import JWTCookieAuthentication
 from .models import Message, ChatMemory, HariKnowledge, GeneratedContent, VisitLog, UserPersona
 from .serializers import (
     MessageSerializer, ChatMemorySerializer, UserNameSerializer,
-    UserPreferenceSerializer,
+    UserPreferenceSerializer, FrontendSignupSerializer,
 )
 
 
@@ -161,6 +161,48 @@ def user_preference_view(request):
     update_user_preference(user.id, **kwargs)
 
     return Response(_current(), status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@perm_classes([permissions.AllowAny])
+def frontend_signup_view(request):
+    serializer = FrontendSignupSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    data = serializer.validated_data
+    AuthUser = get_user_model()
+    email = data['email']
+    nickname = data['nickname']
+
+    if AuthUser.objects.filter(email__iexact=email).exists():
+        return Response(
+            {'email': ['이미 가입된 이메일입니다.']},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if AuthUser.objects.filter(username__iexact=nickname).exists():
+        return Response(
+            {'username': ['이미 사용 중인 닉네임입니다.']},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user = AuthUser.objects.create_user(
+        username=nickname,
+        email=email,
+        password=data['password'],
+        first_name=data['name'],
+    )
+
+    try:
+        from .memory_extractor import update_user_preference
+        update_user_preference(user.id, name=data['name'])
+    except Exception:
+        pass
+
+    return Response(
+        {'detail': '회원가입이 완료되었습니다.'},
+        status=status.HTTP_201_CREATED,
+    )
 
 
 def login_view(request):
