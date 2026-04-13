@@ -1,0 +1,221 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block title %}삭제 확인 | HARI 관리자{% endblock %}
+
+{% block content %}
+<style>
+  .delete-wrap { max-width: 700px; }
+
+  /* 경고 배너 */
+  .delete-banner {
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    border-left: 5px solid #ef4444;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .delete-banner-icon {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #fee2e2;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .delete-banner-icon svg {
+    width: 20px; height: 20px;
+    stroke: #ef4444; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .delete-banner-text h2 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #991b1b;
+    margin: 0 0 6px;
+  }
+  .delete-banner-text p {
+    font-size: 0.8rem;
+    color: #b91c1c;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .delete-banner-text .obj-name {
+    font-weight: 700;
+    background: #fee2e2;
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+
+  /* 연관 삭제 목록 */
+  .related-section {
+    background: #fff;
+    border: 1px solid #f0e0e3;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .related-section-header {
+    padding: 10px 18px;
+    background: #fff8f8;
+    border-bottom: 1px solid #f5dde0;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #c04060;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .related-section-header svg {
+    width: 12px; height: 12px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .related-list {
+    padding: 12px 18px;
+    font-size: 0.8rem;
+    color: #5a3040;
+    line-height: 1.7;
+  }
+  .related-list ul { padding-left: 16px; }
+  .related-list ul li { margin-bottom: 4px; }
+
+  /* 권한 부족 경고 */
+  .perms-warning {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 0.8rem;
+    color: #92400e;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .perms-warning svg {
+    width: 16px; height: 16px;
+    stroke: #d97706; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* 보호된 객체 */
+  .protected-warning {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 0.8rem;
+    color: #166534;
+    margin-bottom: 20px;
+  }
+
+  /* 버튼 영역 */
+  .delete-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 0 4px;
+    flex-wrap: wrap;
+  }
+  .btn-confirm-delete {
+    background: #ef4444 !important;
+    border-color: #ef4444 !important;
+    color: #fff !important;
+    padding: 10px 28px !important;
+    font-size: 0.84rem !important;
+    font-weight: 600 !important;
+    border-radius: var(--radius) !important;
+    cursor: pointer;
+    transition: background 0.14s !important;
+  }
+  .btn-confirm-delete:hover { background: #dc2626 !important; }
+  .btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border: 1px solid #f0e0e3;
+    border-radius: var(--radius);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #7a5060 !important;
+    text-decoration: none !important;
+    background: #fff;
+    transition: background 0.13s;
+  }
+  .btn-cancel:hover { background: #fff5f6 !important; color: #5a3040 !important; }
+</style>
+
+<div class="delete-wrap">
+
+  <!-- 경고 배너 -->
+  <div class="delete-banner">
+    <div class="delete-banner-icon">
+      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </div>
+    <div class="delete-banner-text">
+      <h2>정말 삭제하시겠습니까?</h2>
+      <p>
+        <span class="obj-name">{{ object }}</span>
+        {% blocktrans with escaped_object=object %}
+        을(를) 삭제하려고 합니다. 이 작업은 <strong>되돌릴 수 없습니다.</strong>
+        {% endblocktrans %}
+      </p>
+    </div>
+  </div>
+
+  <!-- 연관 삭제 목록 -->
+  {% if deleted_objects %}
+  <div class="related-section">
+    <div class="related-section-header">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      함께 삭제되는 관련 데이터
+    </div>
+    <div class="related-list">
+      {{ deleted_objects }}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 권한 부족 경고 -->
+  {% if perms_lacking %}
+  <div class="perms-warning">
+    <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span>
+      <strong>삭제 권한 부족</strong> — 아래 관련 항목에 대한 삭제 권한이 없습니다:<br>
+      {{ perms_lacking }}
+    </span>
+  </div>
+  {% endif %}
+
+  <!-- 보호 객체 경고 -->
+  {% if protected %}
+  <div class="protected-warning">
+    <strong>삭제 보호됨</strong> — 아래 항목이 이 객체를 참조하고 있어 삭제할 수 없습니다:<br>
+    {{ protected }}
+  </div>
+  {% endif %}
+
+  <!-- 버튼 -->
+  <form method="post">
+    {% csrf_token %}
+    <div class="delete-actions">
+      {% if not protected and not perms_lacking %}
+        <input type="submit" class="btn-confirm-delete" value="예, 삭제합니다">
+      {% endif %}
+      <a href="../" class="btn-cancel">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        취소 (되돌아가기)
+      </a>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

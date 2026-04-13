@@ -242,3 +242,267 @@ class UserMembership(models.Model):
    - 인증 필수, CSRF 토큰 필수
    - 성공 응답: `{"success": true, "message": "구독이 취소되었습니다."}`
    - 오류 응답: `{"success": false, "error": "구독 정보가 없습니다."}`
+
+---
+
+## 📅 2026-04-13 (일) — /admin/ 관리자 페이지 기능 확장
+
+> 프론트엔드가 `/admin/` (Django admin) 커스텀 템플릿을 모두 구축했습니다.  
+> 아래 항목은 백엔드 모델·뷰가 없어 **현재 admin에서 placeholder만 표시** 중인 기능입니다.  
+> 구현 순서는 우선순위 순으로 정렬했습니다.
+
+---
+
+### [우선순위 1] 관리자 대시보드 KPI 컨텍스트 — `/admin/`
+
+Django admin의 `index.html` 템플릿은 현재 `app_list`와 `recent_actions`만 받습니다.  
+대시보드에 실시간 통계를 표시하려면 `AdminSite.index()` 뷰를 오버라이드해서 아래 변수를 추가해야 합니다.
+
+**백엔드 작업:**
+
+`config/urls.py` 또는 별도 파일에 커스텀 AdminSite 클래스 추가:
+
+```python
+from django.contrib.admin import AdminSite
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+from chat.models import Message, VisitLog
+
+class HariAdminSite(AdminSite):
+    def index(self, request, extra_context=None):
+        today = timezone.now().date()
+        User = get_user_model()
+        extra_context = extra_context or {}
+        extra_context.update({
+            'kpi_new_users_today':    User.objects.filter(date_joined__date=today).count(),
+            'kpi_chat_count_today':   Message.objects.filter(created_at__date=today, sender_type=True).count(),
+            'kpi_total_users':        User.objects.count(),
+            'kpi_today_visits':       VisitLog.objects.filter(visit_time__date=today).count(),
+        })
+        return super().index(request, extra_context)
+
+admin_site = HariAdminSite(name='admin')
+```
+
+| 변수명 | 설명 |
+|---|---|
+| `kpi_new_users_today` | 오늘 신규 가입자 수 |
+| `kpi_chat_count_today` | 오늘 채팅 메시지 수 (유저 발신) |
+| `kpi_total_users` | 전체 유저 수 |
+| `kpi_today_visits` | 오늘 방문 수 |
+
+---
+
+### [우선순위 2] 롤플레잉 시나리오 버전 히스토리 모델
+
+**현재 상황:** Lorebook 편집 시 이전 버전으로 롤백 불가  
+**프론트 준비:** 편집 폼에 버전 히스토리 UI 공간 확보됨 (백엔드 연결만 필요)
+
+**백엔드 작업:** `rpg/models.py`에 추가 (기존 모델 수정 없이 새 모델만 추가)
+
+```python
+class LorebookVersion(models.Model):
+    lorebook = models.ForeignKey(
+        'Lorebook', on_delete=models.CASCADE, related_name='versions'
+    )
+    lorebook_text = models.TextField(help_text="저장 시점의 lorebook 내용")
+    keywords_snapshot = models.JSONField(help_text="저장 시점의 keywords")
+    version_number = models.PositiveIntegerField()
+    saved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'rpg_lorebook_versions'
+        ordering = ['-version_number']
+
+    def __str__(self):
+        return f"Lorebook({self.lorebook_id}) v{self.version_number}"
+```
+
+**추가 요청 (admin.py):** Lorebook 저장 시 자동 버전 생성 signal 또는 `save_model()` 오버라이드
+
+```python
+# rpg/admin.py — LorebookAdmin에 추가
+def save_model(self, request, obj, form, change):
+    super().save_model(request, obj, form, change)
+    if change:  # 수정 시에만
+        last_v = LorebookVersion.objects.filter(lorebook=obj).order_by('-version_number').first()
+        next_v = (last_v.version_number + 1) if last_v else 1
+        LorebookVersion.objects.create(
+            lorebook=obj,
+            lorebook_text=obj.lorebook,
+            keywords_snapshot=obj.keywords,
+            version_number=next_v,
+            saved_by=request.user,
+        )
+```
+
+---
+
+### [우선순위 3] 채팅 금지어 관리 모델
+
+**현재 상황:** 금지어를 admin에서 추가/삭제할 방법 없음  
+**프론트 준비:** 관리자 대시보드 채팅 모니터링 섹션에 공간 확보됨
+
+**백엔드 작업:** `chat/models.py`에 추가 (새 모델)
+
+```python
+class BannedWord(models.Model):
+    word = models.CharField(max_length=100, unique=True, help_text="금지 단어/문구")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'banned_words'
+        ordering = ['word']
+        verbose_name = "금지어"
+        verbose_name_plural = "금지어 관리"
+
+    def __str__(self):
+        return self.word
+```
+
+---
+
+### [우선순위 4] 공지 배너 & 이벤트 모델
+
+**현재 상황:** 사이트 상단 공지 배너가 하드코딩, admin에서 수정 불가  
+**프론트 준비:** admin 대시보드에 placeholder 카드 존재
+
+**백엔드 작업:** `chat/models.py`에 추가
+
+```python
+class SiteBanner(models.Model):
+    message = models.CharField(max_length=300, help_text="배너에 표시할 문구")
+    link_url = models.URLField(blank=True, help_text="클릭 시 이동 URL (선택)")
+    is_active = models.BooleanField(default=False, help_text="현재 배너 ON/OFF")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'site_banners'
+        verbose_name = "사이트 배너"
+        verbose_name_plural = "사이트 배너 관리"
+
+    def __str__(self):
+        return f"{'[ON]' if self.is_active else '[OFF]'} {self.message[:50]}"
+
+
+class SiteEvent(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    starts_at = models.DateTimeField()
+    ends_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'site_events'
+        ordering = ['-starts_at']
+        verbose_name = "이벤트"
+        verbose_name_plural = "이벤트 관리"
+
+    def __str__(self):
+        return self.title
+```
+
+---
+
+### [우선순위 5] AI API 사용량 추적 모델
+
+**현재 상황:** LLM / 이미지 / TTS API 비용 admin에서 볼 수 없음  
+**프론트 준비:** admin 대시보드 AI & 하리 섹션에 placeholder 존재
+
+**백엔드 작업:** `chat/models.py`에 추가
+
+```python
+class ApiUsageLog(models.Model):
+    API_TYPE_CHOICES = [
+        ('llm', 'LLM (텍스트 생성)'),
+        ('image', '이미지 생성'),
+        ('tts', 'TTS (음성 합성)'),
+        ('embedding', '임베딩'),
+    ]
+    api_type = models.CharField(max_length=20, choices=API_TYPE_CHOICES)
+    tokens_used = models.IntegerField(default=0, help_text="사용 토큰 수")
+    cost_usd = models.DecimalField(max_digits=10, decimal_places=6, default=0, help_text="추정 비용 (USD)")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+    session_id = models.CharField(max_length=255, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'api_usage_logs'
+        ordering = ['-created_at']
+        verbose_name = "API 사용 로그"
+        verbose_name_plural = "AI API 사용량"
+
+    def __str__(self):
+        return f"[{self.api_type}] {self.tokens_used}tok / ${self.cost_usd}"
+```
+
+---
+
+### [우선순위 6] 관리자 접근 로그
+
+**현재 상황:** 관리자가 채팅 로그 등 민감한 데이터에 접근해도 기록 없음
+
+**백엔드 작업:** `chat/models.py`에 추가
+
+```python
+class AdminAccessLog(models.Model):
+    admin_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='admin_access_logs'
+    )
+    path = models.CharField(max_length=500, help_text="접근한 admin URL")
+    action = models.CharField(max_length=100, blank=True, help_text="수행한 액션 설명")
+    accessed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'admin_access_logs'
+        ordering = ['-accessed_at']
+        verbose_name = "관리자 접근 로그"
+
+    def __str__(self):
+        return f"{self.admin_user.username} → {self.path}"
+```
+
+**미들웨어 추가 요청:**
+```python
+# chat/middleware.py 또는 새 파일
+class AdminAccessLogMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if request.path.startswith('/admin/') and request.user.is_authenticated and request.user.is_staff:
+            from chat.models import AdminAccessLog
+            AdminAccessLog.objects.create(
+                admin_user=request.user,
+                path=request.path,
+            )
+        return response
+```
+
+---
+
+### 요약 체크리스트 (백엔드)
+
+| 기능 | 모델/작업 | 파일 | 우선순위 |
+|---|---|---|---|
+| 대시보드 KPI | `HariAdminSite` 클래스 + `index()` 오버라이드 | `config/urls.py` 또는 신규 파일 | 🔴 높음 |
+| 시나리오 버전 히스토리 | `LorebookVersion` 모델 + `save_model()` 오버라이드 | `rpg/models.py`, `rpg/admin.py` | 🔴 높음 |
+| 채팅 금지어 | `BannedWord` 모델 | `chat/models.py` | 🟡 중간 |
+| 공지 배너 | `SiteBanner` 모델 | `chat/models.py` | 🟡 중간 |
+| 이벤트 관리 | `SiteEvent` 모델 | `chat/models.py` | 🟡 중간 |
+| AI API 사용량 | `ApiUsageLog` 모델 | `chat/models.py` | 🟢 낮음 |
+| 관리자 접근 로그 | `AdminAccessLog` 모델 + middleware | `chat/models.py`, middleware | 🟢 낮음 |
+
+모든 모델 추가 후 `makemigrations` + `migrate` 실행 필요.  
+프론트는 admin.py에 모델 등록만 하면 즉시 admin에 반영됩니다.

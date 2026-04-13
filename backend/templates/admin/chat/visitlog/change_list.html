@@ -1,0 +1,150 @@
+{% extends "admin/change_list.html" %}
+
+{% block extra_header %}
+<style>
+  .vl-header {
+    background: #fff;
+    border: 1px solid #f0e0e3;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .vl-header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .vl-header h2 {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #2a1018;
+    margin: 0 0 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .vl-header h2 svg {
+    width: 15px; height: 15px;
+    stroke: #e05060; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .vl-header p {
+    font-size: 0.74rem;
+    color: #9a7080;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* 통계 그리드 */
+  .vl-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .vl-stat-card {
+    background: #fdf8f9;
+    border: 1px solid #f0e0e3;
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: center;
+  }
+  .vl-stat-card .val {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #2a1018;
+    display: block;
+  }
+  .vl-stat-card .lbl {
+    font-size: 0.63rem;
+    color: #9a7080;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 2px;
+    display: block;
+  }
+
+  /* 필드 칩 */
+  .vl-fields {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .vl-chip {
+    font-size: 0.7rem;
+    background: #fdf4f5;
+    border: 1px solid #f0e0e3;
+    border-radius: 5px;
+    padding: 4px 10px;
+    color: #7a5060;
+  }
+  .vl-chip strong { color: #c04060; }
+
+  /* 안내 */
+  .vl-note {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-left: 4px solid #22c55e;
+    border-radius: 6px;
+    padding: 9px 13px;
+    font-size: 0.73rem;
+    color: #166534;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .vl-note svg {
+    width: 13px; height: 13px;
+    stroke: #16a34a; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+</style>
+
+<div class="vl-header">
+  <div class="vl-header-top">
+    <div>
+      <h2>
+        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        방문 로그 (VisitLog)
+      </h2>
+      <p>
+        사이트 방문 기록입니다. 유저 행동 분석 및 트래픽 모니터링에 활용됩니다.<br>
+        개인정보 보호를 위해 IP는 부분 마스킹 처리 후 저장됩니다.
+      </p>
+    </div>
+  </div>
+
+  <div class="vl-stats">
+    <div class="vl-stat-card">
+      <span class="val">{{ cl.queryset.count|default:"—" }}</span>
+      <span class="lbl">전체 로그</span>
+    </div>
+    <div class="vl-stat-card">
+      <span class="val">{{ cl.result_count|default:"—" }}</span>
+      <span class="lbl">필터 결과</span>
+    </div>
+  </div>
+
+  <div class="vl-fields">
+    <span class="vl-chip"><strong>user</strong> 방문 유저 (null = 비로그인)</span>
+    <span class="vl-chip"><strong>path</strong> 방문 경로 (URL)</span>
+    <span class="vl-chip"><strong>ip_address</strong> 부분 마스킹 IP</span>
+    <span class="vl-chip"><strong>user_agent</strong> 브라우저·기기 정보</span>
+    <span class="vl-chip"><strong>visited_at</strong> 방문 일시</span>
+  </div>
+
+  <div class="vl-note">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    <span>
+      방문 로그는 자동 수집되며 수동 편집은 불필요합니다.
+      오래된 로그 일괄 삭제 시 필터로 기간을 선택 후 액션 메뉴를 사용하세요.
+    </span>
+  </div>
+</div>
+{% endblock %}
