@@ -15,7 +15,7 @@ export default function App() {
           onAccept={() => setHasAcceptedNDA(true)}
         />
       ) : (
-        <MainGamePage bootstrap={bootstrap} />
+        <MainGamePage bootstrap={bootstrap} onBack={() => setHasAcceptedNDA(false)} />
       )}
     </div>
   );

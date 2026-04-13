@@ -4,6 +4,7 @@ interface SessionToolbarProps {
   onToggleMenu: () => void;
   onOpenContinue: () => void;
   onOpenNewGame: () => void;
+  onBack: () => void;
 }
 
 export function SessionToolbar({
@@ -12,6 +13,7 @@ export function SessionToolbar({
   onToggleMenu,
   onOpenContinue,
   onOpenNewGame,
+  onBack,
 }: SessionToolbarProps) {
   return (
     <div className="mb-4 flex justify-end">
@@ -54,6 +56,16 @@ export function SessionToolbar({
             </div>
           )}
         </div>
+
+        <button
+          type="button"
+          onClick={() => { window.location.href = '/'; }}
+          className="flex items-center gap-2 rounded-xl border border-[#d6b57a]/40 bg-[#25180f]/90 px-4 py-2 text-xs tracking-[0.12em] text-[#d6b57a] shadow-xl transition hover:border-[#d6b57a]/80 hover:bg-[#3c2a1d] hover:text-[#f6e8cf]"
+          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+        >
+          <span className="text-sm leading-none">←</span>
+          <span>메인으로</span>
+        </button>
       </div>
     </div>
   );
