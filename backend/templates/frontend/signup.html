@@ -209,22 +209,17 @@ html[data-theme="dark"] .modal-head{background:#1a1612;}
       <div class="auth-field">
         <label class="auth-label" style="font-size:0.65rem !important;">이메일</label>
         <div style="position:relative; display:flex; align-items:center; gap:0.5rem;">
-          <input class="auth-inp" id="reg-email" type="email" placeholder="hello@hari.kr" autocomplete="email" style="font-size:1.05rem !important; padding:0.9rem !important; flex:1;" oninput="debounceEmailCheck(this.value)">
-          <span id="email-status" style="font-size:1.2rem; min-width:24px; text-align:center; flex-shrink:0;"></span>
+          <!-- 임시: 이메일 검증 디자인 제거 -->
+          <input class="auth-inp" id="reg-email" type="email" placeholder="hello@hari.kr" autocomplete="email" style="font-size:1.05rem !important; padding:0.9rem !important; flex:1;">
         </div>
-        <div id="email-message" style="font-size:0.75rem; margin-top:0.3rem; min-height:16px; color:#ff7b8a;"></div>
       </div>
 
       <div class="auth-field">
         <label class="auth-label" style="font-size:0.65rem !important;">비밀번호</label>
         <div class="pw-wrap">
-          <input class="auth-inp" id="reg-pw" type="password" placeholder="8자 이상" oninput="checkStrength(this)" style="font-size:1.05rem !important; padding:0.9rem !important;">
+          <!-- 임시: 비밀번호 강도 디자인 생략 -->
+          <input class="auth-inp" id="reg-pw" type="password" placeholder="8자 이상" style="font-size:1.05rem !important; padding:0.9rem !important;">
           <button class="pw-toggle" type="button" onclick="togglePw('reg-pw',this)">표시</button>
-        </div>
-        <div class="pw-strength">
-          <div class="pw-bar" id="bar1"></div>
-          <div class="pw-bar" id="bar2"></div>
-          <div class="pw-bar" id="bar3"></div>
         </div>
       </div>
 
@@ -447,6 +442,8 @@ function doSignup(){
     showError('모든 필드를 입력해주세요.');
     return;
   }
+  // 임시: 프론트엔드 검증 생략 (개발 편의)
+  /*
   if(!window.emailValidated){
     showError('이메일 검증을 완료해주세요.');
     return;
@@ -455,6 +452,7 @@ function doSignup(){
     showError('비밀번호는 8자 이상이어야 합니다.');
     return;
   }
+  */
   if(!agree){
     showError('이용약관에 동의해주세요.');
     return;
@@ -463,6 +461,13 @@ function doSignup(){
   btn.textContent = '가입 중...';
   btn.disabled = true;
 
+  // 임시: 백엔드 API 호출 생략하고 바로 가입 성공 처리 (개발 편의)
+  setTimeout(() => {
+    alert('회원가입 완료! (현재 백엔드 연동 전이므로 테스트 모드로 넘어갑니다.)');
+    window.location.href = '{% url "login_page" %}';
+  }, 500);
+
+  /*
   fetch('/api/auth/registration/', {
     method: 'POST',
     headers: {
@@ -495,6 +500,7 @@ function doSignup(){
     else if(err.non_field_errors) msg = err.non_field_errors[0];
     showError(msg);
   });
+  */
 }
 
 // 이메일 검증 전역 상태
@@ -524,6 +530,13 @@ function debounceEmailCheck(email){
 function checkEmailValidity(email){
   const statusEl = document.getElementById('email-status');
   const messageEl = document.getElementById('email-message');
+
+  // 임시: 백엔드 연결 전이므로 이메일 검증 강제 통과 (개발 편의)
+  statusEl.textContent = '✅';
+  messageEl.textContent = '사용 가능한 이메일입니다. (임시 우회됨)';
+  messageEl.style.color = '#06d6a0';
+  window.emailValidated = true;
+  return;
 
   // 이메일 형식 검증
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

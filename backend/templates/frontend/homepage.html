@@ -1619,11 +1619,24 @@ function doSignup(){
   const email=panel.querySelector('input[type="email"]').value;
   const pw=document.getElementById('signup-pw').value;
   const agreed=panel.querySelector('input[type="checkbox"][required]');
+
+  // 임시: 프론트엔드 입력 검증 로직 제거 (개발 편의)
+  /*
   if(!email||!pw){alert('이메일과 비밀번호를 입력해주세요.');return;}
   if(!window.emailValidated){alert('이메일 검증을 완료해주세요.');return;}
   if(!window.passwordValidated){alert('비밀번호 검증을 완료해주세요.');return;}
+  */
   if(!agreed.checked){alert('이용약관에 동의해주세요.');return;}
+
   btn.textContent='가입 중...'; btn.disabled=true;
+
+  // 임시: 백엔드 모의 동작 (api연동 전 임시 모드)
+  setTimeout(()=>{
+    alert('회원가입 완료! (현재 백엔드 연동 전이므로 로컬 테스트 모드로 넘어갑니다.)');
+    window.location.reload();
+  }, 500);
+
+  /*
   fetch('/api/auth/registration/',{
     method:'POST',
     headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
@@ -1642,6 +1655,7 @@ function doSignup(){
       :'회원가입에 실패했습니다.';
     alert(msg);
   });
+  */
 }
 function doForgot(){
   const btn=document.querySelector('#panel-forgot .auth-submit');

@@ -1,0 +1,137 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block extra_header %}
+<style>
+  /* ── 로어북 정보 카드 ── */
+  .lorebook-info {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b35 100%);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 22px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .lorebook-info-main h2 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin: 0 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .lorebook-info-main h2 svg {
+    width: 16px; height: 16px;
+    stroke: #f59e0b; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .lorebook-info-main p {
+    font-size: 0.76rem;
+    color: rgba(248,250,252,0.45);
+    margin: 0;
+    line-height: 1.5;
+    max-width: 440px;
+  }
+
+  .lorebook-fields {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 280px;
+  }
+  .lorebook-field-chip {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 8px 12px;
+    min-width: 110px;
+  }
+  .lorebook-field-chip .chip-label {
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(245,158,11,0.7);
+    display: block;
+    margin-bottom: 3px;
+  }
+  .lorebook-field-chip .chip-desc {
+    font-size: 0.72rem;
+    color: rgba(248,250,252,0.5);
+    line-height: 1.3;
+  }
+
+  .lorebook-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+    align-items: flex-start;
+  }
+  .lorebook-actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: opacity 0.14s;
+  }
+  .lorebook-actions a:hover { opacity: 0.85; }
+  .btn-new-scenario {
+    background: #f59e0b;
+    color: #0f172a !important;
+  }
+
+  /* ── 상태 뱃지 컬럼 ── */
+  .td-is-active-true  { color: #22c55e !important; font-weight: 600; }
+  .td-is-active-false { color: #ef4444 !important; }
+  .td-is-const-true   { color: #f59e0b !important; font-weight: 600; }
+</style>
+
+<div class="lorebook-info">
+  <div class="lorebook-info-main">
+    <h2>
+      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      시나리오 (로어북) 관리
+    </h2>
+    <p>
+      각 로어북은 하리 RPG 채팅에 주입되는 세계관 프롬프트입니다.<br>
+      <strong style="color:rgba(245,158,11,0.8)">is_constant = ON</strong>이면 모든 대화에 항상 주입됩니다.<br>
+      keywords에 매칭된 단어가 대화에 등장할 때만 주입됩니다.
+    </p>
+  </div>
+
+  <div class="lorebook-fields">
+    <div class="lorebook-field-chip">
+      <span class="chip-label">keywords</span>
+      <span class="chip-desc">트리거 키워드 목록. 이 단어가 대화에 등장하면 주입.</span>
+    </div>
+    <div class="lorebook-field-chip">
+      <span class="chip-label">lorebook</span>
+      <span class="chip-desc">실제로 LLM에 주입되는 시나리오 프롬프트 본문.</span>
+    </div>
+    <div class="lorebook-field-chip">
+      <span class="chip-label">priority</span>
+      <span class="chip-desc">여러 로어북 동시 매칭 시 우선순위. 높을수록 먼저 처리.</span>
+    </div>
+    <div class="lorebook-field-chip">
+      <span class="chip-label">is_constant</span>
+      <span class="chip-desc">ON이면 keywords 무관하게 항상 주입.</span>
+    </div>
+  </div>
+
+  <div class="lorebook-actions">
+    <a href="add/" class="btn-new-scenario">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      새 시나리오 추가
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "admin/change_list.html" %}
+
+{% block extra_header %}
+<style>
+  .session-header {
+    background: #fff;
+    border: 1px solid #f0e0e3;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .session-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .session-header h2 {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #2a1018;
+    margin: 0 0 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .session-header h2 svg {
+    width: 15px; height: 15px;
+    stroke: #e05060; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .session-header p {
+    font-size: 0.74rem;
+    color: #9a7080;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* 위험 경고 */
+  .session-danger {
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    border-left: 4px solid #ef4444;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.76rem;
+    color: #991b1b;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .session-danger svg {
+    width: 14px; height: 14px;
+    stroke: #ef4444; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* 필드 배지 */
+  .session-fields {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sf-chip {
+    font-size: 0.7rem;
+    background: #fdf4f5;
+    border: 1px solid #f0e0e3;
+    border-radius: 5px;
+    padding: 4px 10px;
+    color: #7a5060;
+  }
+  .sf-chip strong { color: #c04060; }
+</style>
+
+<div class="session-header">
+  <div class="session-header-row">
+    <div>
+      <h2>
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        RPG 세션 모니터링
+      </h2>
+      <p>
+        유저별 RPG 채팅 세션 목록입니다. 세션 하나에 연결된 ChatLog, HyperMemory, StoryProgress가 모두 포함됩니다.<br>
+        세션 삭제 시 해당 세션의 <strong>모든 채팅 기록이 함께 삭제</strong>됩니다.
+      </p>
+    </div>
+  </div>
+
+  <div class="session-fields" style="margin-bottom: 12px;">
+    <span class="sf-chip"><strong>stress</strong> 유저 스트레스 수치 (게임 내)</span>
+    <span class="sf-chip"><strong>crack_stage</strong> 세계 균열 단계 (스토리 진행도)</span>
+    <span class="sf-chip"><strong>total_tokens</strong> 누적 토큰 수 (하이퍼메모리 트리거 기준)</span>
+    <span class="sf-chip"><strong>status_window_enabled</strong> 상태창 표시 ON/OFF</span>
+  </div>
+
+  <div class="session-danger">
+    <svg viewBox="0 0 24 24"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span>
+      <strong>세션 삭제 주의</strong> — 세션을 삭제하면 연결된 ChatLog, HyperMemory, MessageEmbedding 등
+      <em>모든 하위 데이터가 CASCADE 삭제</em>됩니다. 일반적으로 세션은 삭제하지 마세요.
+    </span>
+  </div>
+</div>
+{% endblock %}

@@ -1,67 +1,90 @@
 {% extends "admin/base_site.html" %}
-{% load i18n admin_urls %}
+{% load i18n admin_urls static %}
 
 {% block title %}대시보드 | HARI Admin{% endblock %}
 
 {% block content %}
 <style>
-  /* ── 대시보드 헤더 (연분홍) ── */
-  .dash-header {
-    background: #fff0f2;
-    border: 1px solid #ffc9ce;
+  /* ── 페이지 레이아웃 ── */
+  .dash-wrap {
+    max-width: 1200px;
+  }
+
+  /* ── 웰컴 배너 ── */
+  .dash-banner {
+    background: linear-gradient(135deg, #1a1018 0%, #2d1520 100%);
     border-radius: 10px;
-    padding: 22px 26px;
+    padding: 24px 28px;
     margin-bottom: 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
   }
-
-  .dash-header-text h1 {
-    font-size: 1rem;
+  .dash-banner-left h1 {
+    font-size: 1.05rem;
     font-weight: 700;
-    color: #c03048;
-    margin-bottom: 3px;
+    color: #f8fafc;
+    margin: 0 0 5px;
     letter-spacing: 0.01em;
   }
-
-  .dash-header-text p {
-    font-size: 0.75rem;
-    color: #e0808a;
+  .dash-banner-left p {
+    font-size: 0.78rem;
+    color: rgba(248,250,252,0.45);
     margin: 0;
   }
-
-  .dash-header-badge {
-    font-size: 0.68rem;
-    font-weight: 600;
-    color: #ff7b8a;
-    background: #ffffff;
-    border: 1px solid #ffc9ce;
+  .dash-banner-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .dash-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: rgba(245,158,11,0.18);
+    color: #f59e0b;
+    border: 1px solid rgba(245,158,11,0.3);
+    padding: 5px 13px;
     border-radius: 20px;
-    padding: 4px 12px;
-    white-space: nowrap;
+  }
+  .dash-time {
+    font-size: 0.72rem;
+    color: rgba(248,250,252,0.3);
   }
 
   /* ── 섹션 타이틀 ── */
-  .section-label {
-    font-size: 0.61rem;
+  .dash-section-title {
+    font-size: 0.62rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.09em;
-    color: #e06070;
-    margin-bottom: 11px;
-    padding-bottom: 6px;
+    letter-spacing: 0.1em;
+    color: #c04060;
+    margin: 0 0 10px;
+    padding-bottom: 8px;
     border-bottom: 1px solid #f5dde0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .dash-section-title svg {
+    width: 13px; height: 13px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    opacity: 0.7;
   }
 
-  .app-section {
+  /* ── 섹션 그룹 ── */
+  .dash-section {
     margin-bottom: 28px;
   }
 
-  /* ── 모델 카드 ── */
+  /* ── 모델 카드 그리드 ── */
   .model-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 10px;
   }
 
@@ -71,208 +94,471 @@
     border-radius: 8px;
     padding: 16px 18px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    transition: box-shadow 0.18s, border-color 0.18s;
+    transition: box-shadow 0.18s, border-color 0.18s, transform 0.18s;
+  }
+  .model-card:hover {
+    border-color: #ffc0c8;
+    box-shadow: 0 4px 14px rgba(255,100,120,0.1);
+    transform: translateY(-1px);
   }
 
-  .model-card:hover {
-    border-color: #ffb0bb;
-    box-shadow: 0 3px 12px rgba(255,100,120,0.09);
+  .model-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 13px;
+    gap: 8px;
   }
+  .model-card-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .model-card-icon svg {
+    width: 15px; height: 15px;
+    stroke: currentColor; fill: none;
+    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  }
+  /* 아이콘 컬러 변형 */
+  .icon-pink  { background: #fff0f2; color: #e05070; }
+  .icon-amber { background: #fffbeb; color: #d97706; }
+  .icon-blue  { background: #eff6ff; color: #3b82f6; }
+  .icon-green { background: #ecfdf5; color: #059669; }
+  .icon-violet{ background: #f5f3ff; color: #7c3aed; }
+  .icon-gray  { background: #f8fafc; color: #64748b; }
 
   .model-card h4 {
-    font-size: 0.84rem;
+    font-size: 0.82rem;
     font-weight: 600;
     color: #2a1018;
-    margin-bottom: 12px;
+    margin: 0;
+    line-height: 1.3;
+  }
+  .model-card .model-desc {
+    font-size: 0.71rem;
+    color: #9a8080;
+    margin: 4px 0 13px;
+    line-height: 1.4;
   }
 
   .card-actions {
     display: flex;
-    gap: 7px;
+    gap: 6px;
   }
-
   .card-actions a {
     flex: 1;
     padding: 6px 10px;
     text-align: center;
     border-radius: 5px;
-    font-size: 0.71rem;
+    font-size: 0.7rem;
     font-weight: 500;
     text-decoration: none !important;
-    transition: background 0.15s;
+    transition: background 0.14s;
+    white-space: nowrap;
   }
-
   .btn-manage {
     background: #ff7b8a;
     color: #ffffff !important;
-    border: 1px solid transparent;
   }
-
-  .btn-manage:hover {
-    background: #f56070 !important;
-    color: #ffffff !important;
-  }
-
+  .btn-manage:hover { background: #f56070 !important; color: #fff !important; }
   .btn-add {
     background: transparent;
     color: #d95060 !important;
     border: 1px solid #f0b8be;
   }
-
-  .btn-add:hover {
-    background: #fff0f2 !important;
-    color: #d95060 !important;
+  .btn-add:hover { background: #fff0f2 !important; color: #d95060 !important; }
+  .btn-disabled {
+    background: #f5f0f0;
+    color: #c0a8aa !important;
+    cursor: not-allowed;
+    pointer-events: none;
+    border: 1px solid #ede4e4;
   }
 
-  /* ── 콘텐츠 관리 섹션 ── */
-  .upcoming-section {
-    margin-bottom: 28px;
+  /* 미구현 카드 */
+  .model-card.coming-soon {
+    opacity: 0.55;
+    border-style: dashed;
   }
-
-  .upcoming-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 10px;
+  .model-card.coming-soon:hover {
+    transform: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    border-color: #f0e0e3;
+  }
+  .coming-tag {
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: #f5eeee;
+    color: #c0a0a8;
+    padding: 2px 7px;
+    border-radius: 4px;
   }
 
   /* ── 최근 활동 ── */
-  .recent-section {
+  .recent-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 900px) { .recent-wrap { grid-template-columns: 1fr; } }
+
+  .recent-box {
     background: #ffffff;
     border: 1px solid #f0e0e3;
     border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     overflow: hidden;
-    margin-top: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
-
-  .recent-header {
-    padding: 11px 18px;
+  .recent-box-header {
+    padding: 11px 16px;
     border-bottom: 1px solid #f5dde0;
-    font-size: 0.61rem;
+    font-size: 0.62rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.09em;
-    color: #e06070;
+    color: #c04060;
     background: #fffbfb;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .recent-box-header svg {
+    width: 12px; height: 12px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
   }
 
   .recent-list {
     list-style: none;
   }
-
   .recent-list li {
-    padding: 9px 18px;
+    padding: 9px 16px;
     border-bottom: 1px solid #f9eef0;
     font-size: 0.79rem;
     color: #3a2028;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
+    line-height: 1.4;
   }
-
   .recent-list li:last-child { border-bottom: none; }
   .recent-list li:hover { background: #fffbfb; }
-  .recent-list li a { color: #e06070 !important; }
-
-  .empty-msg {
-    padding: 28px;
+  .recent-list li a { color: #e06070 !important; font-weight: 500; }
+  .recent-list .action-time {
+    font-size: 0.68rem;
+    color: #c0a0a8;
+    margin-left: auto;
+    flex-shrink: 0;
+    padding-top: 1px;
+  }
+  .recent-empty {
+    padding: 28px 16px;
     text-align: center;
     color: #c9a0aa;
-    font-size: 0.79rem;
+    font-size: 0.78rem;
   }
 </style>
 
-<div id="content-main">
+<div class="dash-wrap">
 
-  <!-- ── 헤더 ── -->
-  <div class="dash-header">
-    <div class="dash-header-text">
+  <!-- ── 웰컴 배너 ── -->
+  <div class="dash-banner">
+    <div class="dash-banner-left">
       <h1>HARI 관리자 대시보드</h1>
-      <p>데이터 확인·수정·추가는 아래 모델 카드에서 진행하세요.</p>
+      <p>
+        {% if user.get_full_name %}
+          안녕하세요, {{ user.get_full_name }}님.
+        {% else %}
+          안녕하세요, {{ user.username }}님.
+        {% endif %}
+        데이터 조회·수정·추가는 아래 모델 카드를 이용하세요.
+      </p>
     </div>
-    <span class="dash-header-badge">HARI Admin</span>
-  </div>
-
-  <!-- ── 현재 활성 모델 ── -->
-  {% if app_list %}
-    {% for app in app_list %}
-      <div class="app-section">
-        <div class="section-label">{{ app.name }}</div>
-        <div class="model-grid">
-          {% for model in app.models %}
-            <div class="model-card">
-              <h4>{{ model.name }}</h4>
-              <div class="card-actions">
-                {% if model.change_url %}
-                  <a href="{{ model.change_url }}" class="btn-manage">목록 보기</a>
-                {% endif %}
-                {% if model.add_url %}
-                  <a href="{{ model.add_url }}" class="btn-add">추가</a>
-                {% endif %}
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      </div>
-    {% endfor %}
-  {% else %}
-    <div class="empty-msg">접근 가능한 모델이 없습니다.</div>
-  {% endif %}
-
-  <!-- ── 콘텐츠 관리 (백엔드 모델 생성 후 연결 예정) ── -->
-  <div class="upcoming-section">
-    <div class="section-label">콘텐츠 관리</div>
-    <div class="upcoming-grid">
-
-      <div class="model-card">
-        <h4>Gallery Images</h4>
-        <div class="card-actions">
-          <a href="#" class="btn-add">추가</a>
-        </div>
-      </div>
-
-      <div class="model-card">
-        <h4>News &amp; Events</h4>
-        <div class="card-actions">
-          <a href="#" class="btn-add">추가</a>
-        </div>
-      </div>
-
-      <div class="model-card">
-        <h4>Video Contents</h4>
-        <div class="card-actions">
-          <a href="#" class="btn-add">추가</a>
-        </div>
-      </div>
-
-      <div class="model-card">
-        <h4>Contact Submissions</h4>
-        <div class="card-actions">
-          <a href="#" class="btn-add">추가</a>
-        </div>
-      </div>
-
-      <div class="model-card">
-        <h4>User Memberships</h4>
-        <div class="card-actions">
-          <a href="#" class="btn-add">추가</a>
-        </div>
-      </div>
-
+    <div class="dash-banner-right">
+      <span class="dash-badge">Staff</span>
     </div>
   </div>
 
   <!-- ── 최근 활동 ── -->
-  {% if recent_actions %}
-    <div class="recent-section">
-      <div class="recent-header">최근 활동</div>
+  <div class="recent-wrap">
+    <div class="recent-box">
+      <div class="recent-box-header">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        최근 관리자 활동
+      </div>
+      {% if recent_actions %}
+        <ul class="recent-list">
+          {% for action in recent_actions %}
+            <li>
+              <span>{{ action }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="recent-empty">아직 활동 기록이 없습니다.</div>
+      {% endif %}
+    </div>
+
+    <div class="recent-box">
+      <div class="recent-box-header">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>
+        빠른 접근
+      </div>
       <ul class="recent-list">
-        {% for action in recent_actions %}
-          <li>{{ action }}</li>
-        {% endfor %}
+        <li>
+          <a href="/admin/rpg/lorebook/add/">+ 새 시나리오(로어북) 추가</a>
+        </li>
+        <li>
+          <a href="/admin/chat/hariknowledge/add/">+ 하리 지식 추가</a>
+        </li>
+        <li>
+          <a href="/admin/auth/user/">사용자 목록 보기</a>
+        </li>
+        <li>
+          <a href="/admin/chat/message/">채팅 메시지 조회</a>
+        </li>
+        <li>
+          <a href="/admin/rpg/lorebook/">시나리오 전체 목록</a>
+        </li>
       </ul>
     </div>
-  {% endif %}
+  </div>
 
-</div>
+  <!-- ── ① 핵심 ── -->
+  <div class="dash-section">
+    <div class="dash-section-title">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      사용자 관리
+    </div>
+    <div class="model-grid">
+      {% for app in app_list %}
+        {% if app.app_label == "auth" %}
+          {% for model in app.models %}
+            {% if model.object_name == "User" %}
+              <div class="model-card">
+                <div class="model-card-header">
+                  <div class="model-card-icon icon-blue">
+                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                  </div>
+                </div>
+                <h4>{{ model.name }}</h4>
+                <p class="model-desc">가입 유저 계정·권한 관리</p>
+                <div class="card-actions">
+                  {% if model.admin_url %}<a href="{{ model.admin_url }}" class="btn-manage">목록</a>{% endif %}
+                  {% if model.add_url %}<a href="{{ model.add_url }}" class="btn-add">추가</a>{% endif %}
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ── ② 롤플레잉 관리 ── -->
+  <div class="dash-section">
+    <div class="dash-section-title">
+      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      롤플레잉 관리
+    </div>
+    <div class="model-grid">
+      {% for app in app_list %}
+        {% if app.app_label == "rpg" %}
+          {% for model in app.models %}
+            <div class="model-card">
+              <div class="model-card-header">
+                <div class="model-card-icon {% if model.object_name == 'Lorebook' %}icon-amber{% elif model.object_name == 'Session' %}icon-pink{% elif model.object_name == 'HyperMemory' %}icon-violet{% else %}icon-gray{% endif %}">
+                  {% if model.object_name == "Lorebook" %}
+                    <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                  {% elif model.object_name == "Session" %}
+                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  {% elif model.object_name == "HyperMemory" %}
+                    <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                  {% else %}
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                  {% endif %}
+                </div>
+                {% if model.object_name == "Lorebook" %}<span class="coming-tag" style="opacity:1; background:#fffbeb; color:#d97706;">핵심</span>{% endif %}
+              </div>
+              <h4>{{ model.name }}</h4>
+              <p class="model-desc">
+                {% if model.object_name == "Lorebook" %}시나리오·세계관 프롬프트 관리{% elif model.object_name == "Session" %}진행 중인 RPG 세션 조회{% elif model.object_name == "HyperMemory" %}세션 메모리 요약 기록{% elif model.object_name == "CharacterImage" %}하리 캐릭터 이미지 관리{% else %}{{ model.name }}{% endif %}
+              </p>
+              <div class="card-actions">
+                {% if model.admin_url %}<a href="{{ model.admin_url }}" class="btn-manage">목록</a>{% endif %}
+                {% if model.add_url %}<a href="{{ model.add_url }}" class="btn-add">추가</a>{% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ── ③ AI & 하리 설정 ── -->
+  <div class="dash-section">
+    <div class="dash-section-title">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      AI &amp; 하리 설정
+    </div>
+    <div class="model-grid">
+      {% for app in app_list %}
+        {% if app.app_label == "chat" %}
+          {% for model in app.models %}
+            {% if model.object_name == "HariKnowledge" or model.object_name == "UserPersona" %}
+              <div class="model-card">
+                <div class="model-card-header">
+                  <div class="model-card-icon {% if model.object_name == 'HariKnowledge' %}icon-amber{% else %}icon-blue{% endif %}">
+                    {% if model.object_name == "HariKnowledge" %}
+                      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    {% else %}
+                      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    {% endif %}
+                  </div>
+                  {% if model.object_name == "HariKnowledge" %}<span class="coming-tag" style="opacity:1; background:#fffbeb; color:#d97706;">핵심</span>{% endif %}
+                </div>
+                <h4>{{ model.name }}</h4>
+                <p class="model-desc">
+                  {% if model.object_name == "HariKnowledge" %}하리 페르소나·지식 벡터 관리{% else %}유저별 페르소나 메모리 기록{% endif %}
+                </p>
+                <div class="card-actions">
+                  {% if model.admin_url %}<a href="{{ model.admin_url }}" class="btn-manage">목록</a>{% endif %}
+                  {% if model.add_url %}<a href="{{ model.add_url }}" class="btn-add">추가</a>{% endif %}
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ── ④ 채팅 모니터링 ── -->
+  <div class="dash-section">
+    <div class="dash-section-title">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      채팅 모니터링
+    </div>
+    <div class="model-grid">
+      {% for app in app_list %}
+        {% if app.app_label == "chat" %}
+          {% for model in app.models %}
+            {% if model.object_name == "Message" or model.object_name == "ChatMemory" %}
+              <div class="model-card">
+                <div class="model-card-header">
+                  <div class="model-card-icon {% if model.object_name == 'Message' %}icon-pink{% else %}icon-violet{% endif %}">
+                    {% if model.object_name == "Message" %}
+                      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    {% else %}
+                      <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    {% endif %}
+                  </div>
+                </div>
+                <h4>{{ model.name }}</h4>
+                <p class="model-desc">
+                  {% if model.object_name == "Message" %}유저↔하리 채팅 메시지 로그{% else %}세션 메모리 요약 기록{% endif %}
+                </p>
+                <div class="card-actions">
+                  {% if model.admin_url %}<a href="{{ model.admin_url }}" class="btn-manage">목록</a>{% endif %}
+                  {% if model.add_url %}<a href="{{ model.add_url }}" class="btn-add">추가</a>{% endif %}
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ── ⑤ 콘텐츠 관리 ── -->
+  <div class="dash-section">
+    <div class="dash-section-title">
+      <svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+      콘텐츠 관리
+    </div>
+    <div class="model-grid">
+      {% for app in app_list %}
+        {% if app.app_label == "chat" %}
+          {% for model in app.models %}
+            {% if model.object_name == "GeneratedContent" or model.object_name == "VisitLog" %}
+              <div class="model-card">
+                <div class="model-card-header">
+                  <div class="model-card-icon {% if model.object_name == 'GeneratedContent' %}icon-green{% else %}icon-gray{% endif %}">
+                    {% if model.object_name == "GeneratedContent" %}
+                      <svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    {% else %}
+                      <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    {% endif %}
+                  </div>
+                </div>
+                <h4>{{ model.name }}</h4>
+                <p class="model-desc">
+                  {% if model.object_name == "GeneratedContent" %}AI 생성 콘텐츠·발행 관리{% else %}유저 방문 기록 조회{% endif %}
+                </p>
+                <div class="card-actions">
+                  {% if model.admin_url %}<a href="{{ model.admin_url }}" class="btn-manage">목록</a>{% endif %}
+                  {% if model.add_url %}<a href="{{ model.add_url }}" class="btn-add">추가</a>{% endif %}
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ── ⑥~⑨ 예정 섹션 (백엔드 협의) ── -->
+  <div class="dash-section">
+    <div class="dash-section-title">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      예정 — 백엔드 협의 필요
+    </div>
+    <div class="model-grid">
+      <div class="model-card coming-soon">
+        <div class="model-card-header">
+          <div class="model-card-icon icon-gray">
+            <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </div>
+          <span class="coming-tag">미구현</span>
+        </div>
+        <h4>멤버십 &amp; 결제</h4>
+        <p class="model-desc">구독 플랜·결제 내역 관리</p>
+        <div class="card-actions">
+          <a href="#" class="btn-disabled">백엔드 모델 필요</a>
+        </div>
+      </div>
+      <div class="model-card coming-soon">
+        <div class="model-card-header">
+          <div class="model-card-icon icon-gray">
+            <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
+          </div>
+          <span class="coming-tag">미구현</span>
+        </div>
+        <h4>공지 &amp; 이벤트</h4>
+        <p class="model-desc">배너·이벤트·출석 보너스 관리</p>
+        <div class="card-actions">
+          <a href="#" class="btn-disabled">백엔드 모델 필요</a>
+        </div>
+      </div>
+      <div class="model-card coming-soon">
+        <div class="model-card-header">
+          <div class="model-card-icon icon-gray">
+            <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+          </div>
+          <span class="coming-tag">미구현</span>
+        </div>
+        <h4>시스템 &amp; 로그</h4>
+        <p class="model-desc">에러 로그·헬스체크·관리자 접근 기록</p>
+        <div class="card-actions">
+          <a href="#" class="btn-disabled">백엔드 모델 필요</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.dash-wrap -->
 {% endblock %}

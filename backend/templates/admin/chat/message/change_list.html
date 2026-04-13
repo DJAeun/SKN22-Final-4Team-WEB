@@ -1,0 +1,134 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block extra_header %}
+<style>
+  /* ── 채팅 모니터링 헤더 ── */
+  .chat-monitor-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    margin-bottom: 20px;
+    align-items: start;
+  }
+
+  /* 프라이버시 경고 */
+  .privacy-warning {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-left: 4px solid #f59e0b;
+    border-radius: 8px;
+    padding: 14px 18px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .privacy-warning svg {
+    width: 18px; height: 18px;
+    stroke: #d97706; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .privacy-warning-text strong {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #92400e;
+    margin-bottom: 4px;
+  }
+  .privacy-warning-text p {
+    font-size: 0.74rem;
+    color: #b45309;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* 통계 카드 */
+  .chat-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 180px;
+  }
+  .chat-stat-card {
+    background: #fff;
+    border: 1px solid #f0e0e3;
+    border-radius: 7px;
+    padding: 10px 14px;
+    text-align: right;
+  }
+  .chat-stat-card .stat-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #c04060;
+    display: block;
+    margin-bottom: 3px;
+  }
+  .chat-stat-card .stat-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2a1018;
+  }
+
+  /* 발신자 유형 뱃지 */
+  .sender-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: #eff6ff;
+    color: #2563eb;
+  }
+  .sender-hari {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: #fff0f1;
+    color: #e05060;
+  }
+
+  /* 읽음 상태 */
+  .read-yes { color: #22c55e !important; }
+  .read-no  { color: #94a3b8 !important; }
+</style>
+
+<div class="chat-monitor-header">
+  <div class="privacy-warning">
+    <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <div class="privacy-warning-text">
+      <strong>개인정보 보호 주의</strong>
+      <p>
+        이 페이지에서 열람하는 채팅 내용은 유저의 개인 대화입니다.<br>
+        관리자 접근은 자동으로 기록되며, 업무 목적 외 열람은 금지됩니다.<br>
+        <em>백엔드 요청: AdminAccessLog 미들웨어 연동 필요 (BACKEND_REQUEST.md 참고)</em>
+      </p>
+    </div>
+  </div>
+
+  <div class="chat-stats">
+    <div class="chat-stat-card">
+      <span class="stat-label">전체 메시지</span>
+      <span class="stat-value">{{ cl.queryset.count|default:"—" }}</span>
+    </div>
+    <div class="chat-stat-card">
+      <span class="stat-label">현재 필터 결과</span>
+      <span class="stat-value">{{ cl.result_count|default:"—" }}</span>
+    </div>
+  </div>
+</div>
+
+<div style="font-size:0.74rem; color:#a07080; margin-bottom:14px; padding-left:2px;">
+  💡 <strong>발신자 유형:</strong> True = 유저 발신 &nbsp;|&nbsp; False = 하리 발신 &nbsp;&nbsp;
+  <strong>검색:</strong> 닉네임 또는 메시지 내용으로 필터링
+</div>
+{% endblock %}
