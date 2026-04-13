@@ -131,7 +131,7 @@ export function NDAEntrancePage({ onAccept, defaultNickname }: NDAEntrancePagePr
         }}
       />
 
-      <div className="fixed left-0 top-0 flex h-full w-16 items-start justify-center border-r border-[#d6b57a]/20 bg-[#0f0b08] pt-8">
+<div className="fixed left-0 top-0 flex h-full w-16 flex-col items-center justify-between border-r border-[#d6b57a]/20 bg-[#0f0b08] py-8">
         <button
           className="group flex flex-col items-center gap-2 text-[#d6b57a]/60 transition-colors hover:text-[#f4e3c2]"
           title="보안 접근 안내"
