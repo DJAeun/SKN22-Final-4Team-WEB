@@ -4,14 +4,14 @@
   <div class="tb-left">
     <button id="sb-toggle-btn" onclick="document.getElementById('sidebar').classList.toggle('open')" style="display:none; background:transparent; border:none; font-size:1.4rem; color:var(--ink); cursor:pointer;">☰</button>
     <img src="{% static 'images/bori_logo_none.png' %}?v=2" alt="Bori" style="height:42px; width:auto; object-fit:contain; cursor: pointer; filter: contrast(110%) brightness(110%); mix-blend-mode: multiply; transition: all 0.3s ease;" onclick="location.reload()" onmouseover="this.style.transform='scale(1.05)'; this.style.opacity='0.8';" onmouseout="this.style.transform='scale(1)'; this.style.opacity='1';">
+  </div>
+  <div class="tb-center"></div>
+  <div class="tb-right">
     <div class="tb-theme-wrap">
       <span class="tb-theme-ico">☀️</span>
       <button id="theme-toggle" class="off" onclick="toggleTheme()" aria-label="다크 모드 전환" title="다크/라이트 모드 전환"></button>
       <span class="tb-theme-ico">🌙</span>
     </div>
-  </div>
-  <div class="tb-center"></div>
-  <div class="tb-right">
     <a class="tb-home" href="/">← 메인으로</a>
   </div>
 </header>

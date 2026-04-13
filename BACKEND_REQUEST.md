@@ -114,41 +114,6 @@ class NewsEvent(models.Model):
 
 ---
 
-#### 모델 3. `ContactSubmission` — 문의 폼 접수 저장
-
-```python
-class ContactSubmission(models.Model):
-    name         = models.CharField(max_length=100)
-    email        = models.EmailField()
-    company      = models.CharField(max_length=100, blank=True)
-    inquiry_type = models.CharField(max_length=50)
-    message      = models.TextField()
-    is_read      = models.BooleanField(default=False, help_text="관리자 확인 여부")
-    created_at   = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table  = 'contact_submission'
-        ordering  = ['-created_at']
-        verbose_name_plural = "Contact Submissions"
-
-    def __str__(self):
-        return f"{self.name} ({self.email}) - {self.inquiry_type}"
-```
-
-**왜 필요한가:** 현재 `contact_form` 뷰가 폼 데이터를 DB에 저장하지 않아
-어떤 문의가 왔는지 admin에서 확인 불가. 이 모델과 함께 `views.py`의
-`contact_form` 함수에 `ContactSubmission.objects.create(...)` 한 줄 추가 필요.
-
-**추가 요청 (views.py):**
-```python
-# chat/views.py contact_form 함수 안에 추가
-ContactSubmission.objects.create(
-    name=name, email=email,
-    company=company, inquiry_type=inquiry_type, message=message
-)
-```
-
----
 
 #### 모델 4. `VideoContent` — YouTube 비디오 관리
 
