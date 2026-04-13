@@ -74,8 +74,20 @@ FOOTER_V1_END -->
 <div class="ft-engage-area">
   <div class="ft-engage-lbl">하리와 함께하기</div>
   <ul class="ft-engage-list">
-    <li><a class="ft-chat-link" href="/hari-chat/">Chat</a></li>
-    <li><a href="/roleplay/">RPG</a></li>
+    <li>
+      {% if user.is_authenticated %}
+        <a class="ft-chat-link" href="/hari-chat/">Chat</a>
+      {% else %}
+        <a class="ft-chat-link" href="#" onclick="event.preventDefault(); openAuth('login');">Chat</a>
+      {% endif %}
+    </li>
+    <li>
+      {% if user.is_authenticated %}
+        <a href="/roleplay/">RPG</a>
+      {% else %}
+        <a href="#" onclick="event.preventDefault(); openAuth('login');">RPG</a>
+      {% endif %}
+    </li>
     <li><a href="/membership/">Membership</a></li>
   </ul>
 </div>
