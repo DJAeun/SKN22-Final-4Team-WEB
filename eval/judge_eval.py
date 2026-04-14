@@ -3,19 +3,22 @@
 judge_eval.py — Hari Golden Dataset Evaluation
 ───────────────────────────────────────────────
 Connects to the live WebSocket server, sends each golden dataset item,
-collects Hari's response, then scores it with Claude as an LLM-judge.
+collects Hari's response, then scores it with an LLM judge.
+
+Supported judge providers:
+  --judge-provider openai     (default) uses gpt-4o — same key as the project
+  --judge-provider anthropic  uses claude-sonnet-4-6
 
 Usage:
     python eval/judge_eval.py \
-        --url wss://chatting-hari.com/ws/chat/ \
-        --login-url https://chatting-hari.com/chat/login/ \
-        --username TEST_USER \
-        --password TEST_PASS \
-        --dataset eval/golden_dataset.json \
-        --output eval/results/run_$(date +%Y%m%d_%H%M%S).json
+        --username TEST_USER --password TEST_PASS
+
+    # Rule-only (no API key needed):
+    python eval/judge_eval.py --skip-judge \
+        --username TEST_USER --password TEST_PASS
 
 Requirements:
-    pip install websockets httpx anthropic
+    pip install websockets httpx openai
 """
 
 import argparse
@@ -31,16 +34,30 @@ from pathlib import Path
 
 import httpx
 import websockets
-from anthropic import Anthropic
+
+# Load .env from project root (two levels up from eval/)
+_env_path = Path(__file__).parent.parent / ".env"
+if _env_path.exists():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(_env_path, override=False)
+    except ImportError:
+        # dotenv not installed — parse manually
+        for _line in _env_path.read_text(encoding="utf-8").splitlines():
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _k, _, _v = _line.partition("=")
+                os.environ.setdefault(_k.strip(), _v.strip())
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-DEFAULT_WS_URL   = "wss://chatting-hari.com/ws/chat/"
+DEFAULT_WS_URL    = "wss://chatting-hari.com/ws/chat/"
 DEFAULT_LOGIN_URL = "https://chatting-hari.com/api/chat/login/"
-DEFAULT_DATASET  = Path(__file__).parent / "golden_dataset.json"
-JUDGE_MODEL      = "claude-sonnet-4-6"   # different family from Hari's OpenAI backend
-WS_TIMEOUT       = 30.0   # seconds to wait for a response
-TURN_DELAY       = 1.5    # seconds between sends (avoid rate limits)
+DEFAULT_DATASET   = Path(__file__).parent / "golden_dataset.json"
+OPENAI_JUDGE_MODEL     = "gpt-4o"
+ANTHROPIC_JUDGE_MODEL  = "claude-sonnet-4-6"
+WS_TIMEOUT  = 30.0   # seconds to wait for a response
+TURN_DELAY  = 1.5    # seconds between sends (avoid rate limits)
 
 JUDGE_SYSTEM = """You are an expert evaluator for a Korean AI persona chatbot called Hari (강하리).
 Hari is a 21-year-old Korean woman living in Seoul who makes tech-news short-form videos.
@@ -179,13 +196,8 @@ async def send_and_receive(
 
 # ── Judge ─────────────────────────────────────────────────────────────────────
 
-def judge_response(
-    client: Anthropic,
-    item: dict,
-    response: str,
-) -> dict:
-    """Score a single response using Claude as judge."""
-    user_prompt = f"""Test ID: {item["id"]}
+def _build_judge_prompt(item: dict, response: str) -> str:
+    return f"""Test ID: {item["id"]}
 Category: {item["category"]}
 Expected intent: {item["expected_intent"]}
 Must include keywords: {item.get("must_include_keywords", [])}
@@ -203,23 +215,43 @@ Hari's response:
 
 Score this response."""
 
-    resp = client.messages.create(
-        model=JUDGE_MODEL,
-        max_tokens=300,
-        temperature=0,
-        system=JUDGE_SYSTEM,
-        messages=[{"role": "user", "content": user_prompt}],
-    )
-    raw = resp.content[0].text.strip()
 
-    # Strip markdown code fences if present
+def _parse_judge_output(raw: str) -> dict:
+    raw = raw.strip()
     raw = re.sub(r"^```(?:json)?\s*", "", raw)
     raw = re.sub(r"\s*```$", "", raw)
-
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
         return {"score": 0, "reason": f"Judge returned unparseable output: {raw[:200]}", "violations": []}
+
+
+def judge_response(client, provider: str, item: dict, response: str) -> dict:
+    """Score a single response using the configured LLM judge."""
+    prompt = _build_judge_prompt(item, response)
+
+    if provider == "openai":
+        resp = client.chat.completions.create(
+            model=OPENAI_JUDGE_MODEL,
+            temperature=0,
+            max_tokens=300,
+            messages=[
+                {"role": "system", "content": JUDGE_SYSTEM},
+                {"role": "user", "content": prompt},
+            ],
+        )
+        raw = resp.choices[0].message.content
+    else:  # anthropic
+        resp = client.messages.create(
+            model=ANTHROPIC_JUDGE_MODEL,
+            max_tokens=300,
+            temperature=0,
+            system=JUDGE_SYSTEM,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = resp.content[0].text
+
+    return _parse_judge_output(raw)
 
 
 # ── Rule-based checks (fast, deterministic, free) ────────────────────────────
@@ -340,13 +372,22 @@ async def run_eval(args: argparse.Namespace) -> list[dict]:
     else:
         print("  WARNING: No credentials provided. Using guest mode (may fail in production).")
 
-    # Anthropic judge client (optional — skip-judge runs rule-only checks)
+    # Judge client (optional — skip-judge runs rule-only checks)
     judge_client = None
+    judge_provider = args.judge_provider
     if not args.skip_judge:
-        api_key = args.anthropic_key or os.environ.get("ANTHROPIC_API_KEY")
-        if not api_key:
-            raise RuntimeError("Set ANTHROPIC_API_KEY or pass --anthropic-key (or use --skip-judge for rule-only mode)")
-        judge_client = Anthropic(api_key=api_key)
+        if judge_provider == "openai":
+            from openai import OpenAI
+            api_key = args.openai_key or os.environ.get("OPENAI_API_KEY")
+            if not api_key:
+                raise RuntimeError("Set OPENAI_API_KEY or pass --openai-key (or use --skip-judge for rule-only mode)")
+            judge_client = OpenAI(api_key=api_key)
+        else:
+            from anthropic import Anthropic
+            api_key = args.anthropic_key or os.environ.get("ANTHROPIC_API_KEY")
+            if not api_key:
+                raise RuntimeError("Set ANTHROPIC_API_KEY or pass --anthropic-key (or use --skip-judge for rule-only mode)")
+            judge_client = Anthropic(api_key=api_key)
 
     results: list[dict] = []
 
@@ -404,7 +445,7 @@ async def run_eval(args: argparse.Namespace) -> list[dict]:
         # LLM judge (skipped if --skip-judge)
         if judge_client is not None:
             try:
-                judgment = judge_response(judge_client, item, response)
+                judgment = judge_response(judge_client, judge_provider, item, response)
                 result["judge_score"] = judgment.get("score", 0)
                 result["judge_reason"] = judgment.get("reason", "")
                 result["judge_violations"] = judgment.get("violations", [])
@@ -441,6 +482,8 @@ def main() -> None:
     parser.add_argument("--output", help="Path to save JSON results (optional)")
     parser.add_argument("--category", help="Run only this category")
     parser.add_argument("--smoke", type=int, metavar="N", help="Run only first N items (smoke test)")
+    parser.add_argument("--judge-provider", default="openai", choices=["openai", "anthropic"], help="LLM judge provider (default: openai)")
+    parser.add_argument("--openai-key", default=None, help="OpenAI API key (or set OPENAI_API_KEY)")
     parser.add_argument("--anthropic-key", default=None, help="Anthropic API key (or set ANTHROPIC_API_KEY)")
     parser.add_argument("--skip-judge", action="store_true", help="Skip LLM scoring, run rule-based checks only (no API key needed)")
     args = parser.parse_args()

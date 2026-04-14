@@ -54,11 +54,14 @@
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.6rem;">
             <div class="info-item">
               <span class="info-lbl">이름</span>
-              <input class="info-val-input" type="text" placeholder="이름을 입력하세요">
+              <input class="info-val-input" id="profile-name" type="text" placeholder="이름을 입력하세요"
+                     onfocus="showNameWarning()">
             </div>
             <div class="info-item">
               <span class="info-lbl">이메일</span>
-              <input class="info-val-input" type="email" placeholder="이메일을 입력하세요">
+              <input class="info-val-input" id="profile-email" type="email"
+                     value="{{ user.email|default:'' }}" readonly
+                     style="cursor:default; color:var(--dim);">
             </div>
             <div class="info-item">
               <span class="info-lbl">가입일</span>
@@ -78,7 +81,7 @@
           </div>
 
           <!-- 저장 버튼 -->
-          <button class="save-btn" onclick="toast('프로필이 저장되었어요 ✓')">저장하기 →</button>
+          <button class="save-btn" onclick="saveProfile()">저장하기 →</button>
         </div>
       </div>
 
@@ -113,3 +116,71 @@
         </div>
       </div>
     </div>
+
+    <!-- 이름 변경 경고 팝업 -->
+    <div id="name-warning-modal"
+         style="display:none; position:fixed; inset:0; background:rgba(42,36,32,0.45); z-index:500; align-items:center; justify-content:center;">
+      <div style="background:var(--bg); border:0.5px solid var(--bdr2); border-radius:18px; padding:2rem 2.2rem; max-width:320px; width:90%; box-shadow:0 8px 40px rgba(255,123,138,0.18); text-align:center;">
+        <div style="font-size:1.6rem; margin-bottom:.8rem;">✏️</div>
+        <div style="font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.55rem; letter-spacing:.18em; text-transform:uppercase; color:var(--acc); margin-bottom:.6rem;">이름 변경 안내</div>
+        <p style="font-size:.88rem; color:var(--ink); line-height:1.6; margin-bottom:1.4rem;">
+          이 이름은 <strong>하리가 당신을 부를 이름</strong>이에요.<br>
+          변경하면 앞으로의 대화에 바로 반영돼요.
+        </p>
+        <button onclick="closeNameWarning()"
+                style="background:linear-gradient(135deg,var(--acc),#ff9aaa); border:none; color:#fff; font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.6rem; letter-spacing:.16em; text-transform:uppercase; padding:.65rem 2rem; border-radius:25px; cursor:pointer; box-shadow:0 4px 14px rgba(255,123,138,0.3);">
+          알겠어요
+        </button>
+      </div>
+    </div>
+
+    <script>
+    // 페이지 로드 시 이름 불러오기
+    (function loadProfileName() {
+      fetch('/api/chat/api/user-name/', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : Promise.reject(r))
+        .then(data => {
+          const input = document.getElementById('profile-name');
+          if (input && data.name) input.value = data.name;
+        })
+        .catch(() => {});
+    })();
+
+    let nameWarningShown = false;
+
+    function showNameWarning() {
+      if (nameWarningShown) return;
+      nameWarningShown = true;
+      const modal = document.getElementById('name-warning-modal');
+      modal.style.display = 'flex';
+    }
+
+    function closeNameWarning() {
+      document.getElementById('name-warning-modal').style.display = 'none';
+      document.getElementById('profile-name').focus();
+    }
+
+    function saveProfile() {
+      const nameInput = document.getElementById('profile-name');
+      const name = nameInput ? nameInput.value.trim() : '';
+      if (!name) { toast('이름을 입력해주세요'); return; }
+
+      fetch('/api/chat/api/user-name/', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ name }),
+      })
+        .then(r => r.ok ? r.json() : Promise.reject(r))
+        .then(() => toast('프로필이 저장되었어요 ✓'))
+        .catch(() => toast('저장에 실패했어요. 다시 시도해주세요'));
+    }
+
+    function getCookie(name) {
+      const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return v ? v.pop() : '';
+    }
+    </script>
