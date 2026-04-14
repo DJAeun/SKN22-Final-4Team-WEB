@@ -17,8 +17,6 @@
         <input type="text" id="sb-username" placeholder="사용자 이름" value="{{ user.username|default:'' }}"
                oninput="document.getElementById('sb-display-name').textContent = this.value || '사용자'"
                style="width:100%; padding:.45rem .6rem; border:0.5px solid var(--bdr2); background:var(--bg); border-radius:6px; font-size:.78rem; color:var(--ink); margin-bottom:.45rem;" />
-        <!-- 자기소개 입력 -->
-        <textarea id="sb-bio" placeholder="자기소개" rows="2" style="width:100%; padding:.45rem .6rem; border:0.5px solid var(--bdr2); background:var(--bg); border-radius:6px; font-size:.73rem; color:var(--ink); resize:none; line-height:1.4;"></textarea>
       </div>
     </div>
     <div class="sb-hr"></div>
