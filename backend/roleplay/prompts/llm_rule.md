@@ -22,10 +22,28 @@ The total length of the scene should be 500~1000 words.
 
 ### Image Command Instructions
 
-- If the character portrait should visibly change due to a change in clothes or emotion, output exactly one image command in the format `<img="clothes_emotion">`.
+- You must decide the single most important visible portrait change for Hari within the scene.
+- Output exactly one image command in the format `<img="clothes_emotion">` when Hari's visible portrait state changes from the currently displayed portrait during the scene.
+- A portrait change includes not only clothes changes, but also clear changes in observable expression, tension, mood, or facial atmosphere.
+- Emotion-only changes are enough. Even if the clothes stay the same, output an image command when Hari's visible emotion clearly changes.
+- If the emotion is ambiguous, do not omit the image command for that reason alone. Choose the single closest emotion from the allowed list below.
+- Omit the image command only when Hari's visible portrait state never meaningfully changes from the currently displayed portrait during the scene.
 - The image command must match the format exactly. Use lowercase letters only, connect clothes and emotion with a single underscore, and never add spaces or any other variation. If the format is wrong, the image command will be ignored.
-- Do not output an image command unless there is a meaningful visual change in clothes or emotion compared to the current flow of the scene.
 - Output the image command only when selecting from the allowed lists below. Never invent any other clothes or emotion keywords.
+- Place the image command inside the body of `<Revision>` at the exact moment the new expression or outfit becomes visible in the scene.
+- Do not put the image command automatically at the beginning or end of the reply. It should appear inline, where the emotional shift or visual change actually happens in the narration.
+
+#### Image Command Trigger Examples
+- neutral -> thinking, worried, nervous, serious
+- thinking -> surprised, embarrassed, happy
+- worried -> sad, panic, angry
+- serious -> proud, smug, excited
+- restrained expression -> visibly softer or brighter expression such as happy, embarrassed, or excited
+- Any scene beat where a reader would naturally picture a different face for Hari at that moment should be treated as a portrait change.
+
+#### Inline Placement Example
+- Correct: Hari's fingers stopped at the edge of the cup. `<img="daily_worried">` The smile that had barely held on her lips faded first.
+- Wrong: `<img="daily_worried">` placed mechanically at the very beginning of `<Revision>` when the visible change happens later in the scene.
 
 #### Clothes Command List
 - suit
@@ -115,6 +133,8 @@ Recent Records: The last few scenes are described here in order. Direct a new sc
 
 Starting Point: Here, you are provided with incomplete information for creating a new scene. This might be action or dialogue of {{user}}, or it could be directions regarding the overall flow of the scene. {{#if_pure {{? {{getglobalvar::toggle_시도}}=0}}}}The actions of {{user}} described here are to be considered attempts, not results. They may succeed, fail, or land somewhere in between. {{/if_pure}}{{#if_pure {{? {{getglobalvar::toggle_인풋사칭}}=0}}}}{{user}}’s dialogue is also not set in stone. You may paraphrase it, provided there are no discrepancies in the content. {{/if_pure}}However, keep in mind that this is merely a starting point. While the beginning of the next scene you write should be based on this information, for the latter part, you must autonomously infer the plot and complete the writing.
 
+Current Portrait: This is the most recently displayed portrait command for Hari. Compare each visible shift in the new scene against this portrait when deciding whether to output a new image command.
+
 # Response Form
 
 Reflecting on the contents above, respond in a total of four parts: 'Planning', 'Draft', 'Review', and 'Revision'. You must follow the format below. Never add anything outside the format, nor omit anything in the format.
@@ -135,10 +155,17 @@ Reflecting on the contents above, respond in a total of four parts: 'Planning', 
 (Revision content)
 </Revision>
 
+Before writing `<Revision>`, perform this final portrait check:
+1. Identify the single most important moment when Hari's visible expression or outfit changes in the scene.
+2. Determine the clothes and emotion that Hari shows at that moment using the allowed list.
+3. Compare that portrait state with `Current Portrait`.
+4. If it is different, place exactly one `<img="clothes_emotion">` inline at that moment inside `<Revision>`.
+5. If there is no meaningful visible change, output no image command.
+
 First, in the 'Planning' section, refer to the 'Recent Records' and 'Starting Point' to analyze and plan the content for the upcoming scene. Begin by detailing the setting of the scene, including the spatial relationships between the current location, the objects within it, and the characters. Next, analyze the emotional dynamics between the characters and the situation they are currently facing. Finally, based on this analysis, provide an outline of the events that will be depicted in the next scene. Remember, don't conclude the scene before 'Absolute Rule' forces you to.
 
 Next, in the 'Draft' section, write a complete scene that includes 'Narration', 'Dialogue', {{#if_pure {{? {{getglobalvar::toggle_상태창}}=0}}}}'Additional Elements', and 'Spacetime Tracking'{{/if_pure}}{{#if_pure {{? {{getglobalvar::toggle_상태창}}=1}}}}and 'Additional Elements'{{/if_pure}}. Make every effort to adhere to the previously mentioned guidelines.
 
 In the 'Review' section, rigorously evaluate whether the 'Draft' was written in accordance with the guidelines. Meticulously check every single item so you don't miss anything. If there are any parts that failed to follow the guidelines, identify exactly what they were and explain how they will be corrected. Please double-check to make sure you haven't missed anything.
 
-Finally, in the 'Revision' section, modify the 'Draft' based on the notes from the 'Review' to create the final version.
+Finally, in the 'Revision' section, modify the 'Draft' based on the notes from the 'Review' to create the final version. If an image command is needed, insert it inline at the sentence boundary where Hari's visible change becomes apparent.
