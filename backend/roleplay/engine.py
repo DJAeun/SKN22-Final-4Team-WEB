@@ -123,6 +123,21 @@ def extract_named_section(text: str, name: str) -> str:
     return ''
 
 
+def remove_named_section(text: str, name: str) -> str:
+    cleaned = re.sub(
+        rf'<\s*{name}\s*>.*?</\s*{name}\s*>',
+        '',
+        text,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+    cleaned = re.sub(
+        rf'(?ims)^\s*#{{0,6}}\s*{name}\s*:?\s*$\s*.*?(?=^\s*#{{0,6}}\s*(?:{"|".join(SECTION_NAMES)})\s*:?\s*$|\Z)',
+        '',
+        cleaned,
+    )
+    return cleaned
+
+
 def strip_status_content(text: str) -> str:
     cleaned = re.sub(r'<Status>.*?</Status>', '', text, flags=re.DOTALL | re.IGNORECASE)
     cleaned = re.sub(
@@ -160,6 +175,23 @@ def strip_image_command(text: str) -> str:
     cleaned = IMAGE_COMMAND_PATTERN.sub('', text)
     cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
     return cleaned.strip()
+
+
+def sanitize_fallback_story_text(text: str) -> str:
+    cleaned = text or ''
+    cleaned = re.sub(r'<Status>.*?</Status>', '', cleaned, flags=re.DOTALL | re.IGNORECASE)
+    cleaned = remove_named_section(cleaned, 'Planning')
+    cleaned = remove_named_section(cleaned, 'Review')
+    cleaned = remove_named_section(cleaned, 'Draft')
+    cleaned = remove_named_section(cleaned, 'Revision')
+    cleaned = re.sub(r'</?(Planning|Draft|Review|Revision)>', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'^\s*#{0,6}\s*(Planning|Draft|Review|Revision)\s*:?\s*$', '', cleaned, flags=re.IGNORECASE | re.MULTILINE)
+    cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
+    return strip_status_content(cleaned)
+
+
+def get_context_safe_content(text: str) -> str:
+    return strip_image_command(text or '')
 
 
 def parse_image_command(command: str) -> tuple[str, str] | None:
@@ -420,7 +452,9 @@ class PromptBuilder:
         recent_logs = RpgChatLog.objects.filter(session=self.session).order_by('-created_at')[:15]
         # Revese to chronological order
         recent_logs = reversed(recent_logs)
-        recent_records_text = "\n".join([f"{log.role}: {log.content}" for log in recent_logs])
+        recent_records_text = "\n".join(
+            [f"{log.role}: {get_context_safe_content(log.content)}" for log in recent_logs]
+        )
         if not recent_records_text:
             recent_records_text = "(No recent records)"
 
@@ -437,6 +471,7 @@ class PromptBuilder:
         
         # 5. Starting Point (User Input)
         # TODO: Implement optional Vector DB RAG injection here
+        current_portrait = get_latest_image_command_for_session(self.session) or "(none)"
         starting_point_text = f"User ({self.session.user_nickname}) Action/Dialogue: {user_input}"
         
         # Sandwich everything
@@ -444,6 +479,7 @@ class PromptBuilder:
         final_prompt += f"[Prologue]\n{prologue_text}\n\n"
         final_prompt += f"[Past Records]\n{past_records_text}\n\n"
         final_prompt += f"[Recent Records]\n{recent_records_text}\n\n"
+        final_prompt += f"[Current Portrait]\n{current_portrait}\n\n"
         final_prompt += f"[Starting Point]\n{starting_point_text}\n"
         
         return final_prompt
@@ -573,5 +609,5 @@ class MainEngine:
         draft_text = extract_named_section(text, 'Draft')
         if draft_text:
             return strip_status_content(draft_text)
-        # Fallback handles the cases where LLM forgets the tag
-        return strip_status_content(text.strip())
+        # Fallback keeps only story-safe content and drops Planning/Review noise.
+        return sanitize_fallback_story_text(text.strip())

@@ -6,11 +6,20 @@ from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmb
 import re
 import json
 
+
+IMAGE_COMMAND_PATTERN = re.compile(r'<img="([a-z0-9_]+)">', re.IGNORECASE)
+
+
+def get_memory_safe_content(text: str) -> str:
+    cleaned = IMAGE_COMMAND_PATTERN.sub('', text or '')
+    cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
+    return cleaned.strip()
+
 @shared_task
 def run_embedding_task(chat_log_id: int):
     log = RpgChatLog.objects.get(id=chat_log_id)
     # Using kss to split Korean sentences cleanly
-    sentences = split_sentences(log.content)
+    sentences = split_sentences(get_memory_safe_content(log.content))
     
     # Initialize embeddings model
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
@@ -40,7 +49,7 @@ def run_hypermemory_task(session_id: str):
     if not logs_to_summarize.exists():
         return
         
-    relay_novel = "\n".join([f"{l.role}: {l.content}" for l in logs_to_summarize])
+    relay_novel = "\n".join([f"{l.role}: {get_memory_safe_content(l.content)}" for l in logs_to_summarize])
     
     # Inject exactly where {{slot}} is
     prompt = prompt_sys.replace('{{slot}}', relay_novel)
