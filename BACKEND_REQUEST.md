@@ -565,3 +565,23 @@ def video_page(request):
 ### 3. 데이터베이스 마이그레이션 확인
 - 로컬 테스트용 `hari_knowledge` 테이블 생성은 완료되었습니다.
 - 배포 환경의 `GeneratedContent` 데이터가 정상적으로 조회되는지 확인 필요합니다.
+
+---
+
+## 📅 2026-04-14 (월) — 어드민 하리지식 페이지 서버 접근 불가
+
+### [긴급] pgvector PostgreSQL 확장 미설치
+
+**현상:** `/admin/chat/hariknowledge/` 로컬에서는 정상 접근되지만, 서버에서는 에러 발생하여 페이지 진입 불가
+
+**원인:** `chat/migrations/0010_add_user_memory.py` 마이그레이션이 `VECTOR(1536)` 타입과 HNSW 인덱스를 사용합니다.
+이는 PostgreSQL에 `pgvector` 확장이 설치되어 있어야만 동작합니다.
+로컬 SQLite에서는 해당 타입이 무시되어 정상 동작하지만, 서버 RDS PostgreSQL에서는 확장이 없어 실패합니다.
+
+**요청:** AWS RDS PostgreSQL 인스턴스에서 아래 SQL 실행:
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+이후 배포 시 마이그레이션이 자동 실행되어 정상화됩니다.
+
+**관련 파일:** `chat/migrations/0010_add_user_memory.py`
