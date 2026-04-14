@@ -31,13 +31,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.message_count = 0
             else:
                 self.user_id = user.id
-                self.thread_id = str(user.id)
                 self.message_count = 0
 
             self.session_messages = []
             import uuid
             url_session = self.scope['url_route']['kwargs'].get('session_id')
             self.session_id = str(url_session) if url_session else str(uuid.uuid4())
+
+            # When a URL session_id is provided (e.g. eval scripts), use it as
+            # the LangGraph thread so each session gets an isolated checkpoint.
+            # Regular users connect at /ws/chat/ (no session_id), keeping the
+            # existing per-user thread behaviour.
+            if url_session and self.user_id is not None:
+                self.thread_id = str(url_session)
+            elif self.user_id is not None:
+                self.thread_id = str(self.user_id)
+            else:
+                self.thread_id = 'guest'
 
             self.room_group_name = f"chat_{self.thread_id}"
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
@@ -151,7 +161,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             try:
                 loop = asyncio.get_running_loop()
                 ai_response, used_web_search = await asyncio.wait_for(
-                    loop.run_in_executor(None, engine.get_response, user_message, self.thread_id),
+                    loop.run_in_executor(
+                        None, engine.get_response, user_message, self.thread_id, self.user_id
+                    ),
                     timeout=60.0
                 )
             except asyncio.TimeoutError:

@@ -182,10 +182,14 @@ COBOL이나 메인프레임 같은 옛날 기술은 잘 몰라.
             return random.choice(_FALLBACK_RESPONSES)
         return response
 
-    def get_response(self, user_input, session_id):
+    def get_response(self, user_input, session_id, user_id=None):
         """
         Generates a response based on user input and long-term memory via LangGraph.
         This runs inside run_in_executor, making it safe for synchronous psycopg operations.
+
+        session_id: LangGraph thread identifier (may be a UUID for isolated eval sessions).
+        user_id:    DB user id for persona/memory lookups. Falls back to int(session_id)
+                    when not provided (legacy behaviour for regular user sessions).
         """
         if self.init_error:
             return f"아 미안 나 지금 좀 몸이 안좋아... 나중에 다시 말해줘 (엔진 초기화 실패: {self.init_error})", False
@@ -211,7 +215,9 @@ COBOL이나 메인프레임 같은 옛날 기술은 잘 몰라.
                 )
                 from .knowledge_boundary import classify_and_decide_search
                 from .web_search import perform_web_search
-                user_id = int(session_id)
+                # Resolve DB user_id: explicit param takes priority, fallback to
+                # int(session_id) for regular sessions where they are the same.
+                user_id = user_id if user_id is not None else int(session_id)
 
                 # 1. Hari's persona — relevant Q&A from hari_knowledge
                 hari_facts = retrieve_hari_knowledge(user_input, top_k=5)
