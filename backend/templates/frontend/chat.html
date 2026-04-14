@@ -1250,19 +1250,19 @@ html[data-theme="dark"] .date-divider-text {
 
 <div class="app-container">
   <!-- LEFT SIDEBAR: PROFILE -->
-  <aside class="sidebar-left" style="background-image: url('{% static 'images/hari_image13.png' %}');">
+  <aside id="hari-sidebar-left" class="sidebar-left" style="background-image: url('{% static 'images/hari_image13.png' %}');">
     <!-- Full Height Overlay for Readability -->
     <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.95) 100%); z-index: 1;"></div>
-    
+
     <!-- Profile Info (On top of overlay) -->
     <div style="padding: 100px 24px 40px; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; z-index: 2;">
       <div onclick="openHariProfile()" style="width: 140px; height: 140px; border-radius: 40px; overflow: hidden; border: 4px solid white; box-shadow: 0 12px 30px rgba(0,0,0,0.15); background: white; margin-bottom: 24px; transform: rotate(-3deg); cursor:pointer; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">
-        <img src="{% static 'images/hari_image19.webp' %}" alt="Hari" style="width: 100%; height: 100%; object-fit: cover;">
+        <img id="hari-sidebar-profile-img" src="{% static 'images/hari_image19.webp' %}" alt="Hari" style="width: 100%; height: 100%; object-fit: cover;">
       </div>
       <div>
         <h2 style="font-size: 24px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">하리 (Hari)</h2>
         <!-- 일상적인 상태 메시지 -->
-        <p style="font-size: 14px; color: var(--text-dim); font-weight: 400; opacity: 0.9; letter-spacing: -0.01em;">
+        <p id="hari-sidebar-status" style="font-size: 14px; color: var(--text-dim); font-weight: 400; opacity: 0.9; letter-spacing: -0.01em;">
           다음 영상 뭐 하지 🤔
         </p>
       </div>
@@ -1553,7 +1553,7 @@ function renderSingleHariBubble(text, options = {}) {
   const html = `
     <div class="message-group other ${animate ? '' : 'no-animate'}" id="${msgId}">
       <div class="msg-profile" style="${isFirst ? '' : 'visibility: hidden; height: 0; margin-top: -8px;'}">
-        <img src="{% static 'images/hari_image19.webp' %}" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
+        <img src="${window.hariCurrentProfile || '{% static 'images/hari_image19.webp' %}'}" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
       </div>
       <div class="msg-content">
         ${isFirst ? '<div class="msg-name">하리</div>' : ''}
@@ -1708,7 +1708,7 @@ function showTyping() {
   const typingHTML = `
     <div class="typing-indicator" id="typingIndicator">
       <div class="msg-profile">
-        <img src="{% static 'images/hari_image19.webp' %}" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
+        <img src="${window.hariCurrentProfile || '{% static 'images/hari_image19.webp' %}'}" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
       </div>
       <div class="typing-bubble">
         <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
