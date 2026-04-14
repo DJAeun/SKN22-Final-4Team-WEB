@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load admin_urls static admin i18n %}
+{% load admin_urls admin_list admin_modify static i18n %}
 
 {% block title %}
   {% if original %}{{ original|truncatewords:"30" }}{% else %}새 {{ opts.verbose_name }}{% endif %} | HARI 관리자
@@ -34,6 +34,7 @@
       border-radius: var(--radius) !important;
       font-size: 0.75rem !important;
       padding: 6px 12px !important;
+      color: #ffffff !important;
     }
 
     /* ── fieldset ── */
@@ -83,7 +84,7 @@
     }
     .form-row label.required::after {
       content: ' *';
-      color: #ff5566;
+      color: #d44060;
     }
 
     /* ── 인풋 공통 ── */
@@ -112,7 +113,7 @@
     input[type="number"]:focus,
     input[type="url"]:focus,
     select:focus {
-      border-color: #ff7b8a;
+      border-color: #e8607a;
       box-shadow: 0 0 0 3px rgba(255,123,138,0.12);
       outline: none;
     }
@@ -133,7 +134,7 @@
       line-height: 1.6;
     }
     textarea:focus {
-      border-color: #ff7b8a;
+      border-color: #e8607a;
       box-shadow: 0 0 0 3px rgba(255,123,138,0.12);
       outline: none;
     }
@@ -227,7 +228,7 @@
     }
     .checkbox-row input[type="checkbox"] {
       width: 15px; height: 15px;
-      accent-color: #ff7b8a;
+      accent-color: #e8607a;
       cursor: pointer;
     }
     .checkbox-row label {

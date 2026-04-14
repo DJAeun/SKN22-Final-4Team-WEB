@@ -20,7 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
 from django.http import HttpResponse
-from chat.views import health_check, homepage, mypage, frontend_chat, admin_dashboard, admin_toggle_content, admin_toggle_knowledge, abouthari_page, gallery_page, news_page, video_page, membership_page, contact_form, frontend_signup_view
+from chat.views import health_check, homepage, mypage, frontend_chat, abouthari_page, gallery_page, news_page, video_page, membership_page, contact_form, frontend_signup_view
 
 
 def robots_txt(_request):
@@ -43,9 +43,6 @@ urlpatterns = [
     path('health/', health_check, name='health_check'),
     path('roleplay/', include('roleplay.page_urls')),
     path('admin/', admin.site.urls),
-    path('admin-panel/', admin_dashboard, name='admin_panel'),
-    path('admin-panel/content/<int:content_id>/toggle/', admin_toggle_content, name='admin_toggle_content'),
-    path('admin-panel/knowledge/<int:persona_id>/toggle/', admin_toggle_knowledge, name='admin_toggle_knowledge'),
     path('favicon.ico', RedirectView.as_view(url='/static/images/hari_favicon.png', permanent=True)),
     path('robots.txt', robots_txt),
     path('google840fb0dac52a59f6.html', google_verify),

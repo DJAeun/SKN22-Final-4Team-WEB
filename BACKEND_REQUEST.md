@@ -471,3 +471,97 @@ class AdminAccessLogMiddleware:
 
 모든 모델 추가 후 `makemigrations` + `migrate` 실행 필요.  
 프론트는 admin.py에 모델 등록만 하면 즉시 admin에 반영됩니다.
+
+---
+
+## 📅 2026-04-14 (월) — 배포 런타임 에러 2건
+
+> 배포 자체는 성공 (Health: Green, HTTP 200 정상 응답 중)  
+> 하지만 아래 2개의 런타임 에러가 서버 로그에서 확인됨
+
+---
+
+### [긴급] OpenAI 토큰 초과 에러
+
+**에러 로그:**
+```
+openai.BadRequestError: Error code: 400
+Input tokens exceed the configured limit of 272000 tokens.
+Your messages resulted in 428548 tokens.
+```
+
+**발생 위치:** `consumers.py` 또는 `engine.py` — 채팅 대화 기록을 OpenAI API로 전달하는 부분
+
+**현상:**
+- 대화가 길어진 사용자의 채팅 요청이 중간에 실패함
+- 현재 대화 요약 기능이 있지만, 일부 케이스에서 428,548 토큰까지 누적되어 API 한도(272,000) 초과
+
+**요청:**
+- 대화 히스토리를 API에 전달하기 전에 최대 토큰 수 제한 로직 추가
+  - 예: 오래된 메시지부터 잘라내기 (sliding window) 또는 강제 요약 트리거
+
+---
+
+### [보통] LangSmith API 403 Forbidden 에러
+
+**에러 로그:**
+```
+langsmith.utils.LangSmithError: Failed to POST https://api.smith.langchain.com/runs/multipart
+HTTPError('403 Client Error: Forbidden')
+```
+
+**현상:**
+- LangSmith로 실행 로그를 전송할 때 403 에러 반복 발생
+- 기능에 직접 영향은 없으나 로그가 계속 쌓임
+
+**요청:**
+- AWS EB 환경변수에서 `LANGCHAIN_API_KEY` 값 확인 및 갱신
+- 또는 LangSmith 비활성화: `LANGCHAIN_TRACING_V2=false` 환경변수 설정
+
+---
+
+## 📅 2026-04-14 (화) — 영상 숨김/노출 기능 연동
+
+홈페이지와 영상 페이지의 영상 목록을 관리자 페이지와 연동하기 위해 아래 작업을 요청합니다.
+
+### 1. 관리자 페이지 수정 (`chat/admin.py`)
+
+**요청 사항:**
+- `GeneratedContentAdmin` 클래스의 목록 화면에서 '공개 여부'를 바로 수정할 수 있도록 설정 변경.
+
+**코드 제안:**
+```python
+# chat/admin.py
+@admin.register(GeneratedContent)
+class GeneratedContentAdmin(admin.ModelAdmin):
+    list_display = ("content_id", "title_preview", "platform", "is_published", "created_at")
+    list_editable = ("is_published",)  # 이 라인 추가 요청
+    # ... 기존 코드
+```
+
+### 2. 뷰(View) 컨텍스트 추가 (`chat/views.py`)
+
+**요청 사항:**
+- 홈페이지 및 영상 페이지에서 DB에 등록된 '공개 상태'의 영상만 보이도록 context 전달 필요.
+
+**코드 제안:**
+```python
+# chat/views.py
+
+def homepage(request):
+    _try_jwt_auth(request)
+    # 아래 로직 추가 요청
+    contents = GeneratedContent.objects.filter(is_published=True).order_by('-created_at')[:10]
+    return render(request, 'frontend/homepage.html', {'contents': contents})
+
+def video_page(request):
+    # 아래 로직 추가 요청
+    contents = GeneratedContent.objects.filter(is_published=True).order_by('-created_at')
+    return render(request, 'frontend/video.html', {'contents': contents})
+```
+
+---
+
+### 3. 데이터베이스 마이그레이션 확인
+- 로컬 테스트용 `hari_knowledge` 테이블 생성은 완료되었습니다.
+- 배포 환경의 `GeneratedContent` 데이터가 정상적으로 조회되는지 확인 필요합니다.

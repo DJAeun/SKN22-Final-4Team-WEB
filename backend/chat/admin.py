@@ -77,6 +77,7 @@ class HariKnowledgeAdmin(admin.ModelAdmin):
     """HARI의 성격, 관계, 배경 지식 등을 관리합니다."""
 
     list_display = ("persona_id", "category", "trait_key", "is_active", "updated_at")
+    list_editable = ("is_active",)
     list_filter = ("category", "is_active", "updated_at")
     search_fields = ("category", "trait_key", "trait_value")
     readonly_fields = ("persona_id",)
@@ -88,13 +89,19 @@ class HariKnowledgeAdmin(admin.ModelAdmin):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 @admin.register(GeneratedContent)
 class GeneratedContentAdmin(admin.ModelAdmin):
-    """AI가 생성한 콘텐츠(SNS, 블로그 등)를 관리합니다."""
+    """AI가 생성한 유튜브 영상 콘텐츠를 관리합니다."""
 
     list_display = ("content_id", "title_preview", "platform", "is_published", "created_at")
+    list_editable = ("is_published",)
     list_filter = ("platform", "is_published", "created_at")
     search_fields = ("title", "summary")
     readonly_fields = ("content_id", "created_at")
-    verbose_name_plural = "Generated Contents"  # 복수형: "Generated Contents"
+    ordering = ("content_id",)
+    verbose_name_plural = "Generated Contents"
+
+    def get_changeform_initial_data(self, request):
+        """새 콘텐츠 등록 시 플랫폼 기본값을 'YouTube'로 설정합니다."""
+        return {'platform': 'YouTube'}
 
     def title_preview(self, obj):
         """콘텐츠 제목을 30자로 미리보기합니다."""
@@ -116,84 +123,3 @@ class VisitLogAdmin(admin.ModelAdmin):
     verbose_name_plural = "Visit Logs"  # 복수형: "Visit Logs"
 
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 대기 중 — 백엔드 모델 생성 후 주석 해제
-# BACKEND_REQUEST.md (2026-04-10) 참고
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-# [활성화 방법]
-# 1. 백엔드 팀이 BACKEND_REQUEST.md의 5개 모델을 chat/models.py에 추가
-# 2. 아래 import 주석 해제
-# 3. 각 Admin 클래스 주석 해제
-# 4. 서버 재시작
-
-# from .models import (
-#     GalleryImage,
-#     NewsEvent,
-#     ContactSubmission,
-#     VideoContent,
-#     UserMembership,
-# )
-
-# ── GalleryImage Admin ───────────────────────────────────────────────────
-# @admin.register(GalleryImage)
-# class GalleryImageAdmin(admin.ModelAdmin):
-#     """갤러리 이미지 목록 관리. 순서·노출 여부를 목록에서 바로 수정 가능."""
-#     list_display  = ("id", "image_url_preview", "caption", "order", "is_active", "created_at")
-#     list_editable = ("order", "is_active")
-#     list_filter   = ("is_active",)
-#     ordering      = ("order",)
-#     GalleryImage._meta.verbose_name_plural = "Gallery Images"
-#
-#     def image_url_preview(self, obj):
-#         return obj.image_url[:60] + "..." if len(obj.image_url) > 60 else obj.image_url
-#     image_url_preview.short_description = "Image URL"
-
-
-# ── NewsEvent Admin ──────────────────────────────────────────────────────
-# @admin.register(NewsEvent)
-# class NewsEventAdmin(admin.ModelAdmin):
-#     """뉴스·이벤트 스케줄 관리. 상태·노출 여부를 목록에서 바로 수정 가능."""
-#     list_display  = ("id", "title", "event_date", "status", "is_past", "is_active")
-#     list_editable = ("status", "is_past", "is_active")
-#     list_filter   = ("status", "is_past", "is_active")
-#     search_fields = ("title", "description")
-#     ordering      = ("-event_date",)
-#     NewsEvent._meta.verbose_name_plural = "News Events"
-
-
-# ── ContactSubmission Admin ──────────────────────────────────────────────
-# @admin.register(ContactSubmission)
-# class ContactSubmissionAdmin(admin.ModelAdmin):
-#     """문의 폼 접수 내역. 읽기 전용 (수정 불가, 조회·삭제만 가능)."""
-#     list_display   = ("id", "name", "email", "inquiry_type", "is_read", "created_at")
-#     list_editable  = ("is_read",)
-#     list_filter    = ("inquiry_type", "is_read", "created_at")
-#     search_fields  = ("name", "email", "message")
-#     readonly_fields = ("name", "email", "company", "inquiry_type", "message", "created_at")
-#     ordering       = ("-created_at",)
-#     ContactSubmission._meta.verbose_name_plural = "Contact Submissions"
-
-
-# ── VideoContent Admin ───────────────────────────────────────────────────
-# @admin.register(VideoContent)
-# class VideoContentAdmin(admin.ModelAdmin):
-#     """YouTube 영상 목록 관리. 순서·노출 여부를 목록에서 바로 수정 가능."""
-#     list_display  = ("id", "title", "youtube_url", "order", "is_active", "created_at")
-#     list_editable = ("order", "is_active")
-#     list_filter   = ("is_active",)
-#     search_fields = ("title",)
-#     ordering      = ("order",)
-#     VideoContent._meta.verbose_name_plural = "Video Contents"
-
-
-# ── UserMembership Admin ─────────────────────────────────────────────────
-# @admin.register(UserMembership)
-# class UserMembershipAdmin(admin.ModelAdmin):
-#     """사용자 멤버십 플랜·포인트 관리."""
-#     list_display   = ("id", "user", "plan", "points", "started_at", "expires_at")
-#     list_editable  = ("plan", "points")
-#     list_filter    = ("plan",)
-#     search_fields  = ("user__username", "user__email")
-#     readonly_fields = ("started_at",)
-#     UserMembership._meta.verbose_name_plural = "User Memberships"

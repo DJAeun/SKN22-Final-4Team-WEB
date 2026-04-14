@@ -34,7 +34,13 @@ def _try_jwt_auth(request):
 @ensure_csrf_cookie
 def homepage(request):
     _try_jwt_auth(request)
-    return render(request, 'frontend/homepage.html')
+    contents = []
+    try:
+        # ID 1번(앤트로픽)이 최신이므로 오름차순 정렬
+        contents = list(GeneratedContent.objects.filter(is_published=True).order_by('content_id')[:8])
+    except Exception:
+        pass  # 테이블이 없어도 사이트가 죽지 않도록 예외 처리
+    return render(request, 'frontend/homepage.html', {'contents': contents})
 
 
 def mypage(request):
@@ -56,7 +62,14 @@ def news_page(request):
 
 @ensure_csrf_cookie
 def video_page(request):
-    return render(request, 'frontend/video.html')
+    _try_jwt_auth(request)
+    contents = []
+    try:
+        # ID 1번(앤트로픽)이 최신이므로 오름차순 정렬
+        contents = list(GeneratedContent.objects.filter(is_published=True).order_by('content_id'))
+    except Exception:
+        pass
+    return render(request, 'frontend/video.html', {'contents': contents})
 
 
 def frontend_chat(request):
@@ -302,7 +315,7 @@ def admin_dashboard(request):
         'total_memories':     safe(lambda: ChatMemory.objects.count()),
         'users':              safe(lambda: list(users_qs[:50]), []),
         'recent_users':       safe(lambda: list(AuthUser.objects.order_by('-date_joined')[:8]), []),
-        'contents':           safe(lambda: list(GeneratedContent.objects.order_by('-created_at')[:50]), []),
+        'contents':           safe(lambda: list(GeneratedContent.objects.order_by('content_id')[:50]), []),
         'hari_knowledge':     safe(lambda: list(HariKnowledge.objects.order_by('-updated_at')), []),
         'recent_messages':    safe(lambda: list(Message.objects.select_related('user').order_by('-created_at')[:8]), []),
         'all_messages':       safe(lambda: list(Message.objects.select_related('user').order_by('-created_at')[:100]), []),
