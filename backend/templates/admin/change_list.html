@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load admin_urls static admin i18n %}
+{% load admin_urls admin_list static i18n %}
 
 {% block title %}{{ cl.opts.verbose_name_plural|capfirst }} | HARI 관리자{% endblock %}
 
@@ -17,10 +17,12 @@
       font-size: 0.75rem !important;
       font-weight: 500 !important;
       padding: 6px 14px !important;
+      color: #ffffff !important;
     }
     .object-tools a.addlink {
-      background: #ff7b8a !important;
+      background: #e8607a !important;
       padding-left: 28px !important;
+      color: #ffffff !important;
     }
 
     /* ── 검색 폼 ── */
@@ -42,7 +44,7 @@
       transition: border-color 0.15s, box-shadow 0.15s;
     }
     #changelist-search input[type="text"]:focus {
-      border-color: #ff7b8a;
+      border-color: #e8607a;
       box-shadow: 0 0 0 3px rgba(255,123,138,0.12);
       outline: none;
     }
@@ -117,13 +119,13 @@
       color: #c04060 !important;
       text-decoration: none !important;
     }
-    #result_list thead th a:hover { color: #ff5566 !important; }
+    #result_list thead th a:hover { color: #d44060 !important; }
 
     #result_list thead th.sorted {
       background: #ffeef0;
     }
     #result_list thead th.sorted .text span.small {
-      color: #ff7b8a !important;
+      color: #e8607a !important;
     }
 
     #result_list tbody tr {
@@ -177,12 +179,12 @@
       justify-content: center;
       padding: 5px 11px;
       margin: 0 1px;
-      background: #ff7b8a;
-      border: 1px solid #ff7b8a;
-      border-radius: var(--radius);
-      color: #fff;
-      font-size: 0.78rem;
-      font-weight: 600;
+      background: #e8607a !important;
+      border: 1px solid #e8607a !important;
+      border-radius: var(--radius) !important;
+      color: #ffffff !important;
+      font-size: 0.78rem !important;
+      font-weight: 600 !important;
     }
 
     /* ── 필터 사이드바 ── */
@@ -197,7 +199,7 @@
       text-transform: uppercase !important;
       letter-spacing: 0.09em !important;
       color: #ffffff !important;
-      background: #ff7b8a !important;
+      background: #e8607a !important;
       padding: 10px 14px !important;
       margin: 0 !important;
       border-radius: var(--radius) var(--radius) 0 0 !important;
@@ -230,8 +232,10 @@
     }
     #changelist-filter ul li a:hover { background: #fff0f2 !important; color: #e05060 !important; }
     #changelist-filter ul li.selected a {
-      color: #e05060 !important;
+      background: #e8607a !important;
+      color: #ffffff !important;
       font-weight: 600 !important;
+      padding-left: 10px !important;
     }
 
     /* 모듈 컨테이너 */
