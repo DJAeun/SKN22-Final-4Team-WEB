@@ -10,45 +10,14 @@
 
         <!-- 카드 본문 -->
         <div style="padding:0 1.8rem 1.8rem;">
-          <!-- 아바타 + 사용자명 + Fan+ 행 -->
-          <div style="display:flex; align-items:flex-start; gap:1.2rem; margin-bottom:1.8rem;">
-            <!-- 아바타 (클릭 → 사진 업로드) -->
-            <div class="p-av" id="avatar-btn"
-                 onclick="document.getElementById('avatar-input').click()"
-                 style="margin-top:-36px; width:72px; height:72px; font-size:1.6rem; flex-shrink:0; cursor:pointer; overflow:hidden; position:relative;"
-                 title="프로필 사진 변경">
-              <img id="avatar-preview" src="" alt=""
-                   style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:50%;">
-              <span id="avatar-initial">U</span>
-              <div class="p-av-edit" style="z-index:1;">
-                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </div>
-            </div>
-            <!-- 숨김 파일 입력 -->
-            <input type="file" id="avatar-input" accept="image/*" style="display:none"
-                   onchange="previewAvatar(this)">
-            <!-- 사용자명 + Fan+ -->
-            <div style="flex:1; padding-top:8px;">
-              <div style="font-weight:500; color:var(--ink); font-size:.95rem; margin-bottom:.3rem;">{{ user.username|default:"사용자" }}</div>
+          <!-- 사용자명 + Fan+ 행 -->
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:.9rem 0 1.4rem;">
+            <div>
+              <div style="font-family:'NeoDunggeunmo',sans-serif; font-size:1.1rem; letter-spacing:.04em; color:var(--ink); margin-bottom:.25rem;">{{ user.username|default:"사용자" }}</div>
               <span style="font-size:.7rem; color:var(--dim); letter-spacing:.05em;">Fan+ · 활성</span>
             </div>
+            <span style="font-size:.55rem; letter-spacing:.12em; text-transform:uppercase; background:var(--acc); color:#fff; padding:3px 10px; border-radius:20px; font-weight:600; flex-shrink:0;">FAN+</span>
           </div>
-
-          <script>
-          function previewAvatar(input) {
-            if (!input.files || !input.files[0]) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-              const preview = document.getElementById('avatar-preview');
-              const initial = document.getElementById('avatar-initial');
-              preview.src = e.target.result;
-              preview.style.display = 'block';
-              initial.style.display = 'none';
-              toast('프로필 사진이 변경되었어요 ✓');
-            };
-            reader.readAsDataURL(input.files[0]);
-          }
-          </script>
 
           <!-- 계정 정보 편집 필드 2×2 -->
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.6rem;">

@@ -302,19 +302,6 @@ function toast(msg) {
   const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('on');
   clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2800);
 }
-function previewSidebarAvatar(input) {
-  if (!input.files || !input.files[0]) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const preview = document.getElementById('sb-avatar-preview');
-    const initial = document.getElementById('sb-avatar-initial');
-    preview.src = e.target.result;
-    preview.style.display = 'block';
-    initial.style.display = 'none';
-    toast('프로필 사진이 변경되었어요 ✓');
-  };
-  reader.readAsDataURL(input.files[0]);
-}
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBuy(); });
 </script>
 </body>
