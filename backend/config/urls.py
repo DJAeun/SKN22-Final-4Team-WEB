@@ -15,10 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
+from django.views.static import serve
 from django.http import HttpResponse
 from chat.views import health_check, homepage, mypage, frontend_chat, abouthari_page, gallery_page, news_page, video_page, membership_page, contact_form, frontend_signup_view, admin_stats_api
 
@@ -58,3 +59,9 @@ urlpatterns = [
 # Serve media files during development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    # Docker Compose-based EB doesn't provide the host Nginx proxy config,
+    # so Django serves committed media assets directly in production.
+    urlpatterns += [
+        re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
+    ]
