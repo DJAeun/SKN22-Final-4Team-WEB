@@ -255,13 +255,13 @@
       <div class="stat-card-icon ic-fuchsia">
         <svg viewBox="0 0 24 24"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.95C18.88 4 12 4 12 4s-6.88 0-8.59.47A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.95C5.12 20 12 20 12 20s6.88 0 8.59-.47a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg>
       </div>
-      <div class="stat-label">SNS 총 조회수</div>
+      <div class="stat-label">YouTube 조회수</div>
       <div class="stat-value" id="stat-sns">—</div>
-      <div class="stat-sub">유튜브 + 인스타 + 틱톡</div>
+      <div class="stat-sub">유튜브 영상별 조회수 합산</div>
     </div>
   </div>
 
-  <!-- 차트 1행: 페이지별 방문자(넓게) + SNS 도넛 -->
+  <!-- 차트 1행: 페이지별 방문자(넓게) + YouTube 영상별 조회수 -->
   <div class="chart-row-split">
     <div class="chart-card">
       <div class="chart-card-title">페이지별 방문자 수</div>
@@ -271,10 +271,10 @@
       </div>
     </div>
     <div class="chart-card">
-      <div class="chart-card-title">SNS 플랫폼별 비율</div>
-      <div class="chart-card-desc">유튜브 · 인스타그램 · 틱톡 조회수 비율</div>
+      <div class="chart-card-title">YouTube 영상별 조회수</div>
+      <div class="chart-card-desc">기간 내 영상 10개별 총 조회수</div>
       <div style="position:relative; height:260px;">
-        <canvas id="chartSNSDonut"></canvas>
+        <canvas id="chartYTVideos"></canvas>
       </div>
     </div>
   </div>
@@ -297,12 +297,12 @@
     </div>
   </div>
 
-  <!-- 차트 3행: SNS 시계열 -->
+  <!-- 차트 3행: YouTube 영상별 조회수 추이 -->
   <div class="chart-full chart-card">
-    <div class="chart-card-title">SNS 플랫폼별 조회수 트렌드</div>
-    <div class="chart-card-desc">유튜브 · 인스타그램 · 틱톡 기간별 조회수 변화</div>
+    <div class="chart-card-title">YouTube 영상별 조회수 추이</div>
+    <div class="chart-card-desc">상위 5개 영상의 기간별 조회수 변화</div>
     <div style="position:relative; height:240px;">
-      <canvas id="chartSNSTrend"></canvas>
+      <canvas id="chartYTTrend"></canvas>
     </div>
   </div>
 
@@ -313,6 +313,10 @@
 Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
 Chart.defaults.font.size   = 12;
 
+/* ── YouTube 영상 레이블 (10개) ── */
+const YT_VIDEO_LABELS = ['TICTOC', 'HARI TALK', 'B-DAY EVT', 'VLOG #1', 'SHORTS #1', 'MV TEASER', 'COVER #1', 'LIVE CUT', 'SHORTS #2', 'BEHIND'];
+const YT_VIDEO_COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#a855f7','#ec4899','#f43f5e','#14b8a6'];
+
 /* ── 기간별 데모 데이터 ── */
 const DEMO = {
   daily: {
@@ -320,36 +324,58 @@ const DEMO = {
     pageVisits:     [1240, 892, 456, 320, 280, 195, 88, 412],
     chatCounts:     [45, 62, 38, 71, 89, 55, 73],
     roleplayCounts: [12, 18, 9, 24, 31, 15, 28],
-    snsYt:  [12000, 15000, 9800, 18000, 22000, 16000, 19500],
-    snsIg:  [8500,  9200,  7600, 11000, 13500, 10200, 12800],
-    snsTt:  [25000, 31000, 19000, 38000, 45000, 32000, 41000],
+    /* YouTube 영상별 총 조회수 (10개) */
+    ytVideoViews: [19500, 15200, 12800, 9400, 22000, 8100, 11300, 6700, 18500, 7200],
+    /* YouTube 상위 5개 영상 시계열 */
+    ytTrend: [
+      [2800, 3200, 2100, 3800, 4200, 3100, 3600], // TICTOC
+      [1800, 2400, 1600, 2900, 3500, 2600, 2900], // HARI TALK
+      [3200, 3800, 2900, 4500, 5100, 3800, 4400], // SHORTS #1
+      [2600, 3100, 2400, 3700, 4300, 3200, 3900], // SHORTS #2
+      [1500, 1900, 1400, 2200, 2700, 2000, 2400], // B-DAY EVT
+    ],
   },
   weekly: {
     labels:         ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8'],
     pageVisits:     [8500, 6200, 3100, 2100, 1900, 1400, 580, 2800],
     chatCounts:     [312, 445, 289, 501, 623, 398, 512, 467],
     roleplayCounts: [85, 124, 68, 178, 210, 95, 188, 156],
-    snsYt:  [82000, 98000, 71000, 125000, 148000, 110000, 139000, 128000],
-    snsIg:  [58000, 68000, 49000, 82000,  95000,  71000,  88000,  80000],
-    snsTt:  [175000, 215000, 142000, 268000, 315000, 225000, 292000, 271000],
+    ytVideoViews: [139000, 108000, 88000, 65000, 152000, 54000, 78000, 46000, 128000, 49000],
+    ytTrend: [
+      [18000, 22000, 15000, 26000, 30000, 21000, 25000, 28000],
+      [13000, 17000, 11000, 19000, 23000, 16000, 19000, 21000],
+      [22000, 28000, 19000, 34000, 38000, 27000, 32000, 35000],
+      [17000, 22000, 15000, 27000, 31000, 22000, 26000, 29000],
+      [10000, 13000, 9000,  16000, 19000, 13000, 16000, 18000],
+    ],
   },
   monthly: {
     labels:         ['5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월', '4월'],
     pageVisits:     [32000, 24800, 12400, 8200, 7600, 5500, 2300, 11200],
     chatCounts:     [1200, 1580, 1120, 1890, 2340, 1680, 1950, 2120, 1840, 2280, 2450, 2100],
     roleplayCounts: [320, 445, 298, 580, 742, 512, 698, 812, 634, 890, 950, 820],
-    snsYt:  [320000, 380000, 290000, 480000, 580000, 420000, 520000, 580000, 490000, 620000, 680000, 580000],
-    snsIg:  [225000, 268000, 198000, 315000, 385000, 280000, 348000, 392000, 328000, 415000, 462000, 398000],
-    snsTt:  [680000, 820000, 598000, 980000, 1200000, 870000, 1050000, 1180000, 980000, 1280000, 1420000, 1200000],
+    ytVideoViews: [580000, 462000, 392000, 285000, 648000, 228000, 340000, 198000, 545000, 210000],
+    ytTrend: [
+      [45000, 52000, 38000, 68000, 82000, 58000, 72000, 80000, 65000, 88000, 95000, 80000],
+      [32000, 38000, 28000, 48000, 58000, 42000, 52000, 58000, 47000, 62000, 68000, 58000],
+      [55000, 65000, 48000, 82000, 98000, 72000, 88000, 98000, 80000, 105000, 115000, 98000],
+      [42000, 50000, 37000, 62000, 75000, 55000, 68000, 75000, 62000, 82000, 90000, 77000],
+      [25000, 30000, 22000, 38000, 45000, 33000, 41000, 46000, 38000, 50000, 55000, 47000],
+    ],
   },
   yearly: {
     labels:         ['2022', '2023', '2024', '2025'],
     pageVisits:     [52000, 185000, 498000, 320000],
     chatCounts:     [8500, 19800, 38200, 24100],
     roleplayCounts: [1800, 5200, 9800, 6200],
-    snsYt:  [1200000, 3800000, 7200000, 4800000],
-    snsIg:  [850000,  2600000, 5100000, 3400000],
-    snsTt:  [2500000, 7800000, 15200000, 10100000],
+    ytVideoViews: [2400000, 5800000, 9200000, 4800000, 3200000, 1800000, 2600000, 1500000, 4100000, 1900000],
+    ytTrend: [
+      [320000, 820000, 1500000, 980000],
+      [240000, 620000, 1150000, 760000],
+      [480000, 1200000, 2200000, 1450000],
+      [380000, 950000, 1750000, 1150000],
+      [220000, 560000, 1050000, 680000],
+    ],
   },
 };
 
@@ -372,7 +398,7 @@ function buildCharts(period) {
   document.getElementById('stat-visits').textContent   = fmt(sum(d.pageVisits));
   document.getElementById('stat-chat').textContent     = fmt(sum(d.chatCounts));
   document.getElementById('stat-roleplay').textContent = fmt(sum(d.roleplayCounts));
-  document.getElementById('stat-sns').textContent      = fmt(sum(d.snsYt) + sum(d.snsIg) + sum(d.snsTt));
+  document.getElementById('stat-sns').textContent      = fmt(sum(d.ytVideoViews));
 
   var xScale = { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 } } };
   var yScale = { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 } } };
@@ -406,28 +432,31 @@ function buildCharts(period) {
     }
   });
 
-  /* 2. SNS 도넛 */
-  if (charts.donut) charts.donut.destroy();
-  charts.donut = new Chart(document.getElementById('chartSNSDonut'), {
-    type: 'doughnut',
+  /* 2. YouTube 영상별 조회수 — 가로 바 */
+  if (charts.ytVideos) charts.ytVideos.destroy();
+  charts.ytVideos = new Chart(document.getElementById('chartYTVideos'), {
+    type: 'bar',
     data: {
-      labels: ['유튜브', '인스타그램', '틱톡'],
+      labels: YT_VIDEO_LABELS,
       datasets: [{
-        data: [sum(d.snsYt), sum(d.snsIg), sum(d.snsTt)],
-        backgroundColor: ['#ef4444', '#ec4899', '#333333'],
-        borderWidth: 0,
-        hoverOffset: 6,
+        data: d.ytVideoViews,
+        backgroundColor: YT_VIDEO_COLORS.map(function(c) { return c + 'cc'; }),
+        borderColor: YT_VIDEO_COLORS,
+        borderWidth: 1.5,
+        borderRadius: 4,
+        borderSkipped: false,
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      cutout: '68%',
+      indexAxis: 'y',
       plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { font: { size: 11 }, padding: 14, usePointStyle: true, pointStyleWidth: 8, color: '#5a3040' }
-        },
-        tooltip: { callbacks: { label: function(ctx) { return '  ' + ctx.label + ': ' + fmt(ctx.parsed); } } }
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(ctx) { return '  ' + fmt(ctx.parsed.x) + '회'; } } }
+      },
+      scales: {
+        x: { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 }, callback: function(v) { return fmt(v); } } },
+        y: { grid: { display: false }, ticks: { color: '#4a2030', font: { size: 10 } } }
       }
     }
   });
@@ -483,39 +512,30 @@ function buildCharts(period) {
     }
   });
 
-  /* 5. SNS 시계열 — 멀티 라인 */
-  if (charts.sns) charts.sns.destroy();
-  charts.sns = new Chart(document.getElementById('chartSNSTrend'), {
+  /* 5. YouTube 영상별 조회수 추이 — 상위 5개 멀티 라인 */
+  var ytTop5Labels = [YT_VIDEO_LABELS[0], YT_VIDEO_LABELS[1], YT_VIDEO_LABELS[4], YT_VIDEO_LABELS[8], YT_VIDEO_LABELS[2]];
+  var ytTop5Colors = [YT_VIDEO_COLORS[0], YT_VIDEO_COLORS[1], YT_VIDEO_COLORS[4], YT_VIDEO_COLORS[8], YT_VIDEO_COLORS[2]];
+  if (charts.ytTrend) charts.ytTrend.destroy();
+  charts.ytTrend = new Chart(document.getElementById('chartYTTrend'), {
     type: 'line',
     data: {
       labels: d.labels,
-      datasets: [
-        {
-          label: '유튜브', data: d.snsYt,
-          borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.06)',
+      datasets: d.ytTrend.map(function(trendData, i) {
+        return {
+          label: ytTop5Labels[i], data: trendData,
+          borderColor: ytTop5Colors[i],
+          backgroundColor: ytTop5Colors[i].replace(')', ', 0.06)').replace('rgb', 'rgba'),
           borderWidth: 2, fill: false, tension: 0.4,
-          pointRadius: 3, pointBackgroundColor: '#ef4444', pointBorderColor: '#fff', pointBorderWidth: 2,
-        },
-        {
-          label: '인스타그램', data: d.snsIg,
-          borderColor: '#ec4899', backgroundColor: 'rgba(236,72,153,0.06)',
-          borderWidth: 2, fill: false, tension: 0.4,
-          pointRadius: 3, pointBackgroundColor: '#ec4899', pointBorderColor: '#fff', pointBorderWidth: 2,
-        },
-        {
-          label: '틱톡', data: d.snsTt,
-          borderColor: '#555555', backgroundColor: 'rgba(85,85,85,0.04)',
-          borderWidth: 2, fill: false, tension: 0.4,
-          pointRadius: 3, pointBackgroundColor: '#555555', pointBorderColor: '#fff', pointBorderWidth: 2,
-        }
-      ]
+          pointRadius: 3, pointBackgroundColor: ytTop5Colors[i], pointBorderColor: '#fff', pointBorderWidth: 2,
+        };
+      })
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: {
           position: 'top', align: 'end',
-          labels: { font: { size: 11 }, usePointStyle: true, pointStyleWidth: 8, color: '#5a3040', padding: 16 }
+          labels: { font: { size: 11 }, usePointStyle: true, pointStyleWidth: 8, color: '#5a3040', padding: 14 }
         },
         tooltip: { callbacks: { label: function(ctx) { return '  ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.y); } } }
       },
