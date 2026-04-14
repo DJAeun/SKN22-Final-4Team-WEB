@@ -1,0 +1,10 @@
+{% load i18n %}
+<h3>▼ {{ title }}</h3>
+<ul>
+{% for choice in choices %}
+    <li{% if choice.selected %} class="selected"{% endif %}>
+    <a href="{{ choice.query_string|safe }}" title="{{ choice.display }}">
+        {% if choice.display == '언제나' %}모두{% else %}{{ choice.display|capfirst }}{% endif %}
+    </a></li>
+{% endfor %}
+</ul>

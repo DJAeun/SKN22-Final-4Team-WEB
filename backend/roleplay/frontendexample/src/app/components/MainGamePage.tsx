@@ -6,6 +6,7 @@ import type { ChatHistoryItem, GameMessage, RoleplayBootstrap, SessionSummary, S
 
 interface MainGamePageProps {
   bootstrap: RoleplayBootstrap;
+  onBack: () => void;
 }
 
 const IMAGE_COMMAND_PATTERN = /<img="([a-z0-9_]+)">/gi;
@@ -146,7 +147,7 @@ function normalizeHistoryMessage(item: ChatHistoryItem, nickname: string): GameM
   };
 }
 
-export function MainGamePage({ bootstrap }: MainGamePageProps) {
+export function MainGamePage({ bootstrap, onBack }: MainGamePageProps) {
   const [nickname, setNickname] = useState(bootstrap.defaultNickname);
   const [draftNickname, setDraftNickname] = useState(bootstrap.defaultNickname);
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
@@ -746,6 +747,7 @@ export function MainGamePage({ bootstrap }: MainGamePageProps) {
             onToggleMenu={() => setShowSessionMenu((value) => !value)}
             onOpenContinue={() => void openContinueModal()}
             onOpenNewGame={openNewGameModal}
+            onBack={onBack}
           />
         </div>
 

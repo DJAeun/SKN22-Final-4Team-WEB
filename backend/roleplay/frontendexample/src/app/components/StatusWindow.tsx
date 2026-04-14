@@ -191,7 +191,7 @@ export function StatusWindow({
           transform: `translate(${toolbarOpen ? 32 : 32}px, ${toolbarOpen ? 0 : -56}px)`,
         }}
       >
-        <div className="relative h-[320px] w-[264px]">
+        <div className="relative w-[264px]">
           <StatusCard
             date={date}
             time={time}
@@ -212,7 +212,7 @@ export function StatusWindow({
           transform: `translate(${toolbarOpen ? 32 : 32}px, ${toolbarOpen ? 0 : -56}px)`,
         }}
       >
-        <div className="relative h-[320px] w-[264px]">
+        <div className="relative w-[264px]">
           <StatusCard
             date={date}
             time={time}

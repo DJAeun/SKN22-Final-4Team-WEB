@@ -1,246 +1,455 @@
 {% extends "admin/base_site.html" %}
-{% load admin_urls static admin %}
+{% load admin_urls admin_list admin_modify static i18n %}
 
-{% block title %}{{ original|truncatewords:"30" }} | HARI 관리자{% endblock %}
+{% block title %}
+  {% if original %}{{ original|truncatewords:"30" }}{% else %}새 {{ opts.verbose_name }}{% endif %} | HARI 관리자
+{% endblock %}
 
 {% block extrahead %}
   {{ block.super }}
   <style>
-    /* ── 폼 레이아웃 ────────────────────────────────────────── */
-    form {
+    /* ══════════════════════════════════════════
+       폼 레이아웃
+    ══════════════════════════════════════════ */
+    #content-main {
       max-width: 900px;
     }
 
-    .form-row {
-      margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #eee;
+    /* 페이지 타이틀 */
+    #content-main h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #2a1018;
+      margin: 0 0 22px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #f0e0e3;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .form-row:last-child {
+    /* 오브젝트 툴 */
+    .object-tools { margin-bottom: 16px; }
+    .object-tools a {
+      border-radius: var(--radius) !important;
+      font-size: 0.75rem !important;
+      padding: 6px 12px !important;
+      color: #ffffff !important;
+    }
+
+    /* ── fieldset ── */
+    fieldset {
+      background: #ffffff;
+      border: 1px solid #f0e0e3;
+      border-radius: 8px;
+      padding: 0;
+      margin-bottom: 18px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    fieldset h2,
+    fieldset > .description {
+      font-size: 0.65rem !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.08em !important;
+      color: #c04060 !important;
+      background: #fff5f6 !important;
+      padding: 10px 18px !important;
+      margin: 0 !important;
+      border-bottom: 1px solid #f5dde0 !important;
+    }
+
+    fieldset .form-row {
+      padding: 14px 18px;
+      border-bottom: 1px solid #f9eef0;
+    }
+    fieldset .form-row:last-child {
       border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
+    }
+    fieldset .form-row.errors {
+      background: #fff5f5;
+      border-left: 3px solid #ef4444;
     }
 
-    /* ── 라벨 및 입력 필드 ────────────────────────────────────────── */
-    label {
+    /* ── 라벨 ── */
+    .form-row label,
+    .form-row > label {
       display: block;
-      color: #2a2420;
+      font-size: 0.78rem;
       font-weight: 600;
-      margin-bottom: 8px;
-      font-size: 14px;
+      color: #3a2028;
+      margin-bottom: 6px;
+    }
+    .form-row label.required::after {
+      content: ' *';
+      color: #d44060;
     }
 
+    /* ── 인풋 공통 ── */
     input[type="text"],
     input[type="email"],
     input[type="password"],
     input[type="number"],
+    input[type="url"],
     input[type="date"],
     input[type="datetime-local"],
-    textarea,
     select {
       width: 100%;
-      max-width: 500px;
-      padding: 12px 15px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      transition: border-color 0.2s ease;
+      max-width: 520px;
+      padding: 9px 12px;
+      border: 1px solid #e8d8db;
+      border-radius: var(--radius);
+      font-size: 0.82rem;
+      font-family: inherit;
+      color: #2a1018;
+      background: #fff;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
-
     input[type="text"]:focus,
     input[type="email"]:focus,
     input[type="password"]:focus,
     input[type="number"]:focus,
-    input[type="date"]:focus,
-    input[type="datetime-local"]:focus,
-    textarea:focus,
+    input[type="url"]:focus,
     select:focus {
+      border-color: #e8607a;
+      box-shadow: 0 0 0 3px rgba(255,123,138,0.12);
       outline: none;
-      border-color: #ff7b8a;
-      box-shadow: 0 0 0 3px rgba(255, 123, 138, 0.1);
     }
 
+    /* ── textarea 기본 ── */
     textarea {
+      width: 100%;
+      max-width: 720px;
+      padding: 10px 13px;
+      border: 1px solid #e8d8db;
+      border-radius: var(--radius);
+      font-size: 0.82rem;
+      font-family: inherit;
+      color: #2a1018;
       resize: vertical;
-      min-height: 150px;
+      min-height: 100px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      line-height: 1.6;
+    }
+    textarea:focus {
+      border-color: #e8607a;
+      box-shadow: 0 0 0 3px rgba(255,123,138,0.12);
+      outline: none;
     }
 
-    /* ── 체크박스 ────────────────────────────────────────── */
-    input[type="checkbox"] {
-      margin-right: 8px;
-      cursor: pointer;
+    /* ══════════════════════════════════════════
+       코드 에디터 스타일 textarea
+       - Lorebook 프롬프트·lorebook 필드 등 긴 텍스트에 적용
+    ══════════════════════════════════════════ */
+    .code-editor-wrap {
+      position: relative;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      overflow: hidden;
+      background: #0f172a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     }
 
+    .code-editor-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: #1e293b;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .code-editor-bar-dots {
+      display: flex;
+      gap: 5px;
+    }
+    .code-editor-bar-dots span {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red    { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green  { background: #22c55e; }
+    .code-editor-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(248,250,252,0.35);
+    }
+    .code-editor-hint {
+      font-size: 0.62rem;
+      color: rgba(248,250,252,0.22);
+    }
+
+    .code-editor-wrap textarea {
+      max-width: 100%;
+      width: 100%;
+      min-height: 320px;
+      border: none;
+      border-radius: 0;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Monaco', monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+      padding: 14px 18px;
+      resize: vertical;
+      tab-size: 2;
+      caret-color: #f59e0b;
+    }
+    .code-editor-wrap textarea:focus {
+      border: none;
+      box-shadow: none;
+      outline: none;
+      background: #0f1e35;
+    }
+    .code-editor-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 6px 14px;
+      background: #1e293b;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      gap: 14px;
+    }
+    .code-editor-footer span {
+      font-size: 0.62rem;
+      color: rgba(248,250,252,0.28);
+    }
+    #lorebook-char-count { color: rgba(245,158,11,0.7); }
+
+    /* ── 체크박스 ── */
     .checkbox-row {
       display: flex;
       align-items: center;
-      margin-bottom: 15px;
+      gap: 8px;
     }
-
+    .checkbox-row input[type="checkbox"] {
+      width: 15px; height: 15px;
+      accent-color: #e8607a;
+      cursor: pointer;
+    }
     .checkbox-row label {
       margin-bottom: 0;
-      margin-left: 8px;
       font-weight: 400;
-    }
-
-    /* ── 제출 버튼 및 삭제 링크 ────────────────────────────────────────── */
-    .submit-row {
-      background: white;
-      padding: 20px 0;
-      margin-top: 30px;
-      border-top: 2px solid #ff7b8a;
-      display: flex;
-      gap: 10px;
-    }
-
-    .submit-row input[type="submit"],
-    .submit-row input[type="button"] {
-      padding: 12px 30px;
-      font-size: 14px;
-      font-weight: 600;
-      border: none;
-      border-radius: 4px;
       cursor: pointer;
-      transition: all 0.3s ease;
     }
 
-    .submit-row input[type="submit"] {
-      background: #ff7b8a;
-      color: white;
-    }
-
-    .submit-row input[type="submit"]:hover {
-      background: #ff5566;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(255, 123, 138, 0.3);
-    }
-
-    .deletelink {
-      color: #d9534f;
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    .deletelink:hover {
-      color: #c9302c;
-    }
-
-    /* ── 필드셋 및 에러 메시지 ────────────────────────────────────────── */
-    .fieldset {
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-
-    .fieldset h2 {
-      color: #2a2420;
-      font-size: 16px;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #ff7b8a;
-      font-weight: 600;
-    }
-
-    .help-text {
-      font-size: 12px;
-      color: #999;
+    /* ── help text ── */
+    .help {
+      font-size: 0.72rem;
+      color: #a07080;
       margin-top: 5px;
-      font-style: italic;
+      line-height: 1.4;
     }
 
-    /* ── 에러 리스트 ────────────────────────────────────────── */
+    /* ── 에러 ── */
     .errorlist {
-      background: #fee;
-      border: 1px solid #fcc;
-      border-radius: 4px;
-      padding: 15px;
-      margin-bottom: 20px;
-      color: #c33;
+      background: #fff5f5;
+      border: 1px solid #fed7d7;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 18px;
+      list-style: disc;
+      padding-left: 30px;
     }
-
     .errorlist li {
-      margin-bottom: 8px;
+      color: #c53030;
+      font-size: 0.8rem;
+      margin-bottom: 4px;
     }
+    .errorlist li:last-child { margin-bottom: 0; }
 
-    .errorlist li:last-child {
-      margin-bottom: 0;
-    }
-
-    .form-row.errors {
-      background: #fee;
-      padding: 15px;
-      border-radius: 4px;
-      border-left: 4px solid #c33;
-    }
-
-    .form-row.errors label {
-      color: #c33;
-    }
-
-    /* ── 읽기 전용 필드 ────────────────────────────────────────── */
+    /* ── 읽기 전용 ── */
     .readonly {
-      background: #f5f5f5;
-      padding: 10px 15px;
-      border-radius: 4px;
-      border: 1px solid #ddd;
-      color: #666;
+      display: inline-block;
+      background: #f5f0f0;
+      border: 1px solid #e8d8db;
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      font-size: 0.81rem;
+      color: #6a5060;
+      max-width: 520px;
+    }
+
+    /* ── submit-row ── */
+    .submit-row {
+      background: #fff;
+      border: 1px solid #f0e0e3;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .submit-row input[type="submit"] {
+      padding: 9px 24px !important;
+      font-size: 0.82rem !important;
+      font-weight: 600 !important;
+      border-radius: var(--radius) !important;
+      cursor: pointer;
+    }
+    .submit-row .deletelink-box {
+      margin-left: auto;
+    }
+    .deletelink {
+      color: #ef4444 !important;
+      font-size: 0.78rem;
+      font-weight: 500;
+      text-decoration: none !important;
+      padding: 8px 12px;
+      border: 1px solid #fecaca;
+      border-radius: var(--radius);
+      transition: background 0.14s;
+    }
+    .deletelink:hover {
+      background: #fff5f5 !important;
+      color: #dc2626 !important;
     }
   </style>
 {% endblock %}
 
 {% block content_title %}
-  <h1>{{ opts.verbose_name | capfirst }} 수정</h1>
+  <h1>
+    {% if original %}
+      {{ opts.verbose_name|capfirst }} 수정
+    {% else %}
+      새 {{ opts.verbose_name|capfirst }} 추가
+    {% endif %}
+  </h1>
 {% endblock %}
 
-{% block form %}
-  <form method="post" class="form-wrapper">
+{% block content %}
+<div id="content-main">
+  {% if is_popup %}{% block popup_response_template %}{% endblock %}{% endif %}
+
+  {% if save_on_top %}
+    <div class="submit-row">
+      {% submit_row %}
+    </div>
+  {% endif %}
+
+  {% if errors %}
+    <ul class="errorlist">
+      {% for error in errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form id="{{ opts.model_name }}_form"
+        {% if has_file_field %}enctype="multipart/form-data"{% endif %}
+        action="" method="post" novalidate>
     {% csrf_token %}
 
-    {% if form.non_field_errors %}
-      <div class="errorlist">
-        {% for error in form.non_field_errors %}
-          <li>{{ error }}</li>
-        {% endfor %}
-      </div>
+    {% if original %}
+      <input type="hidden" name="_change_pk" value="{{ original.pk }}">
     {% endif %}
 
-    {% for fieldset in adminform %}
-      <fieldset>
-        {% if fieldset.name %}
-          <h2>{{ fieldset.name }}</h2>
-        {% endif %}
-
-        {% for line in fieldset %}
-          {% if line.errors %}
-            <div class="form-row errors">
-              {{ line.errors }}
-          {% else %}
-            <div class="form-row">
+    {% block field_sets %}
+      {% for fieldset in adminform %}
+        <fieldset class="module{% if fieldset.classes %} {{ fieldset.classes }}{% endif %}">
+          {% if fieldset.name %}
+            <h2>{{ fieldset.name }}</h2>
           {% endif %}
-            {% if line.label %}
-              <label for="{{ line.field.id_for_label }}">{{ line.label }}</label>
-            {% endif %}
-            {{ line.field }}
-            {% if line.help_text %}
-              <div class="help-text">{{ line.help_text|safe }}</div>
-            {% endif %}
+          {% if fieldset.description %}
+            <div class="description">{{ fieldset.description|safe }}</div>
+          {% endif %}
+          {% for line in fieldset %}
+            <div class="form-row{% if line.fields|length == 1 and line.errors %} errors{% endif %}{% if line.fields|length == 1 %} field-{{ line.fields.0 }}{% endif %}">
+              {% if line.fields|length == 1 and line.errors %}
+                {{ line.errors }}
+              {% endif %}
+              {% for field in line %}
+                <div class="fieldWrapper{% if field.errors %} errors{% endif %}">
+                  {% if field.is_hidden %}
+                    {{ field.field }}
+                  {% else %}
+                    {{ field.label_tag }}
+                    {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+
+                    {# ── 코드 에디터 적용 조건: lorebook / lorebook_prompt / system_prompt 필드 #}
+                    {% if field.field.name == "lorebook" or field.field.name == "lorebook_prompt" or field.field.name == "system_prompt" or field.field.name == "trait_value" and field.field.name != "trait_key" %}
+                      <div class="code-editor-wrap" id="editor-wrap-{{ field.html_name }}">
+                        <div class="code-editor-bar">
+                          <div class="code-editor-bar-dots">
+                            <span class="dot-red"></span>
+                            <span class="dot-yellow"></span>
+                            <span class="dot-green"></span>
+                          </div>
+                          <span class="code-editor-label">
+                            {% if field.field.name == "lorebook" %}Lorebook Prompt{% elif field.field.name == "lorebook_prompt" %}Lorebook Prompt{% elif field.field.name == "system_prompt" %}System Prompt{% else %}{{ field.label }}{% endif %}
+                          </span>
+                          <span class="code-editor-hint">Tab = 2 spaces</span>
+                        </div>
+                        {{ field.field }}
+                        <div class="code-editor-footer">
+                          <span id="lorebook-char-count-{{ field.html_name }}">0자</span>
+                          <span>monospace · UTF-8</span>
+                        </div>
+                      </div>
+                      <script>
+                      (function() {
+                        var ta = document.querySelector('#editor-wrap-{{ field.html_name }} textarea');
+                        var counter = document.getElementById('lorebook-char-count-{{ field.html_name }}');
+                        if (!ta || !counter) return;
+                        function update() { counter.textContent = ta.value.length.toLocaleString() + '자'; }
+                        update();
+                        ta.addEventListener('input', update);
+                        /* Tab 키 → 2 spaces */
+                        ta.addEventListener('keydown', function(e) {
+                          if (e.key === 'Tab') {
+                            e.preventDefault();
+                            var s = ta.selectionStart, end = ta.selectionEnd;
+                            ta.value = ta.value.substring(0, s) + '  ' + ta.value.substring(end);
+                            ta.selectionStart = ta.selectionEnd = s + 2;
+                            update();
+                          }
+                        });
+                      }());
+                      </script>
+                    {% else %}
+                      {{ field.field }}
+                    {% endif %}
+
+                    {% if field.field.help_text %}
+                      <div class="help">{{ field.field.help_text|safe }}</div>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              {% endfor %}
             </div>
           {% endfor %}
-      </fieldset>
-    {% endfor %}
+        </fieldset>
+      {% endfor %}
+    {% endblock %}
 
-    <div class="submit-row">
-      <input type="submit" value="💾 저장" />
-      {% if has_delete_permission %}
-        <span class="deletelink">
-          <a href="{% url opts|admin_urlname:'delete' original.pk %}">🗑 삭제</a>
-        </span>
-      {% endif %}
-    </div>
+    {% block after_field_sets %}{% endblock %}
+
+    {% block inline_field_sets %}
+      {% for inline_admin_formset in inline_admin_formsets %}
+        {% include inline_admin_formset.opts.template %}
+      {% endfor %}
+    {% endblock %}
+
+    {% block submit_buttons_bottom %}
+      <div class="submit-row">
+        {% if show_save %}<input type="submit" value="저장" name="_save" class="default">{% endif %}
+        {% if show_save_and_continue %}<input type="submit" value="저장 후 계속 편집" name="_continue">{% endif %}
+        {% if show_save_and_add_another %}<input type="submit" value="저장 후 새 항목 추가" name="_addanother">{% endif %}
+        {% if show_delete_link and original %}
+          <div class="deletelink-box">
+            <a href="{% url opts|admin_urlname:'delete' original.pk %}" class="deletelink">삭제</a>
+          </div>
+        {% endif %}
+      </div>
+    {% endblock %}
+
+    {% block admin_change_form_document_ready %}{% endblock %}
   </form>
+</div>
 {% endblock %}

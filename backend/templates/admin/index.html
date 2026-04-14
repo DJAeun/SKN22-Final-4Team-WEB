@@ -1,278 +1,575 @@
 {% extends "admin/base_site.html" %}
-{% load i18n admin_urls %}
+{% load i18n admin_urls static %}
 
 {% block title %}대시보드 | HARI Admin{% endblock %}
 
+{% block extrahead %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
 {% block content %}
 <style>
-  /* ── 대시보드 헤더 (연분홍) ── */
+  .dash-wrap { max-width: 1200px; }
+
+  /* 환영 배너 */
   .dash-header {
-    background: #fff0f2;
-    border: 1px solid #ffc9ce;
-    border-radius: 10px;
-    padding: 22px 26px;
-    margin-bottom: 28px;
+    background: linear-gradient(135deg, #1a0a12 0%, #2d1020 50%, #1a0810 100%);
+    border-radius: 12px;
+    padding: 22px 28px;
+    margin-bottom: 22px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
   }
-
-  .dash-header-text h1 {
-    font-size: 1rem;
+  .dash-header-title {
+    font-size: 1.05rem;
     font-weight: 700;
-    color: #c03048;
-    margin-bottom: 3px;
-    letter-spacing: 0.01em;
+    color: #f8fafc;
+    margin: 0 0 4px;
   }
-
-  .dash-header-text p {
-    font-size: 0.75rem;
-    color: #e0808a;
+  .dash-header-sub {
+    font-size: 0.78rem;
+    color: rgba(248,250,252,0.45);
     margin: 0;
   }
-
   .dash-header-badge {
-    font-size: 0.68rem;
-    font-weight: 600;
-    color: #ff7b8a;
-    background: #ffffff;
-    border: 1px solid #ffc9ce;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: rgba(244,114,182,0.2);
+    color: #f472b6;
+    border: 1px solid rgba(244,114,182,0.3);
+    padding: 5px 14px;
     border-radius: 20px;
-    padding: 4px 12px;
     white-space: nowrap;
   }
 
-  /* ── 섹션 타이틀 ── */
-  .section-label {
-    font-size: 0.61rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    color: #e06070;
-    margin-bottom: 11px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid #f5dde0;
-  }
-
-  .app-section {
-    margin-bottom: 28px;
-  }
-
-  /* ── 모델 카드 ── */
-  .model-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 10px;
-  }
-
-  .model-card {
-    background: #ffffff;
-    border: 1px solid #f0e0e3;
-    border-radius: 8px;
-    padding: 16px 18px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    transition: box-shadow 0.18s, border-color 0.18s;
-  }
-
-  .model-card:hover {
-    border-color: #ffb0bb;
-    box-shadow: 0 3px 12px rgba(255,100,120,0.09);
-  }
-
-  .model-card h4 {
-    font-size: 0.84rem;
-    font-weight: 600;
-    color: #2a1018;
-    margin-bottom: 12px;
-  }
-
-  .card-actions {
-    display: flex;
-    gap: 7px;
-  }
-
-  .card-actions a {
-    flex: 1;
-    padding: 6px 10px;
-    text-align: center;
-    border-radius: 5px;
-    font-size: 0.71rem;
-    font-weight: 500;
-    text-decoration: none !important;
-    transition: background 0.15s;
-  }
-
-  .btn-manage {
-    background: #ff7b8a;
-    color: #ffffff !important;
-    border: 1px solid transparent;
-  }
-
-  .btn-manage:hover {
-    background: #f56070 !important;
-    color: #ffffff !important;
-  }
-
-  .btn-add {
-    background: transparent;
-    color: #d95060 !important;
-    border: 1px solid #f0b8be;
-  }
-
-  .btn-add:hover {
-    background: #fff0f2 !important;
-    color: #d95060 !important;
-  }
-
-  /* ── 콘텐츠 관리 섹션 ── */
-  .upcoming-section {
-    margin-bottom: 28px;
-  }
-
-  .upcoming-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 10px;
-  }
-
-  /* ── 최근 활동 ── */
-  .recent-section {
-    background: #ffffff;
-    border: 1px solid #f0e0e3;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    overflow: hidden;
-    margin-top: 4px;
-  }
-
-  .recent-header {
-    padding: 11px 18px;
-    border-bottom: 1px solid #f5dde0;
-    font-size: 0.61rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    color: #e06070;
-    background: #fffbfb;
-  }
-
-  .recent-list {
-    list-style: none;
-  }
-
-  .recent-list li {
-    padding: 9px 18px;
-    border-bottom: 1px solid #f9eef0;
-    font-size: 0.79rem;
-    color: #3a2028;
+  /* 기간 필터 */
+  .period-bar {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .period-bar-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #8b5a6a;
+    margin-right: 4px;
+  }
+  .period-btn {
+    padding: 6px 18px;
+    border: 1.5px solid #f0c8d4;
+    background: #ffffff;
+    border-radius: 20px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #8b5a6a;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .period-btn:hover {
+    border-color: #e8607a;
+    color: #e8607a;
+    background: #fff8fa;
+  }
+  .period-btn.active {
+    background: #e8607a;
+    border-color: #e8607a;
+    color: #ffffff;
+    font-weight: 600;
   }
 
-  .recent-list li:last-child { border-bottom: none; }
-  .recent-list li:hover { background: #fffbfb; }
-  .recent-list li a { color: #e06070 !important; }
-
-  .empty-msg {
-    padding: 28px;
-    text-align: center;
-    color: #c9a0aa;
-    font-size: 0.79rem;
+  /* 통계 카드 */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
   }
+  @media (max-width: 1000px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px)  { .stat-row { grid-template-columns: 1fr; } }
+
+  .stat-card {
+    background: #ffffff;
+    border: 1px solid #f5e0e6;
+    border-radius: 10px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 4px rgba(200,80,100,0.06);
+    transition: box-shadow 0.18s, border-color 0.18s;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .stat-card.c-pink::before    { background: #e8607a; }
+  .stat-card.c-rose::before    { background: #db2777; }
+  .stat-card.c-purple::before  { background: #a855f7; }
+  .stat-card.c-fuchsia::before { background: #d946ef; }
+
+  .stat-card:hover {
+    border-color: #f0b8c8;
+    box-shadow: 0 4px 14px rgba(232,96,122,0.1);
+  }
+
+  .stat-card-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 12px;
+  }
+  .stat-card-icon svg {
+    width: 16px; height: 16px;
+    stroke: currentColor; fill: none;
+    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .ic-pink    { background: #fff0f4; color: #e8607a; }
+  .ic-rose    { background: #fdf2f8; color: #db2777; }
+  .ic-purple  { background: #faf5ff; color: #a855f7; }
+  .ic-fuchsia { background: #fdf4ff; color: #d946ef; }
+
+  .stat-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #a07080;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+  .stat-value {
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: #2d1a22;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  .stat-sub {
+    font-size: 0.71rem;
+    color: #c090a0;
+    margin-top: 3px;
+  }
+
+  /* 차트 공통 */
+  .chart-card {
+    background: #ffffff;
+    border: 1px solid #f5e0e6;
+    border-radius: 10px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 4px rgba(200,80,100,0.05);
+  }
+  .chart-card-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #2d1a22;
+    margin-bottom: 2px;
+  }
+  .chart-card-desc {
+    font-size: 0.71rem;
+    color: #b08090;
+    margin-bottom: 16px;
+  }
+
+  /* 차트 레이아웃 */
+  .chart-row-split {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .chart-row-half {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .chart-full { margin-bottom: 16px; }
+
+  @media (max-width: 900px) {
+    .chart-row-split,
+    .chart-row-half { grid-template-columns: 1fr; }
+  }
+
 </style>
 
-<div id="content-main">
+<div class="dash-wrap">
 
-  <!-- ── 헤더 ── -->
+  <!-- 환영 배너 -->
   <div class="dash-header">
-    <div class="dash-header-text">
-      <h1>HARI 관리자 대시보드</h1>
-      <p>데이터 확인·수정·추가는 아래 모델 카드에서 진행하세요.</p>
+    <div>
+      <h1 class="dash-header-title">HARI 관리자 대시보드</h1>
+      <p class="dash-header-sub">
+        안녕하세요,
+        {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}님.
+        HARI 서비스의 주요 지표를 한눈에 확인하세요.
+      </p>
     </div>
-    <span class="dash-header-badge">HARI Admin</span>
+    <span class="dash-header-badge">Staff Admin</span>
   </div>
 
-  <!-- ── 현재 활성 모델 ── -->
-  {% if app_list %}
-    {% for app in app_list %}
-      <div class="app-section">
-        <div class="section-label">{{ app.name }}</div>
-        <div class="model-grid">
-          {% for model in app.models %}
-            <div class="model-card">
-              <h4>{{ model.name }}</h4>
-              <div class="card-actions">
-                {% if model.change_url %}
-                  <a href="{{ model.change_url }}" class="btn-manage">목록 보기</a>
-                {% endif %}
-                {% if model.add_url %}
-                  <a href="{{ model.add_url }}" class="btn-add">추가</a>
-                {% endif %}
-              </div>
-            </div>
-          {% endfor %}
-        </div>
+  <!-- 기간 선택 -->
+  <div class="period-bar">
+    <span class="period-bar-label">기간 선택:</span>
+    <button class="period-btn active" data-period="daily">일별</button>
+    <button class="period-btn" data-period="weekly">주간별</button>
+    <button class="period-btn" data-period="monthly">월별</button>
+    <button class="period-btn" data-period="yearly">연별</button>
+  </div>
+
+  <!-- 통계 카드 4개 -->
+  <div class="stat-row">
+    <div class="stat-card c-pink">
+      <div class="stat-card-icon ic-pink">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       </div>
-    {% endfor %}
-  {% else %}
-    <div class="empty-msg">접근 가능한 모델이 없습니다.</div>
-  {% endif %}
-
-  <!-- ── 콘텐츠 관리 (백엔드 모델 생성 후 연결 예정) ── -->
-  <div class="upcoming-section">
-    <div class="section-label">콘텐츠 관리</div>
-    <div class="upcoming-grid">
-
-      <div class="model-card">
-        <h4>Gallery Images</h4>
-        <div class="card-actions">
-          <a href="#" class="btn-add">추가</a>
-        </div>
+      <div class="stat-label">총 방문자</div>
+      <div class="stat-value" id="stat-visits">—</div>
+      <div class="stat-sub">선택 기간 합산</div>
+    </div>
+    <div class="stat-card c-rose">
+      <div class="stat-card-icon ic-rose">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       </div>
-
-      <div class="model-card">
-        <h4>News &amp; Events</h4>
-        <div class="card-actions">
-          <a href="#" class="btn-add">추가</a>
-        </div>
+      <div class="stat-label">채팅 수</div>
+      <div class="stat-value" id="stat-chat">—</div>
+      <div class="stat-sub">채팅페이지 메시지</div>
+    </div>
+    <div class="stat-card c-purple">
+      <div class="stat-card-icon ic-purple">
+        <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
       </div>
-
-      <div class="model-card">
-        <h4>Video Contents</h4>
-        <div class="card-actions">
-          <a href="#" class="btn-add">추가</a>
-        </div>
+      <div class="stat-label">롤플레잉 플레이</div>
+      <div class="stat-value" id="stat-roleplay">—</div>
+      <div class="stat-sub">RPG 메시지 수</div>
+    </div>
+    <div class="stat-card c-fuchsia">
+      <div class="stat-card-icon ic-fuchsia">
+        <svg viewBox="0 0 24 24"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.95C18.88 4 12 4 12 4s-6.88 0-8.59.47A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.95C5.12 20 12 20 12 20s6.88 0 8.59-.47a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg>
       </div>
-
-      <div class="model-card">
-        <h4>Contact Submissions</h4>
-        <div class="card-actions">
-          <a href="#" class="btn-add">추가</a>
-        </div>
-      </div>
-
-      <div class="model-card">
-        <h4>User Memberships</h4>
-        <div class="card-actions">
-          <a href="#" class="btn-add">추가</a>
-        </div>
-      </div>
-
+      <div class="stat-label">YouTube 조회수</div>
+      <div class="stat-value" id="stat-sns">—</div>
+      <div class="stat-sub">유튜브 영상별 조회수 합산</div>
     </div>
   </div>
 
-  <!-- ── 최근 활동 ── -->
-  {% if recent_actions %}
-    <div class="recent-section">
-      <div class="recent-header">최근 활동</div>
-      <ul class="recent-list">
-        {% for action in recent_actions %}
-          <li>{{ action }}</li>
-        {% endfor %}
-      </ul>
+  <!-- 차트 1행: 페이지별 방문자(넓게) + YouTube 영상별 조회수 -->
+  <div class="chart-row-split">
+    <div class="chart-card">
+      <div class="chart-card-title">방문자 수 추이</div>
+      <div class="chart-card-desc">선택 기간 방문자 수 추이</div>
+      <div style="position:relative; height:260px;">
+        <canvas id="chartPageVisits"></canvas>
+      </div>
     </div>
-  {% endif %}
+    <div class="chart-card">
+      <div class="chart-card-title">YouTube 영상별 조회수</div>
+      <div class="chart-card-desc">기간 내 영상 10개별 총 조회수</div>
+      <div style="position:relative; height:260px;">
+        <canvas id="chartYTVideos"></canvas>
+      </div>
+    </div>
+  </div>
 
-</div>
+  <!-- 차트 2행: 채팅 트렌드 + 롤플레잉 -->
+  <div class="chart-row-half">
+    <div class="chart-card">
+      <div class="chart-card-title">채팅 수 트렌드</div>
+      <div class="chart-card-desc">기간별 채팅페이지 메시지 발생 추이</div>
+      <div style="position:relative; height:220px;">
+        <canvas id="chartChat"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">롤플레잉 플레이횟수</div>
+      <div class="chart-card-desc">기간별 롤플레잉 세션 진행 횟수</div>
+      <div style="position:relative; height:220px;">
+        <canvas id="chartRoleplay"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 차트 3행: YouTube 영상별 조회수 추이 -->
+  <div class="chart-full chart-card">
+    <div class="chart-card-title">YouTube 영상별 조회수 추이</div>
+    <div class="chart-card-desc">상위 5개 영상의 기간별 조회수 변화</div>
+    <div style="position:relative; height:240px;">
+      <canvas id="chartYTTrend"></canvas>
+    </div>
+  </div>
+
+
+</div><!-- /.dash-wrap -->
+
+<script>
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+Chart.defaults.font.size   = 12;
+
+/* ── YouTube 영상 레이블 (10개) ── */
+const YT_VIDEO_LABELS = ['TICTOC', 'HARI TALK', 'B-DAY EVT', 'VLOG #1', 'SHORTS #1', 'MV TEASER', 'COVER #1', 'LIVE CUT', 'SHORTS #2', 'BEHIND'];
+const YT_VIDEO_COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#a855f7','#ec4899','#f43f5e','#14b8a6'];
+
+/* ── 기간별 데모 데이터 ── */
+const DEMO = {
+  daily: {
+    labels:         ['4/8', '4/9', '4/10', '4/11', '4/12', '4/13', '4/14'],
+    pageVisits:     [1240, 892, 456, 320, 280, 195, 88, 412],
+    chatCounts:     [45, 62, 38, 71, 89, 55, 73],
+    roleplayCounts: [12, 18, 9, 24, 31, 15, 28],
+    /* YouTube 영상별 총 조회수 (10개) */
+    ytVideoViews: [19500, 15200, 12800, 9400, 22000, 8100, 11300, 6700, 18500, 7200],
+    /* YouTube 상위 5개 영상 시계열 */
+    ytTrend: [
+      [2800, 3200, 2100, 3800, 4200, 3100, 3600], // TICTOC
+      [1800, 2400, 1600, 2900, 3500, 2600, 2900], // HARI TALK
+      [3200, 3800, 2900, 4500, 5100, 3800, 4400], // SHORTS #1
+      [2600, 3100, 2400, 3700, 4300, 3200, 3900], // SHORTS #2
+      [1500, 1900, 1400, 2200, 2700, 2000, 2400], // B-DAY EVT
+    ],
+  },
+  weekly: {
+    labels:         ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8'],
+    pageVisits:     [8500, 6200, 3100, 2100, 1900, 1400, 580, 2800],
+    chatCounts:     [312, 445, 289, 501, 623, 398, 512, 467],
+    roleplayCounts: [85, 124, 68, 178, 210, 95, 188, 156],
+    ytVideoViews: [139000, 108000, 88000, 65000, 152000, 54000, 78000, 46000, 128000, 49000],
+    ytTrend: [
+      [18000, 22000, 15000, 26000, 30000, 21000, 25000, 28000],
+      [13000, 17000, 11000, 19000, 23000, 16000, 19000, 21000],
+      [22000, 28000, 19000, 34000, 38000, 27000, 32000, 35000],
+      [17000, 22000, 15000, 27000, 31000, 22000, 26000, 29000],
+      [10000, 13000, 9000,  16000, 19000, 13000, 16000, 18000],
+    ],
+  },
+  monthly: {
+    labels:         ['5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월', '4월'],
+    pageVisits:     [32000, 24800, 12400, 8200, 7600, 5500, 2300, 11200],
+    chatCounts:     [1200, 1580, 1120, 1890, 2340, 1680, 1950, 2120, 1840, 2280, 2450, 2100],
+    roleplayCounts: [320, 445, 298, 580, 742, 512, 698, 812, 634, 890, 950, 820],
+    ytVideoViews: [580000, 462000, 392000, 285000, 648000, 228000, 340000, 198000, 545000, 210000],
+    ytTrend: [
+      [45000, 52000, 38000, 68000, 82000, 58000, 72000, 80000, 65000, 88000, 95000, 80000],
+      [32000, 38000, 28000, 48000, 58000, 42000, 52000, 58000, 47000, 62000, 68000, 58000],
+      [55000, 65000, 48000, 82000, 98000, 72000, 88000, 98000, 80000, 105000, 115000, 98000],
+      [42000, 50000, 37000, 62000, 75000, 55000, 68000, 75000, 62000, 82000, 90000, 77000],
+      [25000, 30000, 22000, 38000, 45000, 33000, 41000, 46000, 38000, 50000, 55000, 47000],
+    ],
+  },
+  yearly: {
+    labels:         ['2022', '2023', '2024', '2025'],
+    pageVisits:     [52000, 185000, 498000, 320000],
+    chatCounts:     [8500, 19800, 38200, 24100],
+    roleplayCounts: [1800, 5200, 9800, 6200],
+    ytVideoViews: [2400000, 5800000, 9200000, 4800000, 3200000, 1800000, 2600000, 1500000, 4100000, 1900000],
+    ytTrend: [
+      [320000, 820000, 1500000, 980000],
+      [240000, 620000, 1150000, 760000],
+      [480000, 1200000, 2200000, 1450000],
+      [380000, 950000, 1750000, 1150000],
+      [220000, 560000, 1050000, 680000],
+    ],
+  },
+};
+
+/* ── 실데이터 (API에서 fetch) ── */
+var REAL = null;
+
+function fmt(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000)    return (n / 1000).toFixed(1) + 'K';
+  return n.toLocaleString();
+}
+function sum(arr) { return arr.reduce(function(a, b) { return a + b; }, 0); }
+
+var charts = {};
+
+function buildCharts(period) {
+  /* REAL: 실데이터 (방문자/채팅/RPG). YT: YouTube 데모 데이터 (실데이터 없음, DEMO 유지) */
+  var real = REAL ? REAL[period] : { labels: DEMO[period].labels, visitCounts: [], chatCounts: [], rpgCounts: [] };
+  var yt   = DEMO[period];
+  var labels = real.labels && real.labels.length ? real.labels : yt.labels;
+
+  /* 통계 카드 */
+  document.getElementById('stat-visits').textContent   = fmt(sum(real.visitCounts));
+  document.getElementById('stat-chat').textContent     = fmt(sum(real.chatCounts));
+  document.getElementById('stat-roleplay').textContent = fmt(sum(real.rpgCounts));
+  document.getElementById('stat-sns').textContent      = fmt(sum(yt.ytVideoViews));
+
+  var xScale = { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 } } };
+  var yScale = { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 } } };
+
+  /* 1. 방문자 수 추이 — 라인 (실데이터) */
+  if (charts.pv) charts.pv.destroy();
+  charts.pv = new Chart(document.getElementById('chartPageVisits'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '방문자',
+        data: real.visitCounts,
+        borderColor: '#e8607a',
+        backgroundColor: 'rgba(232,96,122,0.08)',
+        borderWidth: 2, fill: true, tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: '#e8607a',
+        pointBorderColor: '#ffffff', pointBorderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(ctx) { return '  ' + ctx.parsed.y.toLocaleString() + '명'; } } }
+      },
+      scales: { x: xScale, y: yScale }
+    }
+  });
+
+  /* 2. YouTube 영상별 조회수 — 가로 바 */
+  if (charts.ytVideos) charts.ytVideos.destroy();
+  charts.ytVideos = new Chart(document.getElementById('chartYTVideos'), {
+    type: 'bar',
+    data: {
+      labels: YT_VIDEO_LABELS,
+      datasets: [{
+        data: yt.ytVideoViews,
+        backgroundColor: YT_VIDEO_COLORS.map(function(c) { return c + 'cc'; }),
+        borderColor: YT_VIDEO_COLORS,
+        borderWidth: 1.5,
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(ctx) { return '  ' + fmt(ctx.parsed.x) + '회'; } } }
+      },
+      scales: {
+        x: { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 }, callback: function(v) { return fmt(v); } } },
+        y: { grid: { display: false }, ticks: { color: '#4a2030', font: { size: 10 } } }
+      }
+    }
+  });
+
+  /* 3. 채팅 수 트렌드 — 라인 (실데이터) */
+  if (charts.chat) charts.chat.destroy();
+  charts.chat = new Chart(document.getElementById('chartChat'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '채팅 수',
+        data: real.chatCounts,
+        borderColor: '#db2777',
+        backgroundColor: 'rgba(219,39,119,0.08)',
+        borderWidth: 2, fill: true, tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: '#db2777',
+        pointBorderColor: '#ffffff', pointBorderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(ctx) { return '  채팅 ' + ctx.parsed.y.toLocaleString() + '건'; } } }
+      },
+      scales: { x: xScale, y: yScale }
+    }
+  });
+
+  /* 4. RPG 메시지 수 — 바 (실데이터) */
+  if (charts.rp) charts.rp.destroy();
+  charts.rp = new Chart(document.getElementById('chartRoleplay'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'RPG 메시지',
+        data: real.rpgCounts,
+        backgroundColor: 'rgba(168,85,247,0.75)',
+        borderColor: '#a855f7',
+        borderWidth: 1.5, borderRadius: 5, borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(ctx) { return '  ' + ctx.parsed.y.toLocaleString() + '건'; } } }
+      },
+      scales: { x: xScale, y: yScale }
+    }
+  });
+
+  /* 5. YouTube 영상별 조회수 추이 — 상위 5개 멀티 라인 */
+  var ytTop5Labels = [YT_VIDEO_LABELS[0], YT_VIDEO_LABELS[1], YT_VIDEO_LABELS[4], YT_VIDEO_LABELS[8], YT_VIDEO_LABELS[2]];
+  var ytTop5Colors = [YT_VIDEO_COLORS[0], YT_VIDEO_COLORS[1], YT_VIDEO_COLORS[4], YT_VIDEO_COLORS[8], YT_VIDEO_COLORS[2]];
+  if (charts.ytTrend) charts.ytTrend.destroy();
+  charts.ytTrend = new Chart(document.getElementById('chartYTTrend'), {
+    type: 'line',
+    data: {
+      labels: yt.labels,
+      datasets: yt.ytTrend.map(function(trendData, i) {
+        return {
+          label: ytTop5Labels[i], data: trendData,
+          borderColor: ytTop5Colors[i],
+          backgroundColor: ytTop5Colors[i].replace(')', ', 0.06)').replace('rgb', 'rgba'),
+          borderWidth: 2, fill: false, tension: 0.4,
+          pointRadius: 3, pointBackgroundColor: ytTop5Colors[i], pointBorderColor: '#fff', pointBorderWidth: 2,
+        };
+      })
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top', align: 'end',
+          labels: { font: { size: 11 }, usePointStyle: true, pointStyleWidth: 8, color: '#5a3040', padding: 14 }
+        },
+        tooltip: { callbacks: { label: function(ctx) { return '  ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.y); } } }
+      },
+      scales: {
+        x: xScale,
+        y: { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 }, callback: function(v) { return fmt(v); } } }
+      }
+    }
+  });
+}
+
+/* ── 실데이터 로드 후 차트 초기화 ── */
+async function loadDashboard() {
+  try {
+    var resp = await fetch('/admin/dashboard-stats/');
+    if (resp.ok) {
+      REAL = await resp.json();
+    }
+  } catch (e) {
+    console.error('Dashboard data load failed:', e);
+  }
+  buildCharts('daily');
+}
+
+/* 기간 버튼 이벤트 */
+document.querySelectorAll('.period-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.period-btn').forEach(function(b) { b.classList.remove('active'); });
+    this.classList.add('active');
+    buildCharts(this.dataset.period);
+  });
+});
+
+loadDashboard();
+</script>
 {% endblock %}

@@ -1,0 +1,174 @@
+{% extends "admin/change_list.html" %}
+
+{% block extra_header %}
+<style>
+  .gc-header {
+    background: #fff;
+    border: 1px solid #f0e0e3;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .gc-header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .gc-header h2 {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #2a1018;
+    margin: 0 0 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .gc-header h2 svg {
+    width: 15px; height: 15px;
+    stroke: #e05060; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .gc-header p {
+    font-size: 0.74rem;
+    color: #9a7080;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* 플랫폼 태그 */
+  .gc-platforms {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .plat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.69rem;
+    font-weight: 600;
+    padding: 4px 11px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+  }
+  .plat-chip.instagram { background: #fff0f5; color: #c2185b; border-color: #f8bbd0; }
+  .plat-chip.twitter   { background: #e8f5fe; color: #0277bd; border-color: #b3e5fc; }
+  .plat-chip.youtube   { background: #fff8e1; color: #e65100; border-color: #ffe0b2; }
+  .plat-chip.tiktok    { background: #f3e5f5; color: #6a1b9a; border-color: #e1bee7; }
+  .plat-chip.blog      { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
+
+  /* 상태 컬럼 안내 */
+  .gc-status-guide {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.71rem;
+    color: #7a5060;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-dot.published { background: #22c55e; }
+  .status-dot.draft     { background: #f59e0b; }
+  .status-dot.archived  { background: #94a3b8; }
+
+  /* 통계 */
+  .gc-stats {
+    background: #fdf8f9;
+    border: 1px solid #f0e0e3;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .gc-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .gc-stat .val { font-size: 1.1rem; font-weight: 700; color: #2a1018; }
+  .gc-stat .lbl { font-size: 0.65rem; color: #9a7080; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* 주의 배너 */
+  .gc-notice {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-left: 4px solid #f59e0b;
+    border-radius: 6px;
+    padding: 9px 13px;
+    font-size: 0.73rem;
+    color: #92400e;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .gc-notice svg {
+    width: 13px; height: 13px;
+    stroke: #d97706; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+</style>
+
+<div class="gc-header">
+  <div class="gc-header-top">
+    <div>
+      <h2>
+        <svg viewBox="0 0 24 24"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.41 19c1.71.46 8.59.46 8.59.46s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
+        유튜브 영상 콘텐츠 관리
+      </h2>
+      <p>
+        하리 AI가 생성한 <strong>유튜브 영상</strong> 콘텐츠입니다. <strong>is_published</strong>를 ON으로 전환하면 해당 영상이 실제 사이트 피드에 노출됩니다.<br>
+        모든 콘텐츠는 유튜브 플랫폼 전용으로 관리되며, 카테고리 및 게시 상태로 분류됩니다.
+      </p>
+    </div>
+  </div>
+
+  <div class="gc-platforms">
+    <span class="plat-chip youtube">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.41 19c1.71.46 8.59.46 8.59.46s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
+      YouTube 전용 시스템
+    </span>
+  </div>
+
+  <div class="gc-status-guide">
+    <div class="status-item"><span class="status-dot published"></span>is_published = ON → 피드 노출</div>
+    <div class="status-item"><span class="status-dot draft"></span>is_published = OFF → 초안 (비공개)</div>
+    <div class="status-item"><span class="status-dot archived"></span>삭제 = 영구 삭제 (복구 불가)</div>
+  </div>
+
+  <div class="gc-stats">
+    <div class="gc-stat">
+      <span class="val">{{ cl.queryset.count|default:"—" }}</span>
+      <span class="lbl">전체 콘텐츠</span>
+    </div>
+    <div class="gc-stat">
+      <span class="val">{{ cl.result_count|default:"—" }}</span>
+      <span class="lbl">필터 결과</span>
+    </div>
+  </div>
+
+  <div class="gc-notice">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span>
+      <strong>is_published</strong> 전환 시 즉시 프론트엔드에 반영됩니다. 내용 검토 후 게시하세요.
+      AI 생성 콘텐츠는 자동 게시되지 않으며, 반드시 관리자 승인(is_published = ON)이 필요합니다.
+    </span>
+  </div>
+</div>
+{% endblock %}

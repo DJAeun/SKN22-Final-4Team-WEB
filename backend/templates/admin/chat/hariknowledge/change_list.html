@@ -1,0 +1,155 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block extra_header %}
+<style>
+  /* ── 하리 지식 헤더 ── */
+  .knowledge-header {
+    background: linear-gradient(135deg, #1a1018 0%, #1e0a20 100%);
+    border: 1px solid rgba(255,123,138,0.2);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 22px;
+  }
+  .knowledge-header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .knowledge-header h2 {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin: 0 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .knowledge-header h2 svg {
+    width: 15px; height: 15px;
+    stroke: #e8607a; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .knowledge-header > p {
+    font-size: 0.74rem;
+    color: rgba(248,250,252,0.4);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* 카테고리 설명 */
+  .knowledge-categories {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .cat-chip {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.7rem;
+    color: rgba(248,250,252,0.55);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .cat-chip::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #e8607a;
+    flex-shrink: 0;
+  }
+  .cat-chip.cat-persona::before  { background: #f59e0b; }
+  .cat-chip.cat-speech::before   { background: #22c55e; }
+  .cat-chip.cat-history::before  { background: #8b5cf6; }
+  .cat-chip.cat-relation::before { background: #06b6d4; }
+
+  .knowledge-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .knowledge-actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: opacity 0.14s;
+  }
+  .knowledge-actions a:hover { opacity: 0.85; }
+  .btn-add-knowledge {
+    background: #e8607a;
+    color: #fff !important;
+  }
+
+  /* 경고 배너 */
+  .knowledge-warning {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.73rem;
+    color: rgba(255,150,150,0.8);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .knowledge-warning svg {
+    width: 14px; height: 14px;
+    stroke: rgba(255,100,100,0.7); fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+</style>
+
+<div class="knowledge-header">
+  <div class="knowledge-header-top">
+    <div>
+      <h2>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        하리 지식 (Hari Knowledge)
+      </h2>
+      <p style="font-size:0.74rem; color:rgba(248,250,252,0.4); margin:0; line-height:1.5;">
+        하리의 페르소나, 말투, 역사, 관계를 정의하는 지식 베이스입니다.<br>
+        <strong style="color:rgba(255,123,138,0.8)">is_active = OFF</strong>인 항목은 하리 엔진에서 무시됩니다.
+        weight 필드는 pgvector 임베딩 — 직접 수정 금지.
+      </p>
+    </div>
+    <div class="knowledge-actions">
+      <a href="add/" class="btn-add-knowledge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        지식 추가
+      </a>
+    </div>
+  </div>
+
+  <div class="knowledge-categories">
+    <span class="cat-chip cat-persona">persona — 하리의 성격·자아</span>
+    <span class="cat-chip cat-speech">speech — 말투·어조</span>
+    <span class="cat-chip cat-history">history — 배경 스토리</span>
+    <span class="cat-chip cat-relation">relation — 인물 관계</span>
+    <span class="cat-chip">preference — 취향·관심사</span>
+    <span class="cat-chip">world — 세계관 설정</span>
+  </div>
+
+  <div style="height:12px;"></div>
+
+  <div class="knowledge-warning">
+    <svg viewBox="0 0 24 24"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span>
+      <strong>weight 필드 수정 금지</strong> — pgvector 임베딩 값은 백엔드 엔진이 자동 생성합니다.
+      직접 수정 시 벡터 검색이 깨질 수 있습니다.
+      trait_value만 수정하세요.
+    </span>
+  </div>
+</div>
+{% endblock %}

@@ -1,189 +1,291 @@
 {% extends "admin/base_site.html" %}
-{% load admin_urls static admin %}
+{% load admin_urls admin_list static i18n %}
 
-{% block title %}{{ cl.opts.verbose_name_plural | capfirst }} | HARI 관리자{% endblock %}
+{% block title %}{{ cl.opts.verbose_name_plural|capfirst }} | HARI 관리자{% endblock %}
 
 {% block extrahead %}
   {{ block.super }}
   <style>
-    /* ── 목록 헤더 ────────────────────────────────────────── */
-    .changelist-header {
+    /* ══════════════════════════════════════════
+       change_list 공통 스타일
+    ══════════════════════════════════════════ */
+
+    /* 오브젝트 툴 (상단 우측 버튼) */
+    .object-tools { margin-bottom: 14px; }
+    .object-tools a {
+      border-radius: var(--radius) !important;
+      font-size: 0.75rem !important;
+      font-weight: 500 !important;
+      padding: 6px 14px !important;
+      color: #ffffff !important;
+    }
+    .object-tools a.addlink {
+      background: #e8607a !important;
+      padding-left: 28px !important;
+      color: #ffffff !important;
+    }
+
+    /* ── 검색 폼 ── */
+    #changelist-search {
+      margin-bottom: 16px;
+    }
+    #changelist-search form {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 25px;
-      flex-wrap: wrap;
-      gap: 15px;
+      gap: 8px;
     }
-
-    .changelist-header h1 {
-      font-size: 24px;
-      color: #2a2420;
-      margin: 0;
-      font-weight: 600;
-    }
-
-    .changelist-filters {
-      float: right;
-      margin-left: 20px;
-      width: 240px;
-    }
-
-    .changelist-filters h2 {
-      color: #2a2420;
-      font-size: 14px;
-      text-transform: uppercase;
-      margin-bottom: 15px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #ff7b8a;
-      font-weight: 600;
-    }
-
-    .changelist-filters ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    .changelist-filters li {
-      padding: 8px 0;
-    }
-
-    .changelist-filters a {
-      color: #ff7b8a;
-      text-decoration: none;
+    #changelist-search input[type="text"] {
       padding: 8px 12px;
-      border-radius: 4px;
-      display: block;
-      transition: all 0.2s ease;
+      border: 1px solid #e8d8db;
+      border-radius: var(--radius);
+      font-size: 0.82rem;
+      font-family: inherit;
+      min-width: 260px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    #changelist-search input[type="text"]:focus {
+      border-color: #e8607a;
+      box-shadow: 0 0 0 3px rgba(255,123,138,0.12);
+      outline: none;
+    }
+    #changelist-search input[type="submit"] {
+      padding: 8px 16px !important;
+      font-size: 0.78rem !important;
     }
 
-    .changelist-filters a:hover {
-      background: rgba(255, 123, 138, 0.1);
-      color: #ff5566;
-    }
+    /* ── 날짜 계층 ── */
+    .xfull { width: 100%; }
+    .date-hierarchy { margin-bottom: 14px; }
 
-    .changelist-filters a.selected {
-      background: #ff7b8a;
-      color: white;
-      font-weight: 600;
-    }
-
-    /* ── 변경 목록 테이블 ────────────────────────────────────────── */
+    /* ── 메인 영역 (필터 있을 때) ── */
     #changelist {
-      clear: left;
+      display: block;
+    }
+    #changelist.filtered { clear: left; }
+
+    /* ── 액션 폼 ── */
+    .actions {
+      background: #fff5f6;
+      border: 1px solid #f5dde0;
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .actions label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #3a2028;
+    }
+    .actions select {
+      padding: 6px 10px;
+      border: 1px solid #e8d8db;
+      border-radius: var(--radius);
+      font-size: 0.78rem;
+      font-family: inherit;
+    }
+    .actions button[type="submit"] {
+      padding: 6px 14px !important;
+      font-size: 0.78rem !important;
+    }
+    .action-counter {
+      font-size: 0.72rem;
+      color: #a07080;
     }
 
-    #changelist table {
+    /* ── 테이블 ── */
+    #result_list {
       width: 100%;
       border-collapse: collapse;
+      font-size: 0.82rem;
     }
-
-    #changelist thead th {
-      background: #f8f5f2;
-      color: #2a2420;
-      padding: 15px;
+    #result_list thead th {
+      background: #fff5f6;
+      color: #7a3040;
+      padding: 10px 14px;
       text-align: left;
-      font-weight: 600;
-      border-bottom: 2px solid #ff7b8a;
-      font-size: 13px;
+      font-size: 0.65rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.07em;
+      border-bottom: 2px solid #f5dde0;
+      white-space: nowrap;
+    }
+    #result_list thead th a:link,
+    #result_list thead th a:visited {
+      color: #c04060 !important;
+      text-decoration: none !important;
+    }
+    #result_list thead th a:hover { color: #d44060 !important; }
+
+    #result_list thead th.sorted {
+      background: #ffeef0;
+    }
+    #result_list thead th.sorted .text span.small {
+      color: #e8607a !important;
     }
 
-    #changelist tbody tr {
-      border-bottom: 1px solid #eee;
-      transition: background-color 0.2s ease;
+    #result_list tbody tr {
+      border-bottom: 1px solid #f9eef0;
+      transition: background 0.12s;
     }
+    #result_list tbody tr:hover { background: rgba(255,123,138,0.04); }
+    #result_list tbody tr.selected { background: #fff0f1 !important; }
 
-    #changelist tbody tr:hover {
-      background-color: rgba(255, 123, 138, 0.05);
+    #result_list td {
+      padding: 10px 14px;
+      color: #3a2028;
+      vertical-align: middle;
     }
+    #result_list td a:link,
+    #result_list td a:visited { color: #e05060 !important; font-weight: 500; }
+    #result_list td a:hover   { color: #c03040 !important; }
 
-    #changelist td {
-      padding: 15px;
-      color: #555;
-    }
+    #result_list td.field-checkbox { width: 20px; text-align: center; }
 
-    #changelist .field-checkbox {
-      text-align: center;
-    }
+    /* 불리언 아이콘 */
+    .yes-icon { color: #22c55e; font-size: 1rem; }
+    .no-icon  { color: #ef4444; font-size: 1rem; }
+    img[src*="icon-yes"]  { filter: hue-rotate(300deg) saturate(0.7); }
+    img[src*="icon-no"]   { filter: hue-rotate(0deg); }
 
-    /* ── 검색 폼 및 제출 ────────────────────────────────────────── */
-    .submit-row {
-      background: white;
-      padding: 20px 0;
-      border-top: 1px solid #ddd;
-      margin-top: 20px;
-    }
-
-    .search-form {
-      margin-bottom: 20px;
-    }
-
-    .search-form input[type="text"] {
-      padding: 10px 15px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
-      min-width: 250px;
-    }
-
-    .search-form input[type="submit"] {
-      margin-left: 10px;
-    }
-
-    /* ── 페이지네이터 ────────────────────────────────────────── */
+    /* ── 페이지네이터 ── */
     .paginator {
-      margin-top: 20px;
-      padding: 15px 0;
-      text-align: center;
-      font-size: 14px;
+      padding: 14px 4px 4px;
+      font-size: 0.8rem;
+      color: #7a6b68;
     }
-
     .paginator a {
-      padding: 8px 12px;
-      margin: 0 2px;
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      text-decoration: none;
-      color: #ff7b8a;
-    }
-
-    .paginator a:hover {
-      background: #ff7b8a;
-      color: white;
-    }
-
-    .paginator .step-links {
-      display: flex;
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
-      gap: 5px;
-      flex-wrap: wrap;
+      padding: 5px 11px;
+      margin: 0 1px;
+      background: #fff;
+      border: 1px solid #f0d8db;
+      border-radius: var(--radius);
+      text-decoration: none !important;
+      color: #e05060 !important;
+      font-size: 0.78rem;
+      transition: background 0.13s;
+    }
+    .paginator a:hover { background: #fff0f1 !important; color: #c03040 !important; }
+    .paginator .this-page {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 11px;
+      margin: 0 1px;
+      background: #e8607a !important;
+      border: 1px solid #e8607a !important;
+      border-radius: var(--radius) !important;
+      color: #ffffff !important;
+      font-size: 0.78rem !important;
+      font-weight: 600 !important;
+    }
+
+    /* ── 필터 사이드바 ── */
+    #changelist-filter {
+      float: right;
+      width: 220px;
+      margin-left: 20px;
+    }
+    #changelist-filter h2 {
+      font-size: 0.62rem !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.09em !important;
+      color: #ffffff !important;
+      background: #e8607a !important;
+      padding: 10px 14px !important;
+      margin: 0 !important;
+      border-radius: var(--radius) var(--radius) 0 0 !important;
+    }
+    #changelist-filter h3 {
+      font-size: 0.65rem !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.07em !important;
+      color: #c04060;
+      padding: 8px 14px 4px;
+      margin: 0;
+      border-top: 1px solid #f5dde0;
+    }
+    #changelist-filter ul {
+      padding: 0 14px 10px;
+      list-style: none;
+    }
+    #changelist-filter ul li {
+      padding: 3px 0;
+    }
+    #changelist-filter ul li a {
+      font-size: 0.79rem !important;
+      color: #7a5060 !important;
+      text-decoration: none !important;
+      display: block;
+      padding: 3px 4px;
+      border-radius: 4px;
+      transition: background 0.12s;
+    }
+    #changelist-filter ul li a:hover { background: #fff0f2 !important; color: #e05060 !important; }
+    #changelist-filter ul li.selected a {
+      background: #e8607a !important;
+      color: #ffffff !important;
+      font-weight: 600 !important;
+      padding-left: 10px !important;
+    }
+
+    /* 모듈 컨테이너 */
+    #changelist .module {
+      background: #ffffff;
+      border: 1px solid #f0e0e3 !important;
+      border-radius: 8px !important;
+      overflow: hidden;
     }
   </style>
 {% endblock %}
 
-{% block content_title %}
-  <h1>{{ cl.opts.verbose_name_plural | capfirst }}</h1>
-{% endblock %}
+{# ═══════════════════════════════════════════════════════════ #}
+{# 메인 콘텐츠 블록 (이 블록이 없으면 목록이 렌더링되지 않음) #}
+{# ═══════════════════════════════════════════════════════════ #}
+{% block content %}
+<div id="content-main">
 
-{% block search %}
-  {% search_form cl %}
-{% endblock %}
+  {# 모델별 커스텀 헤더를 삽입할 수 있는 훅 #}
+  {% block extra_header %}{% endblock %}
 
-{% block date_hierarchy %}
-  {% date_hierarchy cl %}
-{% endblock %}
+  {# 검색 폼 #}
+  {% if cl.search_fields %}
+  <div id="changelist-search">
+    {% block search %}{% search_form cl %}{% endblock %}
+  </div>
+  {% endif %}
 
-{% block filters %}
-  {% admin_list_filter cl %}
-{% endblock %}
+  {# 날짜 계층 #}
+  {% block date_hierarchy %}{% if cl.date_hierarchy %}{% date_hierarchy cl %}{% endif %}{% endblock %}
 
-{% block result_list %}
-  {% result_list cl %}
-{% endblock %}
+  {# 필터 (우측 사이드바) #}
+  {% if cl.has_filters %}
+  <div id="changelist-filter">
+    {% block filters %}
+    <h2>{% trans "Filter" %}</h2>
+    {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
+    {% endblock %}
+  </div>
+  {% endif %}
 
-{% block pagination %}
-  {% pagination cl %}
+  {# 결과 목록 + 액션 #}
+  <div id="changelist" class="module{% if cl.has_filters %} filtered{% endif %}">
+    {% block result_list %}
+      {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}
+      {% result_list cl %}
+      {% if action_form and actions_on_bottom and cl.show_admin_actions %}{% admin_actions %}{% endif %}
+    {% endblock %}
+    {% block pagination %}{% pagination cl %}{% endblock %}
+  </div>
+
+</div>
 {% endblock %}

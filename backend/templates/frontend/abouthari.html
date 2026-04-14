@@ -43,6 +43,9 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 .pf-nav-back svg{transition:transform .2s;}
 .pf-nav-back:hover svg{transform:translateX(-3px);}
 
+/* NAV RIGHT GROUP */
+.pf-nav-right{display:flex;align-items:center;gap:1.2rem;}
+
 /* THEME TOGGLE */
 .pf-theme-wrap{display:flex;align-items:center;gap:.4rem;flex-shrink:0;}
 #theme-toggle{position:relative;width:44px;height:26px;background:#ddd;border:none;border-radius:20px;cursor:pointer;transition:background .3s ease,box-shadow .2s ease;display:flex;align-items:center;padding:0 2px;box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);flex-shrink:0;}
@@ -85,22 +88,22 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 .pf-stat{padding:1.2rem 1rem;border-right:.5px solid var(--bdr);text-align:center;}
 .pf-stat:last-child{border-right:none;}
 .pf-stat-num{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--ink);display:block;line-height:1;}
-.pf-stat-lbl{font-family:'DM Mono',monospace;font-size:.48rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-top:.3rem;}
+.pf-stat-lbl{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-top:.3rem;}
 
 /* Keywords */
 .pf-keywords{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:.5px solid var(--bdr);}
-.pf-kw{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.1em;padding:5px 14px;border:.5px solid var(--bdr2);color:var(--dim);transition:all .2s;}
+.pf-kw{font-family:'DM Mono',monospace;font-size:.82rem;letter-spacing:.1em;padding:5px 14px;border:.5px solid var(--bdr2);color:var(--dim);transition:all .2s;}
 .pf-kw:hover{border-color:var(--acc);color:var(--acc);}
 
 /* SNS */
-.pf-sns-title{font-family:'DM Mono',monospace;font-size:.54rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:1.2rem;}
+.pf-sns-title{font-family:'DM Mono',monospace;font-size:.78rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:1.2rem;}
 .pf-sns-grid{display:flex;flex-direction:column;gap:.5rem;margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:.5px solid var(--bdr);}
 .pf-sns-item{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1rem;border:.5px solid var(--bdr);text-decoration:none;transition:all .2s;}
 .pf-sns-item:hover{border-color:var(--acc);background:rgba(255,123,138,0.04);}
 .pf-sns-left{display:flex;align-items:center;gap:.9rem;}
 .pf-sns-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .pf-sns-name{font-family:var(--f-playful);font-size:.95rem;color:var(--ink);}
-.pf-sns-handle{font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.1em;color:var(--dim);}
+.pf-sns-handle{font-family:'DM Mono',monospace;font-size:.78rem;letter-spacing:.1em;color:var(--dim);}
 .pf-sns-arr{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--dim);transition:transform .2s;}
 .pf-sns-item:hover .pf-sns-arr{transform:translateX(4px);color:var(--acc);}
 
@@ -116,7 +119,7 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 /* QUOTE */
 .pf-quote{margin-bottom:2rem;padding:1.4rem 1.6rem;background:rgba(255,123,138,0.04);border-left:3px solid var(--acc);border-radius:0 10px 10px 0;}
 .pf-quote-text{font-family:var(--f-playful);font-size:1.05rem;color:var(--ink);line-height:1.8;letter-spacing:-0.01em;margin-bottom:.4rem;}
-.pf-quote-from{font-family:'DM Mono',monospace;font-size:.5rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);}
+.pf-quote-from{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);}
 
 /* LIKES */
 .pf-likes{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:2rem;padding-bottom:2rem;border-bottom:.5px solid var(--bdr);}
@@ -163,15 +166,17 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
   <a class="pf-nav-logo" href="/">
     <img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI">
   </a>
-  <div class="pf-theme-wrap">
-    <span class="pf-theme-ico">☀️</span>
-    <button id="theme-toggle" class="off" onclick="toggleTheme()" aria-label="다크 모드 전환" title="다크/라이트 모드 전환"></button>
-    <span class="pf-theme-ico">🌙</span>
+  <div class="pf-nav-right">
+    <div class="pf-theme-wrap">
+      <span class="pf-theme-ico">☀️</span>
+      <button id="theme-toggle" class="off" onclick="toggleTheme()" aria-label="다크 모드 전환" title="다크/라이트 모드 전환"></button>
+      <span class="pf-theme-ico">🌙</span>
+    </div>
+    <a class="pf-nav-back" href="/">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      홈으로
+    </a>
   </div>
-  <a class="pf-nav-back" href="/">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    홈으로
-  </a>
 </nav>
 
 <!-- MAIN -->
@@ -212,7 +217,7 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
         <span class="pf-stat-lbl">데뷔</span>
       </div>
       <div class="pf-stat">
-        <span class="pf-stat-num">5개</span>
+        <span class="pf-stat-num">3개</span>
         <span class="pf-stat-lbl">활동 플랫폼</span>
       </div>
       <div class="pf-stat">
@@ -226,7 +231,7 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
     </div>
 
     <!-- 좋아하는 것 -->
-    <div class="pf-section-label" style="font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:1rem;padding-bottom:.6rem;border-bottom:.5px solid var(--bdr);">하리가 좋아하는 것들</div>
+    <div class="pf-section-label" style="font-family:'DM Mono',monospace;font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:1rem;padding-bottom:.6rem;border-bottom:.5px solid var(--bdr);">하리가 좋아하는 것들</div>
     <div class="pf-likes">
       <div class="pf-like-item"><span class="pf-like-icon">📊</span><span class="pf-like-text">트렌드 분석</span></div>
       <div class="pf-like-item"><span class="pf-like-icon">💬</span><span class="pf-like-text">실시간 소통</span></div>
@@ -273,18 +278,6 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
         </div>
         <span class="pf-sns-arr">↗</span>
       </a>
-      <a class="pf-sns-item" href="https://www.facebook.com/profile.php?id=61572342625141" target="_blank" rel="noopener">
-        <div class="pf-sns-left">
-          <div class="pf-sns-icon" style="background:#1877F2;">
-            <svg viewBox="0 0 24 24" fill="#fff" width="14" height="14"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-          </div>
-          <div>
-            <div class="pf-sns-name">Facebook</div>
-            <div class="pf-sns-handle">Hari Official</div>
-          </div>
-        </div>
-        <span class="pf-sns-arr">↗</span>
-      </a>
       <a class="pf-sns-item" href="https://www.tiktok.com/@coding__hari" target="_blank" rel="noopener">
         <div class="pf-sns-left">
           <div class="pf-sns-icon" style="background:#010101;">
@@ -293,18 +286,6 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
           <div>
             <div class="pf-sns-name">TikTok</div>
             <div class="pf-sns-handle">@coding__hari</div>
-          </div>
-        </div>
-        <span class="pf-sns-arr">↗</span>
-      </a>
-      <a class="pf-sns-item" href="https://www.threads.com/@jeondal__hari" target="_blank" rel="noopener">
-        <div class="pf-sns-left">
-          <div class="pf-sns-icon" style="background:#101010;">
-            <svg viewBox="0 0 24 24" fill="#fff" width="14" height="14"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.5 12.068c0-3.816 1.063-6.878 3.159-9.1C6.716.727 9.61-.018 12.553 0c2.695.015 5.069.808 6.859 2.293 1.683 1.4 2.703 3.33 2.958 5.578l-2.906.356c-.39-3.187-2.644-5.177-6.93-5.204-2.29-.013-4.229.592-5.762 1.8C5.174 6.094 4.5 8.434 4.5 12.068c0 2.866.658 5.117 1.957 6.69 1.249 1.513 3.183 2.31 5.744 2.328 2.29.016 4.077-.59 5.312-1.8 1.27-1.242 1.916-3.113 1.916-5.564 0-1.146-.18-2.167-.535-3.038-.352-.862-.874-1.556-1.549-2.065-.64-.487-1.399-.796-2.263-.921-.18.108.015.218.015.33 0 1.557-.524 2.886-1.514 3.744-.926.804-2.152 1.21-3.656 1.21h-.082c-1.302-.02-2.396-.41-3.167-1.126-.817-.759-1.232-1.805-1.232-3.029 0-2.782 2.174-4.417 5.845-4.417.488 0 .977.03 1.46.087z"/></svg>
-          </div>
-          <div>
-            <div class="pf-sns-name">Threads</div>
-            <div class="pf-sns-handle">@jeondal__hari</div>
           </div>
         </div>
         <span class="pf-sns-arr">↗</span>

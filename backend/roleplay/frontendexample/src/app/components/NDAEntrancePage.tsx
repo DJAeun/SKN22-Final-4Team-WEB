@@ -131,20 +131,40 @@ export function NDAEntrancePage({ onAccept, defaultNickname }: NDAEntrancePagePr
         }}
       />
 
-      <div className="fixed left-0 top-0 flex h-full w-16 items-start justify-center border-r border-[#d6b57a]/20 bg-[#0f0b08] pt-8">
+      {/* 왼쪽 사이드바 */}
+      <div className="fixed left-0 top-0 flex h-full w-16 flex-col items-center justify-between border-r border-[#d6b57a]/20 bg-[#0f0b08] py-8">
         <button
           className="group flex flex-col items-center gap-2 text-[#d6b57a]/60 transition-colors hover:text-[#f4e3c2]"
           title="보안 접근 안내"
         >
           <Lock className="h-6 w-6" />
           <div
-            className="text-[8px] writing-mode-vertical-rl rotate-180 tracking-wider"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '7px',
+              letterSpacing: '0.08em',
+              whiteSpace: 'nowrap',
+              marginTop: '8px',
+              color: 'inherit',
+            }}
           >
             RESTRICTED
           </div>
         </button>
       </div>
+
+      {/* 오른쪽 상단 뒤로가기 버튼 */}
+      <a
+        href="/"
+        className="fixed right-5 top-5 z-50 flex items-center gap-2 border border-[#d6b57a]/40 bg-[#0f0b08]/90 px-4 py-2 text-[#d6b57a]/70 backdrop-blur-sm transition-all hover:border-[#d6b57a]/80 hover:bg-[#1a1208]/90 hover:text-[#f4e3c2]"
+        style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', letterSpacing: '0.15em' }}
+        title="메인 홈으로 돌아가기"
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        MAIN
+      </a>
 
       <div
         className="fixed inset-0 pointer-events-none opacity-10"
@@ -232,10 +252,6 @@ export function NDAEntrancePage({ onAccept, defaultNickname }: NDAEntrancePagePr
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-[#d6b57a]">05</span>
-                    <span>모든 대화는 암호화되어 저장되며, 앞으로의 게임 진행을 위한 데이터로 활용됩니다.</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-[#d6b57a]">06</span>
                     <span>가이드 버튼을 통해 튜토리얼을 언제든 다시 열어볼 수 있습니다.</span>
                   </div>
                 </div>

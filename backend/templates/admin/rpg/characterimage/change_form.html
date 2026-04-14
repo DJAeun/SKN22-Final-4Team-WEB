@@ -1,0 +1,272 @@
+{% extends "admin/change_form.html" %}
+
+{% block after_field_sets %}
+<style>
+  .img-preview-section {
+    background: #fff;
+    border: 1px solid #f0e0e3;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 20px 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .img-preview-section h3 {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #2a1018;
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .img-preview-section h3 svg {
+    width: 14px; height: 14px;
+    stroke: #e05060; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .img-preview-box {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  /* 미리보기 영역 */
+  #img-preview-wrap {
+    width: 200px;
+    height: 200px;
+    border: 2px dashed #f0c0cc;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fdf8f9;
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+  }
+  #img-preview-wrap img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: none;
+    border-radius: 8px;
+  }
+  #img-preview-placeholder {
+    text-align: center;
+    color: #c0a0b0;
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+  #img-preview-placeholder svg {
+    width: 28px; height: 28px;
+    stroke: #e0c0ca; fill: none;
+    stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+    display: block;
+    margin: 0 auto 6px;
+  }
+
+  /* 에러 상태 */
+  #img-preview-wrap.error { border-color: #fca5a5; background: #fff5f5; }
+  #img-preview-error {
+    display: none;
+    text-align: center;
+    color: #ef4444;
+    font-size: 0.7rem;
+  }
+  #img-preview-error svg {
+    width: 24px; height: 24px;
+    stroke: #ef4444; fill: none;
+    stroke-width: 1.5;
+    display: block; margin: 0 auto 6px;
+  }
+
+  /* 미리보기 버튼 */
+  #img-preview-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 15px;
+    background: #e8607a;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.15s;
+  }
+  #img-preview-btn:hover { opacity: 0.85; }
+
+  /* 메타 정보 */
+  .img-meta {
+    background: #fdf8f9;
+    border: 1px solid #f0e0e3;
+    border-radius: 7px;
+    padding: 10px 14px;
+    font-size: 0.72rem;
+    color: #7a5060;
+    margin-top: 10px;
+    display: none;
+  }
+  .img-meta span { display: block; }
+  .img-meta strong { color: #c04060; }
+
+  /* 조합 뱃지 */
+  .combo-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .combo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.73rem;
+    font-weight: 600;
+  }
+  .combo-badge.clothes { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+  .combo-badge.emotion { background: #fff0f5; color: #db2777; border: 1px solid #fbcfe8; }
+  .combo-badge.status  { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+
+  .combo-hint {
+    font-size: 0.7rem;
+    color: #9a7080;
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+</style>
+
+<div class="img-preview-section">
+  <h3>
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+    이미지 미리보기
+  </h3>
+
+  <div class="img-preview-box">
+    <div>
+      <div id="img-preview-wrap">
+        <div id="img-preview-placeholder">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          image_url을<br>입력 후 미리보기
+        </div>
+        <img id="img-preview-el" alt="캐릭터 이미지 미리보기">
+        <div id="img-preview-error">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          이미지를 불러올 수 없습니다.<br>URL을 확인하세요.
+        </div>
+      </div>
+      <button type="button" id="img-preview-btn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        미리보기
+      </button>
+      <div class="img-meta" id="img-meta-box">
+        <span><strong>URL:</strong> <span id="img-meta-url">—</span></span>
+      </div>
+    </div>
+
+    <div class="combo-badges">
+      <div>
+        <div class="combo-badge clothes" id="badge-clothes">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/></svg>
+          <span id="badge-clothes-val">clothes: —</span>
+        </div>
+        <div class="combo-badge emotion" style="margin-top: 6px;" id="badge-emotion">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          <span id="badge-emotion-val">emotion: —</span>
+        </div>
+        <div class="combo-badge status" style="margin-top: 6px;" id="badge-status">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="badge-status-val">is_active: —</span>
+        </div>
+      </div>
+      <p class="combo-hint">
+        clothes × emotion 조합이 중복되면<br>
+        RPG 엔진은 <strong>is_active = ON</strong> 이미지를 우선 사용합니다.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  function getField(name) {
+    return document.querySelector('input[name="' + name + '"], select[name="' + name + '"], textarea[name="' + name + '"]');
+  }
+
+  function updateBadges() {
+    var clothesEl  = getField('clothes');
+    var emotionEl  = getField('emotion');
+    var activeEl   = getField('is_active');
+
+    if (clothesEl)  document.getElementById('badge-clothes-val').textContent  = 'clothes: '  + (clothesEl.value  || '—');
+    if (emotionEl)  document.getElementById('badge-emotion-val').textContent  = 'emotion: '  + (emotionEl.value  || '—');
+    if (activeEl) {
+      var active = activeEl.type === 'checkbox' ? (activeEl.checked ? 'ON' : 'OFF') : (activeEl.value || '—');
+      document.getElementById('badge-status-val').textContent = 'is_active: ' + active;
+    }
+  }
+
+  function loadPreview(url) {
+    var wrap        = document.getElementById('img-preview-wrap');
+    var imgEl       = document.getElementById('img-preview-el');
+    var placeholder = document.getElementById('img-preview-placeholder');
+    var errorBox    = document.getElementById('img-preview-error');
+    var metaBox     = document.getElementById('img-meta-box');
+    var metaUrl     = document.getElementById('img-meta-url');
+
+    if (!url) return;
+
+    wrap.classList.remove('error');
+    placeholder.style.display = 'none';
+    errorBox.style.display = 'none';
+    imgEl.style.display = 'none';
+
+    imgEl.onload = function () {
+      imgEl.style.display = 'block';
+      metaBox.style.display = 'block';
+      metaUrl.textContent = url.length > 60 ? url.slice(0, 57) + '…' : url;
+    };
+    imgEl.onerror = function () {
+      wrap.classList.add('error');
+      errorBox.style.display = 'block';
+      metaBox.style.display = 'none';
+    };
+    imgEl.src = url;
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var btn      = document.getElementById('img-preview-btn');
+    var urlField = getField('image_url');
+
+    // 초기 배지 갱신
+    updateBadges();
+
+    // URL 필드 변경 시 배지 갱신
+    ['clothes', 'emotion', 'is_active'].forEach(function (name) {
+      var el = getField(name);
+      if (el) el.addEventListener('change', updateBadges);
+    });
+
+    // 미리보기 버튼
+    if (btn && urlField) {
+      btn.addEventListener('click', function () {
+        var url = urlField.value.trim();
+        if (url) {
+          loadPreview(url);
+        }
+      });
+
+      // 기존 URL이 있으면 자동 미리보기
+      if (urlField.value.trim()) {
+        loadPreview(urlField.value.trim());
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

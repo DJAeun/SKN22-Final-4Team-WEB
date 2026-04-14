@@ -33,3 +33,19 @@ class UserPreferenceSerializer(serializers.Serializer):
         if 'tone' not in attrs and 'title' not in attrs:
             raise serializers.ValidationError("Provide at least one of 'tone' or 'title'.")
         return attrs
+
+
+class FrontendSignupSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=150)
+    nickname = serializers.CharField(max_length=150)
+    email = serializers.EmailField()
+    password = serializers.CharField(min_length=8, max_length=128)
+
+    def validate_name(self, value):
+        return value.strip()
+
+    def validate_nickname(self, value):
+        return value.strip()
+
+    def validate_email(self, value):
+        return value.strip().lower()

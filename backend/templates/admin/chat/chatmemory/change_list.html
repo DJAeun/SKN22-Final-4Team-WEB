@@ -1,0 +1,127 @@
+{% extends "admin/change_list.html" %}
+
+{% block extra_header %}
+<style>
+  .chatmem-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    margin-bottom: 20px;
+    align-items: start;
+  }
+  @media (max-width: 700px) { .chatmem-header { grid-template-columns: 1fr; } }
+
+  .chatmem-info {
+    background: #fff;
+    border: 1px solid #f0e0e3;
+    border-radius: 10px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .chatmem-info h2 {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #2a1018;
+    margin: 0 0 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chatmem-info h2 svg {
+    width: 15px; height: 15px;
+    stroke: #8b5cf6; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .chatmem-info p {
+    font-size: 0.74rem;
+    color: #9a7080;
+    margin: 0 0 10px;
+    line-height: 1.5;
+  }
+
+  .chatmem-fields {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+  }
+  .cm-chip {
+    font-size: 0.7rem;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 5px;
+    padding: 4px 10px;
+    color: #5b21b6;
+  }
+  .cm-chip strong { color: #7c3aed; font-weight: 700; }
+
+  /* 통계 박스 */
+  .chatmem-stats {
+    background: #fff;
+    border: 1px solid #f0e0e3;
+    border-radius: 10px;
+    padding: 14px 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    min-width: 170px;
+  }
+  .chatmem-stats .stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #f9eef0;
+    font-size: 0.76rem;
+  }
+  .chatmem-stats .stat-row:last-child { border-bottom: none; }
+  .stat-label-sm { color: #9a7080; }
+  .stat-val-sm { font-weight: 700; color: #2a1018; }
+
+  .auto-gen-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    color: #7c3aed;
+    font-size: 0.64rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+</style>
+
+<div class="chatmem-header">
+  <div class="chatmem-info">
+    <h2>
+      <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      채팅 메모리 (ChatMemory)
+      <span class="auto-gen-badge">자동 생성</span>
+    </h2>
+    <p>
+      각 채팅 세션 종료 후 AI 엔진이 자동으로 생성하는 <strong>대화 요약 메모리</strong>입니다.<br>
+      다음 세션에서 하리가 유저를 기억하는 데 사용됩니다. 수동 편집은 권장하지 않습니다.
+    </p>
+    <div class="chatmem-fields">
+      <span class="cm-chip"><strong>summary</strong> 세션 대화 요약</span>
+      <span class="cm-chip"><strong>keywords</strong> 핵심 키워드 (쉼표 구분)</span>
+      <span class="cm-chip"><strong>session_id</strong> 연결된 세션 ID</span>
+      <span class="cm-chip"><strong>ended_at</strong> 세션 종료 시각</span>
+    </div>
+  </div>
+
+  <div class="chatmem-stats">
+    <div class="stat-row">
+      <span class="stat-label-sm">전체 메모리</span>
+      <span class="stat-val-sm">{{ cl.queryset.count|default:"—" }}</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label-sm">필터 결과</span>
+      <span class="stat-val-sm">{{ cl.result_count|default:"—" }}</span>
+    </div>
+    <div class="stat-row" style="border-top: 1px solid #f0e0e3; margin-top: 4px; padding-top: 8px;">
+      <span style="font-size:0.68rem; color:#c0a0b0;">유저 메모리 초기화는<br>유저 상세에서 수행</span>
+    </div>
+  </div>
+</div>
+{% endblock %}

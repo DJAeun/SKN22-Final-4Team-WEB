@@ -1,0 +1,29 @@
+{% extends "admin/change_form.html" %}
+{% load i18call %}
+
+{% block admin_change_form_document_ready %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlField = document.querySelector('#id_content_url');
+        if (urlField) {
+            const helpText = document.createElement('div');
+            helpText.className = 'help';
+            helpText.style.marginTop = '10px';
+            helpText.style.padding = '12px';
+            helpText.style.background = '#fff0f4';
+            helpText.style.border = '1px dashed #e8607a';
+            helpText.style.borderRadius = '8px';
+            helpText.style.color = '#b03050';
+            helpText.innerHTML = `
+                <strong>💡 유튜브 주소 입력 가이드:</strong><br>
+                1. 유튜브 영상에서 <strong>[공유]</strong> 버튼 클릭<br>
+                2. <strong>[퍼가기(Embed)]</strong> 클릭<br>
+                3. src="..." 안에 있는 주소(예: <code>https://www.youtube.com/embed/...</code>)만 복사해서 넣어주세요.<br>
+                <small>* 일반 주소를 넣으면 화면에 나오지 않을 수 있습니다.</small>
+            `;
+            urlField.parentNode.insertBefore(helpText, urlField.nextSibling);
+        }
+    });
+</script>
+{% endblock %}

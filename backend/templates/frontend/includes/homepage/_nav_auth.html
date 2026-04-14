@@ -4,23 +4,34 @@
 /* ── NAV GNB 스타일 ── */
 /* 로고 좌 | 링크 중앙 | 액션+인증 우 */
 #nav {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
   align-items: center;
-  padding: 0 3.5rem;
+  justify-content: space-between;
+  padding: 0 2rem;
+  position: relative;
+}
+.nav-logo {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 .nav-center {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.25rem;
-  margin: 0 2rem;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 .nav-right {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 0.5rem;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 /* ── THEME TOGGLE (iOS 스위치 스타일) ── */
@@ -232,36 +243,27 @@
     <img src="{% static 'images/hari_logo_none.png' %}?v=2" alt="HARI Logo" style="height:48px; width:auto; object-fit:contain; mix-blend-mode:multiply;">
   </a>
 
-  <!-- 중앙: 페이지 링크 -->
+  <!-- 중앙: 페이지 링크 + 액션 버튼 -->
   <div class="nav-center">
-    <a href="#s2" class="nav-gnb-item">About Hari</a>
-    <a href="#s3" class="nav-gnb-item">Gallery</a>
-    <a href="#s4" class="nav-gnb-item">Videos</a>
-  </div>
-
-  <!-- 우측: 액션 버튼 + 인증 -->
-  <div class="nav-right">
-
-    <!-- 하리와 채팅하기 -->
     {% if user.is_authenticated %}
     <a href="/hari-chat/" class="nav-gnb-item nav-gnb-chat">💬 하리와 채팅하기</a>
     {% else %}
     <a href="#" onclick="openAuth('login'); return false;" class="nav-gnb-item nav-gnb-chat">💬 하리와 채팅하기</a>
     {% endif %}
+    <span class="nav-gnb-sep"></span>
+    <a href="#s2" class="nav-gnb-item">About Hari</a>
+    <a href="#s3" class="nav-gnb-item">Gallery</a>
+    <a href="#s4" class="nav-gnb-item">Videos</a>
+    <span class="nav-gnb-sep"></span>
+    {% if user.is_authenticated %}
+    <a href="/roleplay/" class="nav-gnb-item nav-gnb-roleplay">🎭 하리와 롤플레잉</a>
+    {% else %}
+    <a href="#" onclick="openAuth('login'); return false;" class="nav-gnb-item nav-gnb-roleplay">🎭 하리와 롤플레잉</a>
+    {% endif %}
+  </div>
 
-    <!-- 하리와 롤플레잉 -->
-
-      <!-- 06. 하리와 롤플레잉 -->
-      {% if user.is_authenticated %}
-      <a href="/roleplay/" class="nav-gnb-item nav-gnb-roleplay">
-        하리와 롤플레잉
-      </a>
-      {% else %}
-      <a href="#" onclick="openAuth('login'); return false;" class="nav-gnb-item nav-gnb-roleplay">
-        하리와 롤플레잉
-      </a>
-      {% endif %}
-
+  <!-- 우측: 인증 + 유틸 -->
+  <div class="nav-right">
 
     <!-- 내 정보 (로그인 시) -->
     {% if user.is_authenticated %}
@@ -321,13 +323,13 @@
     <li>
       <a href="/mypage/" onclick="closeDrawer()">
         <span>마이페이지</span>
-        <span class="d-num">05</span>
+        <span class="d-num">04</span>
       </a>
     </li>
     <li>
       <a href="/membership/" onclick="closeDrawer()">
         <span>멤버십 구독하기</span>
-        <span class="d-num">06</span>
+        <span class="d-num">05</span>
       </a>
     </li>
   </ul>
@@ -399,12 +401,12 @@
 
       <div class="auth-field">
         <label class="auth-label" for="loginEmail">이메일</label>
-        <input class="auth-inp" id="loginEmail" name="loginEmail" type="email" placeholder="hello@hari.kr">
+        <input class="auth-inp" id="loginEmail" name="loginEmail" type="email" placeholder="hello@hari.kr" autocomplete="off">
       </div>
       <div class="auth-field">
         <label class="auth-label" for="login-pw">비밀번호</label>
         <div class="pw-wrap">
-          <input class="auth-inp" id="login-pw" name="login-pw" type="password" placeholder="••••••••">
+          <input class="auth-inp" id="login-pw" name="login-pw" type="password" placeholder="••••••••" autocomplete="new-password">
           <button class="pw-toggle" type="button" onclick="togglePw('login-pw',this)">표시</button>
         </div>
       </div>
@@ -445,26 +447,17 @@
       <div class="auth-field">
         <label class="auth-label" for="signupEmail">이메일</label>
         <div style="position:relative; display:flex; align-items:center; gap:0.5rem;">
-          <input class="auth-inp" id="signupEmail" name="signupEmail" type="email" placeholder="hello@hari.kr" style="flex:1;" oninput="debounceEmailCheck(this.value)">
-          <span id="email-status" style="font-size:1.2rem; min-width:24px; text-align:center; flex-shrink:0;"></span>
+          <input class="auth-inp" id="signupEmail" name="signupEmail" type="email" placeholder="hello@hari.kr" style="flex:1;">
         </div>
-        <div id="email-message" style="font-size:0.75rem; margin-top:0.3rem; min-height:16px; color:#ff7b8a;"></div>
       </div>
       <div class="auth-field">
         <label class="auth-label" for="signup-pw">비밀번호</label>
         <div style="position:relative; display:flex; align-items:center; gap:0.5rem;">
           <div class="pw-wrap" style="flex:1;">
-            <input class="auth-inp" id="signup-pw" name="signup-pw" type="password" placeholder="8자 이상" oninput="checkStrength(this); debouncePasswordCheck(this.value)">
+            <input class="auth-inp" id="signup-pw" name="signup-pw" type="password" placeholder="8자 이상">
             <button class="pw-toggle" type="button" onclick="togglePw('signup-pw',this)">표시</button>
           </div>
-          <span id="password-status" style="font-size:1.2rem; min-width:24px; text-align:center; flex-shrink:0;"></span>
         </div>
-        <div class="pw-strength" id="pw-bars">
-          <div class="pw-bar" id="bar1"></div>
-          <div class="pw-bar" id="bar2"></div>
-          <div class="pw-bar" id="bar3"></div>
-        </div>
-        <div id="password-message" style="font-size:0.75rem; margin-top:0.3rem; min-height:16px; color:#ff7b8a;"></div>
       </div>
 
       <label class="auth-check" for="signup-terms">
