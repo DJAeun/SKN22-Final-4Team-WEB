@@ -239,72 +239,46 @@
     "팬들 생각하는 중 💭"
   ];
 
-  var DAY_MS = 24 * 60 * 60 * 1000;
+  /* ── 날짜 기반 결정론적 순환 ──
+   * 모든 사용자가 같은 날짜에 동일한 계산 → 항상 같은 결과
+   * localStorage 불사용, 서버 불필요 */
 
-  /* Fisher-Yates 셔플 — 인덱스 배열 반환 */
-  function shuffle(len) {
+  /* 시드 기반 의사난수 (LCG) — Math.random() 대신 사용 */
+  function seededRand(seed) {
+    var x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  }
+
+  /* 시드 기반 Fisher-Yates 셔플 — 인덱스 배열 반환 */
+  function seededShuffle(len, seed) {
     var a = [];
     for (var i = 0; i < len; i++) a.push(i);
     for (var i = a.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
+      var j = Math.floor(seededRand(seed * 9973 + i) * (i + 1));
       var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
     }
     return a;
   }
 
-  /* 순환 아이템 가져오기 */
-  function getItem(items, prefix, intervalDays) {
-    var now = Date.now();
-    var intervalMs = intervalDays * DAY_MS;
-    var queue, idx, last;
-
-    try {
-      queue = JSON.parse(localStorage.getItem(prefix + '_q'));
-      idx   = parseInt(localStorage.getItem(prefix + '_i'), 10);
-      last  = parseInt(localStorage.getItem(prefix + '_t'), 10);
-    } catch (e) { queue = null; }
-
-    /* 초기화 또는 큐가 유효하지 않을 때 */
-    if (!Array.isArray(queue) || queue.length !== items.length || isNaN(idx) || isNaN(last)) {
-      queue = shuffle(items.length);
-      idx   = 0;
-      last  = now;
-      saveState(prefix, queue, idx, last);
-      return items[queue[0]];
-    }
-
-    /* 인터벌이 지났으면 다음 항목으로 이동 */
-    if (now - last >= intervalMs) {
-      idx++;
-      if (idx >= items.length) {
-        /* 모든 항목 노출 완료 → 다시 셔플, 직전 마지막 항목과 첫 항목 중복 방지 */
-        var prevLast = queue[items.length - 1];
-        queue = shuffle(items.length);
-        if (queue[0] === prevLast && queue.length > 1) {
-          var sw = Math.floor(Math.random() * (queue.length - 1)) + 1;
-          var tmp = queue[0]; queue[0] = queue[sw]; queue[sw] = tmp;
-        }
-        idx = 0;
-      }
-      last = now;
-      saveState(prefix, queue, idx, last);
-    }
-
-    return items[queue[idx]];
+  /* 날짜 기반 아이템 선택
+   * - periodNum  : 오늘이 몇 번째 기간인지 (모든 사용자 동일)
+   * - era        : 몇 번째 전체 사이클인지 → 셔플 시드
+   * - pos        : 이번 사이클 내 위치 → 인덱스
+   * - salt       : 항목 종류마다 셔플이 달라지도록 구분값 */
+  function getItem(items, intervalDays, salt) {
+    var daysSinceEpoch = Math.floor(Date.now() / (24 * 60 * 60 * 1000));
+    var periodNum      = Math.floor(daysSinceEpoch / intervalDays);
+    var era            = Math.floor(periodNum / items.length);
+    var pos            = periodNum % items.length;
+    var shuffled       = seededShuffle(items.length, era + salt);
+    return items[shuffled[pos]];
   }
 
-  function saveState(prefix, queue, idx, last) {
-    try {
-      localStorage.setItem(prefix + '_q', JSON.stringify(queue));
-      localStorage.setItem(prefix + '_i', String(idx));
-      localStorage.setItem(prefix + '_t', String(last));
-    } catch (e) {}
-  }
-
-  /* 현재 값 계산 후 전역 변수에 노출 */
-  window.hariCurrentProfile = getItem(PROFILE_IMGS, 'hari_prof', 3);
-  window.hariCurrentBg      = getItem(BG_IMGS,      'hari_bg',   5);
-  var hariCurrentStatus     = getItem(STATUS_MSGS,  'hari_stat', 3);
+  /* 현재 값 계산 후 전역 변수에 노출
+   * salt 값이 다르면 같은 날짜라도 종류별로 다른 셔플 적용 */
+  window.hariCurrentProfile = getItem(PROFILE_IMGS, 3,  1);
+  window.hariCurrentBg      = getItem(BG_IMGS,      5,  2);
+  var hariCurrentStatus     = getItem(STATUS_MSGS,  3,  3);
 
   /* DOM에 적용 */
   function applyHariProfile() {
