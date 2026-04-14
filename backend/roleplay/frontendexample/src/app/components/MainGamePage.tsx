@@ -8,6 +8,8 @@ interface MainGamePageProps {
   bootstrap: RoleplayBootstrap;
 }
 
+const IMAGE_COMMAND_PATTERN = /<img="([a-z0-9_]+)">/gi;
+
 function getCsrfToken() {
   if (typeof document === 'undefined') {
     return '';
@@ -50,9 +52,8 @@ function stripDialogueSpeaker(line: string) {
   return line.replace(/^\(([^)]+)\)\s*:\s*/, '');
 }
 
-function renderMessageBody(message: GameMessage, typedText?: string) {
-  const visibleText = typedText ?? message.content;
-  const lines = visibleText.split('\n');
+function renderTextBlock(message: GameMessage, text: string, keyPrefix: string) {
+  const lines = text.split('\n');
 
   return (
     <div className="space-y-2 whitespace-pre-wrap">
@@ -63,7 +64,7 @@ function renderMessageBody(message: GameMessage, typedText?: string) {
 
         return (
           <p
-            key={`${message.id}-${index}`}
+            key={`${keyPrefix}-${index}`}
             className={
               message.role === 'user'
                 ? 'font-mono text-[#302012]'
@@ -86,6 +87,51 @@ function renderMessageBody(message: GameMessage, typedText?: string) {
   );
 }
 
+function renderMessageBody(message: GameMessage, typedText?: string) {
+  const visibleText = typedText ?? message.content;
+  if (message.role === 'user') {
+    return renderTextBlock(message, visibleText, message.id);
+  }
+
+  const segments = visibleText.split(IMAGE_COMMAND_PATTERN);
+  const imageUrl = message.imageUrl?.trim();
+  const imageCommand = message.imageCommand?.trim().toLowerCase();
+
+  return (
+    <div className="space-y-4">
+      {segments.map((segment, index) => {
+        if (index % 2 === 1) {
+          const command = segment.trim().toLowerCase();
+          if (!imageUrl || (imageCommand && imageCommand !== command)) {
+            return null;
+          }
+
+          return (
+            <div key={`${message.id}-image-${index}`} className="overflow-hidden rounded-[24px] border border-[#4A3728]/15 bg-white/70 p-3 shadow-[0_10px_30px_rgba(74,55,40,0.08)]">
+              <img
+                src={imageUrl}
+                alt={command}
+                className="mx-auto w-full max-w-[420px] rounded-[18px] object-cover"
+                loading="lazy"
+              />
+            </div>
+          );
+        }
+
+        if (!segment.trim() && !segment.includes('\n')) {
+          return null;
+        }
+
+        return (
+          <div key={`${message.id}-text-${index}`}>
+            {renderTextBlock(message, segment, `${message.id}-text-${index}`)}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function normalizeHistoryMessage(item: ChatHistoryItem, nickname: string): GameMessage {
   const normalizedRole = item.role === nickname ? 'user' : 'assistant';
 
@@ -95,6 +141,8 @@ function normalizeHistoryMessage(item: ChatHistoryItem, nickname: string): GameM
     content: sanitizeVisibleContent(item.content),
     storyContext: formatStoryContext(item.status_snapshot),
     sourceRole: item.role,
+    imageCommand: item.image_command,
+    imageUrl: item.image_url,
   };
 }
 
@@ -316,7 +364,13 @@ export function MainGamePage({ bootstrap }: MainGamePageProps) {
     };
 
     socket.onmessage = async (event) => {
-      const data = JSON.parse(event.data) as { type: string; message: string; status_snapshot?: StatusSnapshot };
+      const data = JSON.parse(event.data) as {
+        type: string;
+        message: string;
+        status_snapshot?: StatusSnapshot;
+        image_command?: string | null;
+        image_url?: string | null;
+      };
 
       if (data.type === 'status') {
         setConnectionState('processing');
@@ -333,6 +387,8 @@ export function MainGamePage({ bootstrap }: MainGamePageProps) {
             content: sanitizeVisibleContent(data.message),
             storyContext: formatStoryContext(data.status_snapshot),
             sourceRole: 'NPC Engine',
+            imageCommand: data.image_command,
+            imageUrl: data.image_url,
           },
         ]);
         setConnectionState('ready');

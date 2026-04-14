@@ -49,4 +49,6 @@ export interface GameMessage {
   content: string;
   storyContext: string;
   sourceRole?: string;
+  imageCommand?: string | null;
+  imageUrl?: string | null;
 }
