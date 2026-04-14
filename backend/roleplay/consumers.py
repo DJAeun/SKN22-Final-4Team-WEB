@@ -8,7 +8,6 @@ from .engine import (
     extract_status_metadata,
     get_first_message_lorebook,
     resolve_image_metadata,
-    strip_image_command,
     strip_status_content,
 )
 from .korean_text import render_user_template
@@ -89,7 +88,7 @@ class RoleplayConsumer(AsyncWebsocketConsumer):
         content = render_user_template(content, session.user_nickname)
         status_snapshot = extract_status_metadata(content)
         image_metadata = resolve_image_metadata(session, content)
-        visible_content = strip_image_command(strip_status_content(content))
+        visible_content = strip_status_content(content)
         apply_status_metadata_to_session(session, status_snapshot)
 
         new_log = RpgChatLog.objects.create(

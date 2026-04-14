@@ -12,7 +12,7 @@ IMAGE_COMMAND_PATTERN = re.compile(r'<img="([a-z0-9_]+)">', re.IGNORECASE)
 ALLOWED_IMAGE_CLOTHES = {'suit', 'daily', 'baking'}
 ALLOWED_IMAGE_EMOTIONS = {
     'serious', 'depressed', 'angry', 'aroused', 'bored', 'curious', 'disgust',
-    'embarrassed', 'excited', 'happy', 'happy_tears', 'nervous', 'neutral',
+    'embarrassed', 'excited', 'happy', 'nervous', 'neutral',
     'panic', 'pout', 'proud', 'sad', 'sleepy', 'smug', 'surprised', 'thinking',
     'worried',
 }
@@ -568,10 +568,10 @@ class MainEngine:
         """
         revision_text = extract_named_section(text, 'Revision')
         if revision_text:
-            return strip_image_command(strip_status_content(revision_text))
+            return strip_status_content(revision_text)
 
         draft_text = extract_named_section(text, 'Draft')
         if draft_text:
-            return strip_image_command(strip_status_content(draft_text))
+            return strip_status_content(draft_text)
         # Fallback handles the cases where LLM forgets the tag
-        return strip_image_command(strip_status_content(text.strip()))
+        return strip_status_content(text.strip())
