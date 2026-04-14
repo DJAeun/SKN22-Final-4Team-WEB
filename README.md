@@ -1,4 +1,4 @@
-# 🎥 HARI: The AI Virtual Influencer
+# 🎥 HARI: The AI Virtual Influencer.
 > **"AI 에이전트 시대, 팬 경험을 스케일링하는 새로운 테크 크리에이터"**
 
 <p align="center">
