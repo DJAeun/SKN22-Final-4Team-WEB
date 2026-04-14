@@ -233,7 +233,7 @@
       </div>
       <div class="stat-label">총 방문자</div>
       <div class="stat-value" id="stat-visits">—</div>
-      <div class="stat-sub">8개 페이지 합산</div>
+      <div class="stat-sub">선택 기간 합산</div>
     </div>
     <div class="stat-card c-rose">
       <div class="stat-card-icon ic-rose">
@@ -249,7 +249,7 @@
       </div>
       <div class="stat-label">롤플레잉 플레이</div>
       <div class="stat-value" id="stat-roleplay">—</div>
-      <div class="stat-sub">롤플레잉 세션 수</div>
+      <div class="stat-sub">RPG 메시지 수</div>
     </div>
     <div class="stat-card c-fuchsia">
       <div class="stat-card-icon ic-fuchsia">
@@ -264,8 +264,8 @@
   <!-- 차트 1행: 페이지별 방문자(넓게) + SNS 도넛 -->
   <div class="chart-row-split">
     <div class="chart-card">
-      <div class="chart-card-title">페이지별 방문자 수</div>
-      <div class="chart-card-desc">선택된 기간 동안 8개 페이지별 방문자 집계</div>
+      <div class="chart-card-title">방문자 수 추이</div>
+      <div class="chart-card-desc">선택 기간 방문자 수 추이</div>
       <div style="position:relative; height:260px;">
         <canvas id="chartPageVisits"></canvas>
       </div>
@@ -313,48 +313,36 @@
 Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
 Chart.defaults.font.size   = 12;
 
-/* ── 기간별 데모 데이터 ── */
-const DEMO = {
+/* ── SNS 데모 데이터 (실데이터 없음 — 유지) ── */
+const SNS_DEMO = {
   daily: {
-    labels:         ['4/8', '4/9', '4/10', '4/11', '4/12', '4/13', '4/14'],
-    pageVisits:     [1240, 892, 456, 320, 280, 195, 88, 412],
-    chatCounts:     [45, 62, 38, 71, 89, 55, 73],
-    roleplayCounts: [12, 18, 9, 24, 31, 15, 28],
+    labels: ['4/8', '4/9', '4/10', '4/11', '4/12', '4/13', '4/14'],
     snsYt:  [12000, 15000, 9800, 18000, 22000, 16000, 19500],
     snsIg:  [8500,  9200,  7600, 11000, 13500, 10200, 12800],
     snsTt:  [25000, 31000, 19000, 38000, 45000, 32000, 41000],
   },
   weekly: {
-    labels:         ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8'],
-    pageVisits:     [8500, 6200, 3100, 2100, 1900, 1400, 580, 2800],
-    chatCounts:     [312, 445, 289, 501, 623, 398, 512, 467],
-    roleplayCounts: [85, 124, 68, 178, 210, 95, 188, 156],
+    labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8'],
     snsYt:  [82000, 98000, 71000, 125000, 148000, 110000, 139000, 128000],
     snsIg:  [58000, 68000, 49000, 82000,  95000,  71000,  88000,  80000],
     snsTt:  [175000, 215000, 142000, 268000, 315000, 225000, 292000, 271000],
   },
   monthly: {
-    labels:         ['5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월', '4월'],
-    pageVisits:     [32000, 24800, 12400, 8200, 7600, 5500, 2300, 11200],
-    chatCounts:     [1200, 1580, 1120, 1890, 2340, 1680, 1950, 2120, 1840, 2280, 2450, 2100],
-    roleplayCounts: [320, 445, 298, 580, 742, 512, 698, 812, 634, 890, 950, 820],
+    labels: ['5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월', '4월'],
     snsYt:  [320000, 380000, 290000, 480000, 580000, 420000, 520000, 580000, 490000, 620000, 680000, 580000],
     snsIg:  [225000, 268000, 198000, 315000, 385000, 280000, 348000, 392000, 328000, 415000, 462000, 398000],
     snsTt:  [680000, 820000, 598000, 980000, 1200000, 870000, 1050000, 1180000, 980000, 1280000, 1420000, 1200000],
   },
   yearly: {
-    labels:         ['2022', '2023', '2024', '2025'],
-    pageVisits:     [52000, 185000, 498000, 320000],
-    chatCounts:     [8500, 19800, 38200, 24100],
-    roleplayCounts: [1800, 5200, 9800, 6200],
+    labels: ['2022', '2023', '2024', '2025'],
     snsYt:  [1200000, 3800000, 7200000, 4800000],
     snsIg:  [850000,  2600000, 5100000, 3400000],
     snsTt:  [2500000, 7800000, 15200000, 10100000],
   },
 };
 
-const PAGE_LABELS = ['메인홈', '채팅', '롤플레잉', '하리소개', '갤러리', '영상', '멤버십', '마이페이지'];
-const PAGE_COLORS = ['#e8607a','#f472b6','#fb923c','#a855f7','#06b6d4','#10b981','#f59e0b','#3b82f6'];
+/* ── 실데이터 (API에서 fetch) ── */
+var REAL = null;
 
 function fmt(n) {
   if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
@@ -366,54 +354,53 @@ function sum(arr) { return arr.reduce(function(a, b) { return a + b; }, 0); }
 var charts = {};
 
 function buildCharts(period) {
-  var d = DEMO[period];
+  var d   = REAL ? REAL[period] : { labels: [], visitCounts: [], chatCounts: [], rpgCounts: [] };
+  var sns = SNS_DEMO[period];
 
   /* 통계 카드 */
-  document.getElementById('stat-visits').textContent   = fmt(sum(d.pageVisits));
+  document.getElementById('stat-visits').textContent   = fmt(sum(d.visitCounts));
   document.getElementById('stat-chat').textContent     = fmt(sum(d.chatCounts));
-  document.getElementById('stat-roleplay').textContent = fmt(sum(d.roleplayCounts));
-  document.getElementById('stat-sns').textContent      = fmt(sum(d.snsYt) + sum(d.snsIg) + sum(d.snsTt));
+  document.getElementById('stat-roleplay').textContent = fmt(sum(d.rpgCounts));
+  document.getElementById('stat-sns').textContent      = fmt(sum(sns.snsYt) + sum(sns.snsIg) + sum(sns.snsTt));
 
   var xScale = { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 } } };
   var yScale = { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 } } };
 
-  /* 1. 페이지별 방문자 — 가로 바 */
+  /* 1. 방문자 수 추이 — 라인 (실데이터) */
   if (charts.pv) charts.pv.destroy();
   charts.pv = new Chart(document.getElementById('chartPageVisits'), {
-    type: 'bar',
+    type: 'line',
     data: {
-      labels: PAGE_LABELS,
+      labels: d.labels,
       datasets: [{
-        data: d.pageVisits,
-        backgroundColor: PAGE_COLORS.map(function(c) { return c + 'cc'; }),
-        borderColor: PAGE_COLORS,
-        borderWidth: 1.5,
-        borderRadius: 5,
-        borderSkipped: false,
+        label: '방문자',
+        data: d.visitCounts,
+        borderColor: '#e8607a',
+        backgroundColor: 'rgba(232,96,122,0.08)',
+        borderWidth: 2, fill: true, tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: '#e8607a',
+        pointBorderColor: '#ffffff', pointBorderWidth: 2,
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      indexAxis: 'y',
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: function(ctx) { return '  ' + ctx.parsed.x.toLocaleString() + '명'; } } }
+        tooltip: { callbacks: { label: function(ctx) { return '  ' + ctx.parsed.y.toLocaleString() + '명'; } } }
       },
-      scales: {
-        x: xScale,
-        y: { grid: { display: false }, ticks: { color: '#4a2030', font: { size: 11 } } }
-      }
+      scales: { x: xScale, y: yScale }
     }
   });
 
-  /* 2. SNS 도넛 */
+  /* 2. SNS 도넛 (데모) */
   if (charts.donut) charts.donut.destroy();
   charts.donut = new Chart(document.getElementById('chartSNSDonut'), {
     type: 'doughnut',
     data: {
       labels: ['유튜브', '인스타그램', '틱톡'],
       datasets: [{
-        data: [sum(d.snsYt), sum(d.snsIg), sum(d.snsTt)],
+        data: [sum(sns.snsYt), sum(sns.snsIg), sum(sns.snsTt)],
         backgroundColor: ['#ef4444', '#ec4899', '#333333'],
         borderWidth: 0,
         hoverOffset: 6,
@@ -432,7 +419,7 @@ function buildCharts(period) {
     }
   });
 
-  /* 3. 채팅 수 — 라인 */
+  /* 3. 채팅 수 트렌드 — 라인 (실데이터) */
   if (charts.chat) charts.chat.destroy();
   charts.chat = new Chart(document.getElementById('chartChat'), {
     type: 'line',
@@ -459,15 +446,15 @@ function buildCharts(period) {
     }
   });
 
-  /* 4. 롤플레잉 — 바 */
+  /* 4. RPG 메시지 수 — 바 (실데이터) */
   if (charts.rp) charts.rp.destroy();
   charts.rp = new Chart(document.getElementById('chartRoleplay'), {
     type: 'bar',
     data: {
       labels: d.labels,
       datasets: [{
-        label: '플레이 횟수',
-        data: d.roleplayCounts,
+        label: 'RPG 메시지',
+        data: d.rpgCounts,
         backgroundColor: 'rgba(168,85,247,0.75)',
         borderColor: '#a855f7',
         borderWidth: 1.5, borderRadius: 5, borderSkipped: false,
@@ -477,33 +464,33 @@ function buildCharts(period) {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: function(ctx) { return '  ' + ctx.parsed.y.toLocaleString() + '회'; } } }
+        tooltip: { callbacks: { label: function(ctx) { return '  ' + ctx.parsed.y.toLocaleString() + '건'; } } }
       },
       scales: { x: xScale, y: yScale }
     }
   });
 
-  /* 5. SNS 시계열 — 멀티 라인 */
+  /* 5. SNS 시계열 — 멀티 라인 (데모) */
   if (charts.sns) charts.sns.destroy();
   charts.sns = new Chart(document.getElementById('chartSNSTrend'), {
     type: 'line',
     data: {
-      labels: d.labels,
+      labels: sns.labels,
       datasets: [
         {
-          label: '유튜브', data: d.snsYt,
+          label: '유튜브', data: sns.snsYt,
           borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.06)',
           borderWidth: 2, fill: false, tension: 0.4,
           pointRadius: 3, pointBackgroundColor: '#ef4444', pointBorderColor: '#fff', pointBorderWidth: 2,
         },
         {
-          label: '인스타그램', data: d.snsIg,
+          label: '인스타그램', data: sns.snsIg,
           borderColor: '#ec4899', backgroundColor: 'rgba(236,72,153,0.06)',
           borderWidth: 2, fill: false, tension: 0.4,
           pointRadius: 3, pointBackgroundColor: '#ec4899', pointBorderColor: '#fff', pointBorderWidth: 2,
         },
         {
-          label: '틱톡', data: d.snsTt,
+          label: '틱톡', data: sns.snsTt,
           borderColor: '#555555', backgroundColor: 'rgba(85,85,85,0.04)',
           borderWidth: 2, fill: false, tension: 0.4,
           pointRadius: 3, pointBackgroundColor: '#555555', pointBorderColor: '#fff', pointBorderWidth: 2,
@@ -527,9 +514,20 @@ function buildCharts(period) {
   });
 }
 
-/* 기간 버튼 이벤트 */
-buildCharts('daily');
+/* ── 실데이터 로드 후 차트 초기화 ── */
+async function loadDashboard() {
+  try {
+    var resp = await fetch('/admin/dashboard-stats/');
+    if (resp.ok) {
+      REAL = await resp.json();
+    }
+  } catch (e) {
+    console.error('Dashboard data load failed:', e);
+  }
+  buildCharts('daily');
+}
 
+/* 기간 버튼 이벤트 */
 document.querySelectorAll('.period-btn').forEach(function(btn) {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.period-btn').forEach(function(b) { b.classList.remove('active'); });
@@ -537,5 +535,7 @@ document.querySelectorAll('.period-btn').forEach(function(btn) {
     buildCharts(this.dataset.period);
   });
 });
+
+loadDashboard();
 </script>
 {% endblock %}
