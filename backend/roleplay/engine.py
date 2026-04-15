@@ -160,6 +160,8 @@ def strip_status_content(text: str) -> str:
     )
     cleaned = re.sub(r'</?(Planning|Draft|Review|Revision)>', '', cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r'^\s*#{0,6}\s*(Planning|Draft|Review|Revision)\s*:?\s*$', '', cleaned, flags=re.IGNORECASE | re.MULTILINE)
+    cleaned = re.sub(r'^\s*`{2,}\s*', '', cleaned)
+    cleaned = re.sub(r'(?m)^\s*`{2,}\s*$', '', cleaned)
     cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
     return cleaned.strip()
 
