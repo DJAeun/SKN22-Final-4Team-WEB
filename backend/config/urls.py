@@ -57,11 +57,11 @@ urlpatterns = [
     path('admin/tiktok-oauth-start/', tiktok_oauth_start, name='tiktok_oauth_start'),
     path('admin/tiktok-oauth-callback/', tiktok_oauth_callback, name='tiktok_oauth_callback'),
     path('admin/tiktok-stats/', tiktok_stats_api, name='tiktok_stats_api'),
+    path('tiktokhUjyVzNan045mImBqBP0HionITouB7wa.txt', tiktok_verify),
+    path('admin/tiktok-oauth-callback/tiktokhUjyVzNan045mImBqBP0HionITouB7wa.txt', tiktok_verify),
     path('admin/', admin.site.urls),
     path('favicon.ico', RedirectView.as_view(url='/static/images/hari_favicon.png', permanent=True)),
     path('robots.txt', robots_txt),
-    path('tiktokhUjyVzNan045mImBqBP0HionITouB7wa.txt', tiktok_verify),
-    path('admin/tiktok-oauth-callback/tiktokhUjyVzNan045mImBqBP0HionITouB7wa.txt', tiktok_verify),
 
     path('google840fb0dac52a59f6.html', google_verify),
     path('accounts/', include('allauth.urls')),
