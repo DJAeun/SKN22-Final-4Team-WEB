@@ -89,12 +89,13 @@
   /* 통계 카드 */
   .stat-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 14px;
     margin-bottom: 20px;
   }
-  @media (max-width: 1000px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 560px)  { .stat-row { grid-template-columns: 1fr; } }
+  @media (max-width: 1100px) { .stat-row { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 700px)  { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 420px)  { .stat-row { grid-template-columns: 1fr; } }
 
   .stat-card {
     background: #ffffff;
@@ -116,6 +117,7 @@
   .stat-card.c-rose::before    { background: #db2777; }
   .stat-card.c-purple::before  { background: #a855f7; }
   .stat-card.c-fuchsia::before { background: #d946ef; }
+  .stat-card.c-insta::before   { background: linear-gradient(90deg, #f58529, #dd2a7b, #8134af); }
 
   .stat-card:hover {
     border-color: #f0b8c8;
@@ -137,6 +139,7 @@
   .ic-rose    { background: #fdf2f8; color: #db2777; }
   .ic-purple  { background: #faf5ff; color: #a855f7; }
   .ic-fuchsia { background: #fdf4ff; color: #d946ef; }
+  .ic-insta   { background: #fff4fb; color: #dd2a7b; }
 
   .stat-label {
     font-size: 0.7rem;
@@ -259,6 +262,14 @@
       <div class="stat-value" id="stat-sns">—</div>
       <div class="stat-sub">유튜브 영상별 조회수 합산</div>
     </div>
+    <div class="stat-card c-insta">
+      <div class="stat-card-icon ic-insta">
+        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+      </div>
+      <div class="stat-label">Instagram 팔로워</div>
+      <div class="stat-value" id="stat-instagram">—</div>
+      <div class="stat-sub" id="stat-instagram-sub">@jeondal__hari</div>
+    </div>
   </div>
 
   <!-- 차트 1행: 페이지별 방문자(넓게) + YouTube 영상별 조회수 -->
@@ -297,11 +308,18 @@
     </div>
   </div>
 
-  <!-- 차트 3행: YouTube 영상별 조회수 추이 -->
+  <!-- 차트 3행: YouTube 채널 조회수 추이 -->
   <div class="chart-full chart-card">
-    <div class="chart-card-title">YouTube 영상별 조회수 추이</div>
-    <div class="chart-card-desc">상위 5개 영상의 기간별 조회수 변화</div>
-    <div style="position:relative; height:240px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div class="chart-card-title" id="ytTrendTitle">YouTube 채널 조회수 추이</div>
+        <div class="chart-card-desc" id="ytTrendDesc">기간별 조회수 · 좋아요 · 댓글 변화</div>
+      </div>
+      <a id="ytAuthBtn" href="/admin/youtube-oauth-start/" style="display:none;font-size:0.72rem;padding:5px 12px;background:#fff0f4;border:1px solid #e8607a;border-radius:6px;color:#e8607a;text-decoration:none;white-space:nowrap;">
+        📊 Google 계정 연동
+      </a>
+    </div>
+    <div style="position:relative; height:240px;margin-top:10px;">
       <canvas id="chartYTTrend"></canvas>
     </div>
   </div>
@@ -313,9 +331,20 @@
 Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
 Chart.defaults.font.size   = 12;
 
-/* ── YouTube 영상 레이블 (10개) ── */
-const YT_VIDEO_LABELS = ['TICTOC', 'HARI TALK', 'B-DAY EVT', 'VLOG #1', 'SHORTS #1', 'MV TEASER', 'COVER #1', 'LIVE CUT', 'SHORTS #2', 'BEHIND'];
+/* ── YouTube 실데이터 (API에서 fetch) ── */
+var YT_REAL = null;
+
+/* ── YouTube 색상 팔레트 (최대 10개) ── */
 const YT_VIDEO_COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#a855f7','#ec4899','#f43f5e','#14b8a6'];
+
+function getYTLabels() {
+  if (YT_REAL && YT_REAL.length) return YT_REAL.map(function(v) { return v.title.length > 12 ? v.title.slice(0, 12) + '…' : v.title; });
+  return ['TICTOC', 'HARI TALK', 'B-DAY EVT', 'VLOG #1', 'SHORTS #1', 'MV TEASER', 'COVER #1', 'LIVE CUT', 'SHORTS #2', 'BEHIND'];
+}
+function getYTViews() {
+  if (YT_REAL && YT_REAL.length) return YT_REAL.map(function(v) { return v.viewCount; });
+  return [19500, 15200, 12800, 9400, 22000, 8100, 11300, 6700, 18500, 7200];
+}
 
 /* ── 기간별 데모 데이터 ── */
 const DEMO = {
@@ -392,7 +421,7 @@ function sum(arr) { return arr.reduce(function(a, b) { return a + b; }, 0); }
 var charts = {};
 
 function buildCharts(period) {
-  /* REAL: 실데이터 (방문자/채팅/RPG). YT: YouTube 데모 데이터 (실데이터 없음, DEMO 유지) */
+  /* REAL: 실데이터 (방문자/채팅/RPG/YT조회수). ytTrend: DEMO 유지 (Analytics API 필요) */
   var real = REAL ? REAL[period] : { labels: DEMO[period].labels, visitCounts: [], chatCounts: [], rpgCounts: [] };
   var yt   = DEMO[period];
   var labels = real.labels && real.labels.length ? real.labels : yt.labels;
@@ -401,7 +430,10 @@ function buildCharts(period) {
   document.getElementById('stat-visits').textContent   = fmt(sum(real.visitCounts));
   document.getElementById('stat-chat').textContent     = fmt(sum(real.chatCounts));
   document.getElementById('stat-roleplay').textContent = fmt(sum(real.rpgCounts));
-  document.getElementById('stat-sns').textContent      = fmt(sum(yt.ytVideoViews));
+  var _ytAnalytics = YT_ANALYTICS_CACHE[period];
+  document.getElementById('stat-sns').textContent = _ytAnalytics
+    ? fmt(sum(_ytAnalytics.views))
+    : fmt(sum(getYTViews()));
 
   var xScale = { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 } } };
   var yScale = { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 } } };
@@ -433,16 +465,30 @@ function buildCharts(period) {
     }
   });
 
-  /* 2. YouTube 영상별 조회수 — 가로 바 */
+  /* 2. YouTube 영상별 조회수 — 가로 바 (Analytics 기간별 / 없으면 누적) */
+  var _videoAnalytics = YT_VIDEO_ANALYTICS_CACHE[period];
+  if (_videoAnalytics && _videoAnalytics.length) {
+    var _idToTitle = {};
+    if (YT_REAL) YT_REAL.forEach(function(v) { _idToTitle[v.id] = v.title; });
+    var ytLabels = _videoAnalytics.map(function(v) {
+      var t = _idToTitle[v.id] || v.id;
+      return t.length > 12 ? t.slice(0, 12) + '…' : t;
+    });
+    var ytViews = _videoAnalytics.map(function(v) { return v.views; });
+  } else {
+    var ytLabels = getYTLabels();
+    var ytViews  = getYTViews();
+  }
+  var ytColors = YT_VIDEO_COLORS.slice(0, ytLabels.length);
   if (charts.ytVideos) charts.ytVideos.destroy();
   charts.ytVideos = new Chart(document.getElementById('chartYTVideos'), {
     type: 'bar',
     data: {
-      labels: YT_VIDEO_LABELS,
+      labels: ytLabels,
       datasets: [{
-        data: yt.ytVideoViews,
-        backgroundColor: YT_VIDEO_COLORS.map(function(c) { return c + 'cc'; }),
-        borderColor: YT_VIDEO_COLORS,
+        data: ytViews,
+        backgroundColor: ytColors.map(function(c) { return c + 'cc'; }),
+        borderColor: ytColors,
         borderWidth: 1.5,
         borderRadius: 4,
         borderSkipped: false,
@@ -513,60 +559,125 @@ function buildCharts(period) {
     }
   });
 
-  /* 5. YouTube 영상별 조회수 추이 — 상위 5개 멀티 라인 */
-  var ytTop5Labels = [YT_VIDEO_LABELS[0], YT_VIDEO_LABELS[1], YT_VIDEO_LABELS[4], YT_VIDEO_LABELS[8], YT_VIDEO_LABELS[2]];
-  var ytTop5Colors = [YT_VIDEO_COLORS[0], YT_VIDEO_COLORS[1], YT_VIDEO_COLORS[4], YT_VIDEO_COLORS[8], YT_VIDEO_COLORS[2]];
+  /* 5. YouTube 전체 영상 — 조회수 / 좋아요 / 댓글 비교 바 (실데이터) */
+  /* Analytics 데이터가 있으면 기간별 추이, 없으면 영상별 비교 */
+  var analyticsData = YT_ANALYTICS_CACHE[period];
+  if (analyticsData) {
+    document.getElementById('ytTrendTitle').textContent = 'YouTube 채널 조회수 추이';
+    document.getElementById('ytTrendDesc').textContent  = '기간별 조회수 · 좋아요 · 댓글 변화';
+    document.getElementById('ytAuthBtn').style.display  = 'none';
+    var tLabels = analyticsData.labels;
+    var tViews  = analyticsData.views;
+    var tLikes  = analyticsData.likes;
+    var tCmts   = analyticsData.comments;
+  } else {
+    document.getElementById('ytTrendTitle').textContent = 'YouTube 영상별 통계';
+    document.getElementById('ytTrendDesc').textContent  = '전체 영상의 현재 누적 조회수 · 좋아요 · 댓글';
+    document.getElementById('ytAuthBtn').style.display  = 'inline-block';
+    var allVideos = (YT_REAL && YT_REAL.length) ? YT_REAL : [];
+    var tLabels = allVideos.map(function(v) { return v.title.length > 14 ? v.title.slice(0, 14) + '…' : v.title; });
+    var tViews  = allVideos.map(function(v) { return v.viewCount; });
+    var tLikes  = allVideos.map(function(v) { return v.likeCount; });
+    var tCmts   = allVideos.map(function(v) { return v.commentCount; });
+  }
   if (charts.ytTrend) charts.ytTrend.destroy();
   charts.ytTrend = new Chart(document.getElementById('chartYTTrend'), {
     type: 'line',
     data: {
-      labels: yt.labels,
-      datasets: yt.ytTrend.map(function(trendData, i) {
-        return {
-          label: ytTop5Labels[i], data: trendData,
-          borderColor: ytTop5Colors[i],
-          backgroundColor: ytTop5Colors[i].replace(')', ', 0.06)').replace('rgb', 'rgba'),
-          borderWidth: 2, fill: false, tension: 0.4,
-          pointRadius: 3, pointBackgroundColor: ytTop5Colors[i], pointBorderColor: '#fff', pointBorderWidth: 2,
-        };
-      })
+      labels: tLabels,
+      datasets: [
+        { label: '조회수', data: tViews, borderColor: '#e8607a', backgroundColor: 'rgba(232,96,122,0.08)', borderWidth: 2, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#e8607a', pointBorderColor: '#fff', pointBorderWidth: 2 },
+        { label: '좋아요', data: tLikes, borderColor: '#f97316', backgroundColor: 'rgba(251,146,60,0.08)',  borderWidth: 2, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#f97316', pointBorderColor: '#fff', pointBorderWidth: 2 },
+        { label: '댓글',   data: tCmts,  borderColor: '#a855f7', backgroundColor: 'rgba(168,85,247,0.08)', borderWidth: 2, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#a855f7', pointBorderColor: '#fff', pointBorderWidth: 2 },
+      ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: {
-          position: 'top', align: 'end',
-          labels: { font: { size: 11 }, usePointStyle: true, pointStyleWidth: 8, color: '#5a3040', padding: 14 }
-        },
+        legend: { position: 'top', align: 'end', labels: { font: { size: 11 }, usePointStyle: true, pointStyleWidth: 8, color: '#5a3040', padding: 14 } },
         tooltip: { callbacks: { label: function(ctx) { return '  ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.y); } } }
       },
       scales: {
-        x: xScale,
+        x: { grid: { display: false }, ticks: { color: '#4a2030', font: { size: 10 }, maxRotation: 30 } },
         y: { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 }, callback: function(v) { return fmt(v); } } }
       }
     }
   });
 }
 
+/* ── Analytics 캐시 & 로딩 ── */
+var YT_ANALYTICS_CACHE       = {};
+var YT_VIDEO_ANALYTICS_CACHE = {};
+
+async function loadAnalytics(period) {
+  var needChannel = !YT_ANALYTICS_CACHE[period];
+  var needVideo   = !YT_VIDEO_ANALYTICS_CACHE[period];
+  if (!needChannel && !needVideo) return;
+  try {
+    var fetches = [];
+    if (needChannel) fetches.push(fetch('/admin/youtube-analytics/?period=' + period));
+    if (needVideo)   fetches.push(fetch('/admin/youtube-video-analytics/?period=' + period));
+    var results = await Promise.all(fetches);
+    var idx = 0;
+    if (needChannel) {
+      var d = await results[idx++].json();
+      if (!d.error) YT_ANALYTICS_CACHE[period] = d;
+    }
+    if (needVideo) {
+      var d = await results[idx++].json();
+      if (!d.error && d.videos) YT_VIDEO_ANALYTICS_CACHE[period] = d.videos;
+    }
+  } catch (e) {}
+}
+
+/* ── Instagram 실데이터 로드 ── */
+async function loadInstagram() {
+  try {
+    var resp = await fetch('/admin/instagram-stats/');
+    if (resp.ok) {
+      var data = await resp.json();
+      if (!data.error) {
+        document.getElementById('stat-instagram').textContent = fmt(data.followers_count || 0);
+        document.getElementById('stat-instagram-sub').textContent = '게시물 ' + fmt(data.media_count || 0) + '개 · @jeondal__hari';
+      } else {
+        document.getElementById('stat-instagram-sub').textContent = '토큰 갱신 필요';
+      }
+    }
+  } catch (e) {}
+}
+
 /* ── 실데이터 로드 후 차트 초기화 ── */
 async function loadDashboard() {
   try {
-    var resp = await fetch('/admin/dashboard-stats/');
-    if (resp.ok) {
-      REAL = await resp.json();
+    var [statsResp, ytResp] = await Promise.all([
+      fetch('/admin/dashboard-stats/'),
+      fetch('/admin/youtube-stats/'),
+    ]);
+    if (statsResp.ok) REAL = await statsResp.json();
+    if (ytResp.ok) {
+      var ytData = await ytResp.json();
+      if (ytData.videos && ytData.videos.length) YT_REAL = ytData.videos;
     }
   } catch (e) {
     console.error('Dashboard data load failed:', e);
   }
+  await Promise.all([loadAnalytics('daily'), loadInstagram()]);
   buildCharts('daily');
+
+  /* URL 파라미터로 OAuth 결과 안내 */
+  var params = new URLSearchParams(location.search);
+  if (params.get('yt_auth') === 'success') alert('✅ YouTube Analytics 연동 완료!');
+  if (params.get('yt_auth') === 'error')   alert('❌ YouTube Analytics 연동 실패. 다시 시도해주세요.');
 }
 
 /* 기간 버튼 이벤트 */
 document.querySelectorAll('.period-btn').forEach(function(btn) {
-  btn.addEventListener('click', function() {
+  btn.addEventListener('click', async function() {
     document.querySelectorAll('.period-btn').forEach(function(b) { b.classList.remove('active'); });
     this.classList.add('active');
-    buildCharts(this.dataset.period);
+    var period = this.dataset.period;
+    await loadAnalytics(period);
+    buildCharts(period);
   });
 });
 
