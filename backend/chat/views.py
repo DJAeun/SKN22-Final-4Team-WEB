@@ -761,6 +761,88 @@ def instagram_stats_api(request):
     })
 
 
+@staff_member_required
+def tiktok_oauth_start(request):
+    """TikTok OAuth2 인증 시작 — TikTok 로그인 페이지로 리다이렉트."""
+    from urllib.parse import urlencode
+    if not settings.TIKTOK_CLIENT_KEY:
+        return JsonResponse({'error': 'TIKTOK_CLIENT_KEY not configured'}, status=500)
+    params = {
+        'client_key':     settings.TIKTOK_CLIENT_KEY,
+        'redirect_uri':   'https://chatting-hari.com/admin/tiktok-oauth-callback/',
+        'response_type':  'code',
+        'scope':          'user.info.basic,user.info.stats',
+    }
+    return redirect('https://www.tiktok.com/v2/auth/authorize/?' + urlencode(params))
+
+
+@staff_member_required
+def tiktok_oauth_callback(request):
+    """TikTok OAuth2 콜백 — 인가 코드를 토큰으로 교환 후 캐시에 저장."""
+    import json, time
+    import urllib.request as urlreq
+    from urllib.parse import urlencode
+    from django.core.cache import cache
+
+    if request.GET.get('error') or not request.GET.get('code'):
+        return redirect('/admin/?tiktok_auth=error')
+
+    body = urlencode({
+        'client_key':     settings.TIKTOK_CLIENT_KEY,
+        'client_secret':  settings.TIKTOK_CLIENT_SECRET,
+        'code':           request.GET['code'],
+        'grant_type':     'authorization_code',
+        'redirect_uri':   'https://chatting-hari.com/admin/tiktok-oauth-callback/',
+    }).encode()
+    try:
+        req = urlreq.Request(
+            'https://open.tiktokapis.com/v2/oauth/token/',
+            data=body,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            method='POST',
+        )
+        with urlreq.urlopen(req, timeout=10) as resp:
+            tokens = json.loads(resp.read())
+    except Exception:
+        return redirect('/admin/?tiktok_auth=error')
+
+    tokens['expires_at'] = time.time() + tokens.get('expires_in', 86400)
+    cache.set('tiktok_oauth_tokens', tokens, 60 * 60 * 24 * 90)
+    return redirect('/admin/?tiktok_auth=success')
+
+
+@staff_member_required
+def tiktok_stats_api(request):
+    """TikTok API — 팔로워 수, 좋아요 수, 영상 수 반환 (staff only)."""
+    import json
+    import urllib.request as urlreq
+    import urllib.error
+    from urllib.parse import urlencode
+    from django.core.cache import cache
+
+    tokens = cache.get('tiktok_oauth_tokens')
+    if not tokens:
+        return JsonResponse({'error': 'not_authenticated'}, status=401)
+
+    access_token = tokens.get('access_token')
+    try:
+        url = 'https://open.tiktokapis.com/v2/user/info/?fields=follower_count,following_count,likes_count,video_count'
+        req = urlreq.Request(url, headers={'Authorization': f'Bearer {access_token}'})
+        with urlreq.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return JsonResponse({'error': f'TikTok API error: {e.code}'}, status=502)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=502)
+
+    user = data.get('data', {}).get('user', {})
+    return JsonResponse({
+        'follower_count':  user.get('follower_count', 0),
+        'likes_count':     user.get('likes_count', 0),
+        'video_count':     user.get('video_count', 0),
+    })
+
+
 @require_POST
 def admin_toggle_content(request, content_id):
     if not settings.DEBUG:
