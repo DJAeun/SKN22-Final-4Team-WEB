@@ -318,7 +318,55 @@
     </div>
   </div>
 
-  <!-- 차트 3행: YouTube 채널 조회수 추이 -->
+  <!-- 차트 3행: 플랫폼별 조회수 비교 + Instagram 게시물별 통계 -->
+  <div class="chart-row-half">
+    <div class="chart-card">
+      <div class="chart-card-title">플랫폼별 조회수 비교</div>
+      <div class="chart-card-desc" id="platformChartDesc">선택 기간 YouTube 조회수 · Instagram 게시물 조회수 합산</div>
+      <div style="position:relative; height:220px;">
+        <canvas id="chartPlatformViews"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Instagram 게시물별 통계</div>
+      <div class="chart-card-desc" id="instaChartDesc">선택 기간 내 게시물 조회수 · 좋아요</div>
+      <div style="position:relative; height:220px;" id="instaChartWrap">
+        <canvas id="chartInstaMedia"></canvas>
+      </div>
+      <div id="instaChartMsg" style="display:none;align-items:center;justify-content:center;height:220px;color:#c090a0;font-size:0.85rem;">
+        게시물 데이터 없음
+      </div>
+    </div>
+  </div>
+
+  <!-- 차트 4행: TikTok 계정 통계 -->
+  <div class="chart-full chart-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+      <div>
+        <div class="chart-card-title">TikTok 계정 통계</div>
+        <div class="chart-card-desc">팔로워 · 총 좋아요 · 영상 수 (@coding__hari)</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;" id="tiktokStatsGrid">
+      <div style="background:#fff8f9;border:1px solid #ffe0e8;border-radius:10px;padding:16px 12px;text-align:center;">
+        <div style="font-size:0.7rem;color:#b08090;font-weight:600;letter-spacing:.04em;margin-bottom:6px;">팔로워</div>
+        <div style="font-size:1.5rem;font-weight:800;color:#fe2c55;" id="tt-stat-followers">—</div>
+      </div>
+      <div style="background:#fff8f9;border:1px solid #ffe0e8;border-radius:10px;padding:16px 12px;text-align:center;">
+        <div style="font-size:0.7rem;color:#b08090;font-weight:600;letter-spacing:.04em;margin-bottom:6px;">총 좋아요</div>
+        <div style="font-size:1.5rem;font-weight:800;color:#fe2c55;" id="tt-stat-likes">—</div>
+      </div>
+      <div style="background:#fff8f9;border:1px solid #ffe0e8;border-radius:10px;padding:16px 12px;text-align:center;">
+        <div style="font-size:0.7rem;color:#b08090;font-weight:600;letter-spacing:.04em;margin-bottom:6px;">영상 수</div>
+        <div style="font-size:1.5rem;font-weight:800;color:#fe2c55;" id="tt-stat-videos">—</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding:8px 12px;background:#fafafa;border-radius:6px;font-size:0.75rem;color:#b08090;">
+      영상별 조회수는 TikTok 정책상 현재 볼 수 없어요. (Content Kit 미승인 상태)
+    </div>
+  </div>
+
+  <!-- 차트 5행: YouTube 채널 조회수 추이 -->
   <div class="chart-full chart-card">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
       <div>
@@ -343,6 +391,10 @@ Chart.defaults.font.size   = 12;
 
 /* ── YouTube 실데이터 (API에서 fetch) ── */
 var YT_REAL = null;
+
+/* ── SNS 실데이터 ── */
+var IG_MEDIA    = null;   // Instagram 게시물 목록
+var TIKTOK_DATA = null;   // TikTok 유저 통계
 
 /* ── YouTube 색상 팔레트 (최대 10개) ── */
 const YT_VIDEO_COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#a855f7','#ec4899','#f43f5e','#14b8a6'];
@@ -651,13 +703,135 @@ async function loadTikTok() {
     if (resp.ok) {
       var data = await resp.json();
       if (!data.error) {
+        TIKTOK_DATA = data;
         document.getElementById('stat-tiktok').textContent = fmt(data.follower_count || 0);
         document.getElementById('stat-tiktok-sub').textContent = '좋아요 ' + fmt(data.likes_count || 0) + ' · @coding__hari';
+        document.getElementById('tt-stat-followers').textContent = fmt(data.follower_count || 0);
+        document.getElementById('tt-stat-likes').textContent     = fmt(data.likes_count || 0);
+        document.getElementById('tt-stat-videos').textContent    = fmt(data.video_count || 0);
       } else {
         document.getElementById('stat-tiktok-sub').innerHTML = '<a href="/admin/tiktok-oauth-start/" style="color:#fe2c55;">🎵 TikTok 연동</a>';
+        ['tt-stat-followers','tt-stat-likes','tt-stat-videos'].forEach(function(id) {
+          document.getElementById(id).textContent = '—';
+        });
       }
     }
   } catch (e) {}
+}
+
+/* ── Instagram 게시물 목록 로드 ── */
+async function loadInstagramMedia() {
+  try {
+    var resp = await fetch('/admin/instagram-media/');
+    if (resp.ok) {
+      var data = await resp.json();
+      if (!data.error && data.media) IG_MEDIA = data.media;
+    }
+  } catch (e) {}
+}
+
+/* ── 기간 → 기준 날짜 (이 날짜 이후 게시물만 표시) ── */
+function periodCutoff(period) {
+  var d = new Date();
+  if (period === 'daily')        d.setDate(d.getDate() - 7);
+  else if (period === 'weekly')  d.setDate(d.getDate() - 56);
+  else if (period === 'monthly') d.setDate(d.getDate() - 365);
+  else return null; // yearly = 전체
+  return d;
+}
+
+/* ── 기간 필터링된 Instagram 게시물 ── */
+function filteredMedia(period) {
+  if (!IG_MEDIA || !IG_MEDIA.length) return [];
+  var cutoff = periodCutoff(period);
+  if (!cutoff) return IG_MEDIA;
+  return IG_MEDIA.filter(function(m) {
+    return m.timestamp && new Date(m.timestamp) >= cutoff;
+  });
+}
+
+/* ── 플랫폼 비교 + Instagram 개별 게시물 차트 ── */
+function buildSNSCharts(period) {
+  period = period || 'daily';
+  var media = filteredMedia(period);
+  var periodLabel = { daily: '최근 7일', weekly: '최근 8주', monthly: '최근 12개월', yearly: '전체' }[period] || '';
+  var el = document.getElementById('platformChartDesc');
+  if (el) el.textContent = periodLabel + ' YouTube 조회수 · Instagram 게시물 조회수 합산';
+  var el2 = document.getElementById('instaChartDesc');
+  if (el2) el2.textContent = periodLabel + ' 게시물 조회수 · 좋아요' + (media.length ? ' (' + media.length + '개)' : '');
+
+  /* 플랫폼별 조회수 비교 */
+  var _ytAnalytics = YT_ANALYTICS_CACHE[period];
+  var ytViews      = _ytAnalytics ? sum(_ytAnalytics.views) : sum(getYTViews());
+  var igViewTotal  = media.reduce(function(a, m) { return a + (m.views || 0); }, 0);
+  var ttLikeTotal  = TIKTOK_DATA ? (TIKTOK_DATA.likes_count || 0) : 0;
+
+  if (charts.platform) charts.platform.destroy();
+  charts.platform = new Chart(document.getElementById('chartPlatformViews'), {
+    type: 'bar',
+    data: {
+      labels: ['YouTube', 'Instagram', 'TikTok'],
+      datasets: [{
+        label: '수치',
+        data: [ytViews, igViewTotal, ttLikeTotal || null],
+        backgroundColor: ['rgba(232,96,122,0.75)', 'rgba(221,42,123,0.75)', ttLikeTotal ? 'rgba(254,44,85,0.75)' : 'rgba(254,44,85,0.2)'],
+        borderColor:     ['#e8607a', '#dd2a7b', '#fe2c55'],
+        borderWidth: 2,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(ctx) {
+          if (ctx.dataIndex === 2 && !ttLikeTotal) return '  TikTok: scope 업그레이드 후 표시';
+          if (ctx.dataIndex === 2) return '  TikTok 좋아요: ' + fmt(ctx.parsed.y) + '개';
+          return '  조회수: ' + fmt(ctx.parsed.y) + '회';
+        }}}
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#4a2030', font: { size: 12, weight: '600' } } },
+        y: { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 }, callback: function(v) { return fmt(v); } } }
+      }
+    }
+  });
+
+  /* Instagram 게시물별 통계 */
+  if (media && media.length) {
+    var igLabels = media.map(function(m) { return m.caption || '게시물'; });
+    var igViews  = media.map(function(m) { return m.views || 0; });
+    var igLikes  = media.map(function(m) { return m.like_count || 0; });
+
+    if (charts.instaMedia) charts.instaMedia.destroy();
+    charts.instaMedia = new Chart(document.getElementById('chartInstaMedia'), {
+      type: 'bar',
+      indexAxis: 'y',
+      data: {
+        labels: igLabels,
+        datasets: [
+          { label: '조회수', data: igViews, backgroundColor: 'rgba(221,42,123,0.7)', borderRadius: 4 },
+          { label: '좋아요', data: igLikes, backgroundColor: 'rgba(129,52,175,0.7)', borderRadius: 4 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', align: 'end', labels: { font: { size: 11 }, usePointStyle: true, pointStyleWidth: 8, color: '#5a3040', padding: 10 } },
+          tooltip: { callbacks: { label: function(ctx) { return '  ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.x); } } }
+        },
+        scales: {
+          x: { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 }, callback: function(v) { return fmt(v); } } },
+          y: { grid: { display: false }, ticks: { color: '#4a2030', font: { size: 10 } } }
+        }
+      }
+    });
+    document.getElementById('instaChartMsg').style.display  = 'none';
+    document.getElementById('instaChartWrap').style.display = 'block';
+  } else {
+    document.getElementById('instaChartWrap').style.display = 'none';
+    document.getElementById('instaChartMsg').style.display  = 'flex';
+  }
 }
 
 /* ── Instagram 실데이터 로드 ── */
@@ -691,8 +865,9 @@ async function loadDashboard() {
   } catch (e) {
     console.error('Dashboard data load failed:', e);
   }
-  await Promise.all([loadAnalytics('daily'), loadInstagram(), loadTikTok()]);
+  await Promise.all([loadAnalytics('daily'), loadInstagram(), loadTikTok(), loadInstagramMedia()]);
   buildCharts('daily');
+  buildSNSCharts('daily');
 
   /* URL 파라미터로 OAuth 결과 안내 */
   var params = new URLSearchParams(location.search);
@@ -708,6 +883,7 @@ document.querySelectorAll('.period-btn').forEach(function(btn) {
     var period = this.dataset.period;
     await loadAnalytics(period);
     buildCharts(period);
+    buildSNSCharts(period);
   });
 });
 

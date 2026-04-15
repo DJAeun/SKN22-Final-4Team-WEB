@@ -762,6 +762,66 @@ def instagram_stats_api(request):
 
 
 @staff_member_required
+def instagram_media_api(request):
+    """Instagram Graph API — 게시물 목록 + 좋아요/조회수(Insights) 반환 (staff only)."""
+    import json
+    import urllib.request as urlreq
+    import urllib.error
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    access_token = getattr(settings, 'INSTAGRAM_ACCESS_TOKEN', '')
+    if not access_token:
+        return JsonResponse({'error': 'INSTAGRAM_ACCESS_TOKEN not configured'}, status=500)
+
+    try:
+        url = (
+            'https://graph.instagram.com/v22.0/me/media'
+            '?fields=id,caption,media_type,timestamp,like_count,comments_count'
+            '&limit=20'
+            f'&access_token={access_token}'
+        )
+        with urlreq.urlopen(url, timeout=10) as resp:
+            data = json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return JsonResponse({'error': f'Instagram API error: {e.code}'}, status=502)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=502)
+
+    items = data.get('data', [])
+
+    def fetch_views(media_id):
+        insights_url = (
+            f'https://graph.instagram.com/v22.0/{media_id}/insights'
+            f'?metric=views&access_token={access_token}'
+        )
+        try:
+            with urlreq.urlopen(insights_url, timeout=5) as resp:
+                d = json.loads(resp.read())
+                return media_id, d.get('data', [{}])[0].get('values', [{}])[0].get('value', 0)
+        except Exception:
+            return media_id, 0
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(fetch_views, item['id']): item['id'] for item in items}
+        views_map = {media_id: views for future in as_completed(futures) for media_id, views in [future.result()]}
+
+    media_list = []
+    for item in items:
+        caption = (item.get('caption') or '').strip().split('\n')[0][:30]
+        media_list.append({
+            'id':             item.get('id'),
+            'caption':        caption or f"게시물 {str(item.get('id', ''))[-6:]}",
+            'media_type':     item.get('media_type', 'IMAGE'),
+            'timestamp':      item.get('timestamp', ''),
+            'like_count':     item.get('like_count', 0),
+            'comments_count': item.get('comments_count', 0),
+            'views':          views_map.get(item.get('id'), 0),
+        })
+
+    return JsonResponse({'media': media_list})
+
+
+@staff_member_required
 def tiktok_oauth_start(request):
     """TikTok OAuth2 인증 시작 — TikTok 로그인 페이지로 리다이렉트."""
     import secrets
