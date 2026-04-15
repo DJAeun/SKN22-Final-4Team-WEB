@@ -40,6 +40,8 @@ function sanitizeVisibleContent(content: string) {
     .replace(/<Status>[\s\S]*?<\/Status>/gi, '')
     .replace(/^[\s[\](){},'"`-]*(Stress|Crack Stage|Current Thought|Inner Thought|Thought|Location|Date|Time)\s*:\s*.*$/gim, '')
     .replace(/<\/?(Planning|Draft|Review|Revision)>/gi, '')
+    .replace(/^\s*`{2,}\s*/g, '')
+    .replace(/^\s*`{2,}\s*$/gm, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
