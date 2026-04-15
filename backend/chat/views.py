@@ -764,14 +764,18 @@ def instagram_stats_api(request):
 @staff_member_required
 def tiktok_oauth_start(request):
     """TikTok OAuth2 인증 시작 — TikTok 로그인 페이지로 리다이렉트."""
+    import secrets
     from urllib.parse import urlencode
     if not settings.TIKTOK_CLIENT_KEY:
         return JsonResponse({'error': 'TIKTOK_CLIENT_KEY not configured'}, status=500)
+    state = secrets.token_urlsafe(16)
+    request.session['tiktok_oauth_state'] = state
     params = {
         'client_key':     settings.TIKTOK_CLIENT_KEY,
         'redirect_uri':   'https://chatting-hari.com/admin/tiktok-oauth-callback/',
         'response_type':  'code',
         'scope':          'user.info.basic,user.info.stats',
+        'state':          state,
     }
     return redirect('https://www.tiktok.com/v2/auth/authorize/?' + urlencode(params))
 
