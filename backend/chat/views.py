@@ -343,7 +343,9 @@ def admin_stats_api(request):
         except Exception:
             return []
 
-    def query_by_period(model, date_field, extra_filter):
+    def query_by_period(model, date_field, extra_filter, count_expr=None):
+        if count_expr is None:
+            count_expr = Count('pk')
         base = model.objects.filter(**extra_filter)
 
         # DAILY — 최근 7일 (1쿼리)
@@ -351,7 +353,7 @@ def admin_stats_api(request):
         daily_rows = safe_qs(
             base.filter(**{f'{date_field}__date__gte': day_start})
                 .annotate(period=TruncDay(date_field))
-                .values('period').annotate(count=Count('pk')).order_by('period')
+                .values('period').annotate(count=count_expr).order_by('period')
         )
         daily_dict = {row['period'].date(): row['count'] for row in daily_rows}
         daily_labels, daily_counts = [], []
@@ -366,7 +368,7 @@ def admin_stats_api(request):
         weekly_rows = safe_qs(
             base.filter(**{f'{date_field}__date__gte': week_mondays[0]})
                 .annotate(period=TruncWeek(date_field))
-                .values('period').annotate(count=Count('pk')).order_by('period')
+                .values('period').annotate(count=count_expr).order_by('period')
         )
         weekly_dict = {row['period'].date(): row['count'] for row in weekly_rows}
         weekly_labels = [f'W{i + 1}' for i in range(8)]
@@ -379,7 +381,7 @@ def admin_stats_api(request):
         monthly_rows = safe_qs(
             base.filter(**{f'{date_field}__date__gte': month_start})
                 .annotate(period=TruncMonth(date_field))
-                .values('period').annotate(count=Count('pk')).order_by('period')
+                .values('period').annotate(count=count_expr).order_by('period')
         )
         monthly_dict = {(row['period'].year, row['period'].month): row['count'] for row in monthly_rows}
         monthly_labels, monthly_counts = [], []
@@ -394,7 +396,7 @@ def admin_stats_api(request):
         yearly_rows = safe_qs(
             base.filter(**{f'{date_field}__date__gte': year_start})
                 .annotate(period=TruncYear(date_field))
-                .values('period').annotate(count=Count('pk')).order_by('period')
+                .values('period').annotate(count=count_expr).order_by('period')
         )
         yearly_dict = {row['period'].year: row['count'] for row in yearly_rows}
         yearly_labels = [str(today.year - i) for i in range(3, -1, -1)]
@@ -407,9 +409,9 @@ def admin_stats_api(request):
             'yearly':  (yearly_labels, yearly_counts),
         }
 
-    visit_data = query_by_period(VisitLog, 'visit_time', {})
+    visit_data = query_by_period(VisitLog, 'visit_time', {}, count_expr=Count('user', distinct=True))
     chat_data  = query_by_period(Message,  'created_at', {'sender_type': True})
-    rpg_data   = query_by_period(RpgChatLog, 'created_at', {'role': 'user'})
+    rpg_data   = query_by_period(RpgChatLog, 'created_at', {})
 
     return JsonResponse({
         period: {
