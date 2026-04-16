@@ -585,3 +585,46 @@ CREATE EXTENSION IF NOT EXISTS vector;
 이후 배포 시 마이그레이션이 자동 실행되어 정상화됩니다.
 
 **관련 파일:** `chat/migrations/0010_add_user_memory.py`
+
+---
+
+## 📅 2026-04-16 (수) — 관리자 대시보드 방문자 집계 버그
+
+### [보통] 서비스 현황 - 방문자 수 기간별 역전 현상
+
+**현상:**  
+관리자 대시보드 "서비스 현황" 탭에서 기간 선택 시,  
+**일별 방문자 합산이 연별 방문자 합산보다 높게** 나타나는 논리적 역전 현상 발생.
+
+**원인:**  
+`chat/views.py` 412번째 줄에서 방문자를 `Count('user', distinct=True)`로 집계함.  
+이는 **기간 버킷마다 중복 제거**를 적용하기 때문에, 같은 사용자가 여러 날 방문하면  
+일별에서는 날마다 1씩 합산되지만, 연별에서는 1년에 1번만 카운트됨.
+
+```python
+# chat/views.py:412 (현재 코드)
+visit_data = query_by_period(VisitLog, 'visit_time', {}, count_expr=Count('user', distinct=True))
+```
+
+| 기간 | 계산 방식 | 예시 (사용자 100명이 매일 접속) |
+|---|---|---|
+| 일별 | 7일 각각 distinct → 합산 | 100 × 7 = **700** |
+| 연별 | 2026년 전체 distinct → 합산 | 100명 → **100** |
+
+채팅/롤플레잉은 `Count('pk')` 기반이라 문제 없음.
+
+**요청:**  
+방문자 집계 방식을 아래 중 하나로 변경 요청:
+
+**방법 A — 방문 건수 기준 (세션/페이지뷰 개념)**
+```python
+visit_data = query_by_period(VisitLog, 'visit_time', {})  # count_expr 제거 → Count('pk') 기본값
+```
+
+**방법 B — 기간 전체의 고유 방문자 수 (별도 집계)**
+```python
+# 기간 내 전체 unique user 수를 별도로 계산해서 카드에 표시
+# 예: VisitLog.objects.filter(visit_time__date__gte=start).aggregate(Count('user', distinct=True))
+```
+
+프론트 변경 없이 백엔드 수정만으로 해결 가능합니다.

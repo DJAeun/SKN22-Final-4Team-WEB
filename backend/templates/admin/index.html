@@ -388,19 +388,20 @@
     </button>
   </div>
 
-  <!-- 기간 선택 (공유) -->
-  <div class="period-bar">
-    <span class="period-bar-label">기간 선택:</span>
-    <button class="period-btn active" data-period="daily">일별</button>
-    <button class="period-btn" data-period="weekly">주간별</button>
-    <button class="period-btn" data-period="monthly">월별</button>
-    <button class="period-btn" data-period="yearly">연별</button>
-  </div>
 
   <!-- ╔══════════════════════════════════════════╗ -->
   <!-- ║           탭 1: 서비스 현황              ║ -->
   <!-- ╚══════════════════════════════════════════╝ -->
   <div id="tab-main" class="tab-panel active">
+
+    <!-- 기간 선택 -->
+    <div class="period-bar section-period-bar" data-section="main">
+      <span class="period-bar-label">기간 선택:</span>
+      <button class="period-btn active" data-period="daily">일별</button>
+      <button class="period-btn" data-period="weekly">주간별</button>
+      <button class="period-btn" data-period="monthly">월별</button>
+      <button class="period-btn" data-period="yearly">연별</button>
+    </div>
 
     <!-- 통계 카드 3개 -->
     <div class="stat-row-3">
@@ -470,9 +471,9 @@
         <div class="stat-card-icon ic-yt fill-icon">
           <svg viewBox="0 0 24 24"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.95C18.88 4 12 4 12 4s-6.88 0-8.59.47A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.95C5.12 20 12 20 12 20s6.88 0 8.59-.47a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white" stroke="none"/></svg>
         </div>
-        <div class="stat-label">YouTube 조회수</div>
-        <div class="stat-value" id="stat-sns">—</div>
-        <div class="stat-sub">기간 내 합산 조회수</div>
+        <div class="stat-label">YouTube 구독자</div>
+        <div class="stat-value" id="stat-yt-subs">—</div>
+        <div class="stat-sub" id="stat-yt-sub">영상 <span id="stat-yt-videos">—</span>개 · 좋아요 <span id="stat-yt-likes">—</span></div>
       </div>
       <div class="stat-card c-ig">
         <div class="stat-card-icon ic-ig">
@@ -494,10 +495,24 @@
 
     <!-- 플랫폼 비교 개요 (전체 폭) -->
     <div class="chart-full sns-overview-card">
-      <div class="chart-card-title">플랫폼별 조회수 비교</div>
-      <div class="chart-card-desc" id="platformChartDesc">선택 기간 YouTube · Instagram · TikTok 지표 비교</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <div>
+          <div class="chart-card-title">플랫폼별 조회수 비교</div>
+          <div class="chart-card-desc" id="platformChartDesc">선택 기간 YouTube · Instagram 지표 비교</div>
+        </div>
+        <div class="period-bar section-period-bar" data-section="platform" style="margin-bottom:0;">
+          <span class="period-bar-label">기간:</span>
+          <button class="period-btn active" data-period="daily">일별</button>
+          <button class="period-btn" data-period="weekly">주간별</button>
+          <button class="period-btn" data-period="monthly">월별</button>
+          <button class="period-btn" data-period="yearly">연별</button>
+        </div>
+      </div>
       <div style="position:relative; height:200px;">
         <canvas id="chartPlatformViews"></canvas>
+      </div>
+      <div style="margin-top:10px;padding:8px 14px;background:#fafafa;border:1px solid #f0e0e6;border-radius:8px;font-size:0.73rem;color:#b08090;">
+        ⚠️ TikTok은 API 정책상 기술적으로 데이터 수집이 불가합니다
       </div>
     </div>
 
@@ -507,6 +522,13 @@
         <svg viewBox="0 0 24 24"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.95C18.88 4 12 4 12 4s-6.88 0-8.59.47A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.95C5.12 20 12 20 12 20s6.88 0 8.59-.47a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white" stroke="none"/></svg>
         YouTube
         <span class="platform-badge" style="color:#991b1b;">채널 분석</span>
+      </div>
+      <div class="period-bar section-period-bar" data-section="yt">
+        <span class="period-bar-label">기간:</span>
+        <button class="period-btn active" data-period="daily">일별</button>
+        <button class="period-btn" data-period="weekly">주간별</button>
+        <button class="period-btn" data-period="monthly">월별</button>
+        <button class="period-btn" data-period="yearly">연별</button>
       </div>
 
       <div class="chart-row-half">
@@ -543,6 +565,13 @@
         <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
         Instagram
         <span class="platform-badge" style="color:#6b21a8;">게시물 분석</span>
+      </div>
+      <div class="period-bar section-period-bar" data-section="ig">
+        <span class="period-bar-label">기간:</span>
+        <button class="period-btn active" data-period="daily">일별</button>
+        <button class="period-btn" data-period="weekly">주간별</button>
+        <button class="period-btn" data-period="monthly">월별</button>
+        <button class="period-btn" data-period="yearly">연별</button>
       </div>
 
       <div class="chart-row-half">
@@ -612,10 +641,11 @@ Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
 Chart.defaults.font.size   = 12;
 
 /* ── 실데이터 전역 변수 ── */
-var YT_REAL      = null;
-var IG_MEDIA     = null;
-var TIKTOK_DATA  = null;
-var REAL         = null;
+var YT_REAL             = null;
+var YT_SUBSCRIBER_COUNT = null;
+var IG_MEDIA            = null;
+var TIKTOK_DATA         = null;
+var REAL                = null;
 
 /* ── YouTube 색상 팔레트 ── */
 var YT_VIDEO_COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#a855f7','#ec4899','#f43f5e','#14b8a6'];
@@ -629,6 +659,15 @@ function getYTViews() {
   return [19500,15200,12800,9400,22000,8100,11300,6700,18500,7200];
 }
 
+/* ── YouTube 카드 요약 업데이트 (전체 누적, 기간 무관) ── */
+function updateYTCard() {
+  var totalLikes = (YT_REAL||[]).reduce(function(a,v){ return a+(v.likeCount||0); }, 0);
+  var videoCount = YT_REAL ? YT_REAL.length : null;
+  document.getElementById('stat-yt-subs').textContent   = YT_SUBSCRIBER_COUNT != null ? fmt(YT_SUBSCRIBER_COUNT) : '—';
+  document.getElementById('stat-yt-videos').textContent = videoCount ? videoCount.toLocaleString() : '—';
+  document.getElementById('stat-yt-likes').textContent  = fmt(totalLikes);
+}
+
 /* ── 기간별 데모 데이터 ── */
 var DEMO = {
   daily: {
@@ -636,56 +675,24 @@ var DEMO = {
     pageVisits:     [1240,892,456,320,280,195,88],
     chatCounts:     [45,62,38,71,89,55,73],
     roleplayCounts: [12,18,9,24,31,15,28],
-    ytVideoViews:   [19500,15200,12800,9400,22000,8100,11300,6700,18500,7200],
-    ytTrend: [
-      [2800,3200,2100,3800,4200,3100,3600],
-      [1800,2400,1600,2900,3500,2600,2900],
-      [3200,3800,2900,4500,5100,3800,4400],
-      [2600,3100,2400,3700,4300,3200,3900],
-      [1500,1900,1400,2200,2700,2000,2400],
-    ],
   },
   weekly: {
     labels:         ['W1','W2','W3','W4','W5','W6','W7','W8'],
     pageVisits:     [8500,6200,3100,2100,1900,1400,580,2800],
     chatCounts:     [312,445,289,501,623,398,512,467],
     roleplayCounts: [85,124,68,178,210,95,188,156],
-    ytVideoViews:   [139000,108000,88000,65000,152000,54000,78000,46000,128000,49000],
-    ytTrend: [
-      [18000,22000,15000,26000,30000,21000,25000,28000],
-      [13000,17000,11000,19000,23000,16000,19000,21000],
-      [22000,28000,19000,34000,38000,27000,32000,35000],
-      [17000,22000,15000,27000,31000,22000,26000,29000],
-      [10000,13000,9000,16000,19000,13000,16000,18000],
-    ],
   },
   monthly: {
     labels:         ['5월','6월','7월','8월','9월','10월','11월','12월','1월','2월','3월','4월'],
     pageVisits:     [32000,24800,12400,8200,7600,5500,2300,11200,9800,14500,18200,15600],
     chatCounts:     [1200,1580,1120,1890,2340,1680,1950,2120,1840,2280,2450,2100],
     roleplayCounts: [320,445,298,580,742,512,698,812,634,890,950,820],
-    ytVideoViews:   [580000,462000,392000,285000,648000,228000,340000,198000,545000,210000],
-    ytTrend: [
-      [45000,52000,38000,68000,82000,58000,72000,80000,65000,88000,95000,80000],
-      [32000,38000,28000,48000,58000,42000,52000,58000,47000,62000,68000,58000],
-      [55000,65000,48000,82000,98000,72000,88000,98000,80000,105000,115000,98000],
-      [42000,50000,37000,62000,75000,55000,68000,75000,62000,82000,90000,77000],
-      [25000,30000,22000,38000,45000,33000,41000,46000,38000,50000,55000,47000],
-    ],
   },
   yearly: {
-    labels:         ['2022','2023','2024','2025'],
+    labels:         ['2023','2024','2025','2026'],
     pageVisits:     [52000,185000,498000,320000],
     chatCounts:     [8500,19800,38200,24100],
     roleplayCounts: [1800,5200,9800,6200],
-    ytVideoViews:   [2400000,5800000,9200000,4800000,3200000,1800000,2600000,1500000,4100000,1900000],
-    ytTrend: [
-      [320000,820000,1500000,980000],
-      [240000,620000,1150000,760000],
-      [480000,1200000,2200000,1450000],
-      [380000,950000,1750000,1150000],
-      [220000,560000,1050000,680000],
-    ],
   },
 };
 
@@ -705,10 +712,14 @@ var charts = {};
 var YT_ANALYTICS_CACHE       = {};
 var YT_VIDEO_ANALYTICS_CACHE = {};
 
-/* ── 탭 관리 ── */
-var activeTab    = 'main';
-var activePeriod = 'daily';
-var tabDirty     = { main: false, sns: false };
+/* ── 탭/기간 상태 ── */
+var activeTab      = 'main';
+var mainPeriod     = 'daily';
+var platformPeriod = 'daily';
+var ytPeriod       = 'daily';
+var igPeriod       = 'daily';
+var tabDirty       = { main: false };
+var snsInitialized = false;
 
 /* ── 차트 스케일 공통 옵션 ── */
 function xScaleOpt() { return { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 } } }; }
@@ -729,116 +740,52 @@ function buildMainCharts(period) {
   var chats  = (real && real.chatCounts)  ? real.chatCounts  : DEMO[period].chatCounts;
   var rpg    = (real && real.rpgCounts)   ? real.rpgCounts   : DEMO[period].roleplayCounts;
 
-  /* 카드 수치 */
   document.getElementById('stat-visits').textContent   = fmt(sum(visits));
   document.getElementById('stat-chat').textContent     = fmt(sum(chats));
   document.getElementById('stat-roleplay').textContent = fmt(sum(rpg));
 
-  /* 방문자 추이 — 라인 */
   if (charts.pv) charts.pv.destroy();
   charts.pv = new Chart(document.getElementById('chartPageVisits'), {
     type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: '방문자',
-        data: visits,
-        borderColor: '#e8607a',
-        backgroundColor: 'rgba(232,96,122,0.08)',
-        borderWidth: 2.5, fill: true, tension: 0.4,
-        pointRadius: 4, pointBackgroundColor: '#e8607a',
-        pointBorderColor: '#fff', pointBorderWidth: 2,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: function(ctx){ return '  '+ctx.parsed.y.toLocaleString()+'명'; } } }
-      },
-      scales: { x: xScaleOpt(), y: yScaleOpt(function(v){ return fmt(v); }) }
-    }
+    data: { labels: labels, datasets: [{ label:'방문자', data:visits, borderColor:'#e8607a', backgroundColor:'rgba(232,96,122,0.08)', borderWidth:2.5, fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#e8607a', pointBorderColor:'#fff', pointBorderWidth:2 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:function(ctx){ return '  '+ctx.parsed.y.toLocaleString()+'명'; }}} }, scales:{ x:xScaleOpt(), y:yScaleOpt(function(v){ return fmt(v); }) } }
   });
 
-  /* 채팅 수 — 라인 */
   if (charts.chat) charts.chat.destroy();
   charts.chat = new Chart(document.getElementById('chartChat'), {
     type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: '채팅 수',
-        data: chats,
-        borderColor: '#db2777',
-        backgroundColor: 'rgba(219,39,119,0.08)',
-        borderWidth: 2.5, fill: true, tension: 0.4,
-        pointRadius: 4, pointBackgroundColor: '#db2777',
-        pointBorderColor: '#fff', pointBorderWidth: 2,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: function(ctx){ return '  채팅 '+ctx.parsed.y.toLocaleString()+'건'; } } }
-      },
-      scales: { x: xScaleOpt(), y: yScaleOpt() }
-    }
+    data: { labels: labels, datasets: [{ label:'채팅 수', data:chats, borderColor:'#db2777', backgroundColor:'rgba(219,39,119,0.08)', borderWidth:2.5, fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#db2777', pointBorderColor:'#fff', pointBorderWidth:2 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:function(ctx){ return '  채팅 '+ctx.parsed.y.toLocaleString()+'건'; }}} }, scales:{ x:xScaleOpt(), y:yScaleOpt() } }
   });
 
-  /* 롤플레잉 — 바 */
   if (charts.rp) charts.rp.destroy();
   charts.rp = new Chart(document.getElementById('chartRoleplay'), {
     type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'RPG 메시지',
-        data: rpg,
-        backgroundColor: 'rgba(168,85,247,0.75)',
-        borderColor: '#a855f7',
-        borderWidth: 1.5, borderRadius: 5, borderSkipped: false,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: function(ctx){ return '  '+ctx.parsed.y.toLocaleString()+'건'; } } }
-      },
-      scales: { x: xScaleOpt(), y: yScaleOpt() }
-    }
+    data: { labels: labels, datasets: [{ label:'RPG 메시지', data:rpg, backgroundColor:'rgba(168,85,247,0.75)', borderColor:'#a855f7', borderWidth:1.5, borderRadius:5, borderSkipped:false }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:function(ctx){ return '  '+ctx.parsed.y.toLocaleString()+'건'; }}} }, scales:{ x:xScaleOpt(), y:yScaleOpt() } }
   });
 }
 
 /* ════════════════════════════════════════════════
-   SNS 인사이트 차트 빌드
+   플랫폼 비교 차트 빌드 (YouTube + Instagram만)
    ════════════════════════════════════════════════ */
-function buildSNSCharts(period) {
-  var periodLabel = { daily:'최근 7일', weekly:'최근 8주', monthly:'최근 12개월', yearly:'전체' }[period] || '';
-
-  /* ─ YouTube 조회수 카드 ─ */
+function buildPlatformChart(period) {
   var _ytAnalytics = YT_ANALYTICS_CACHE[period];
-  document.getElementById('stat-sns').textContent = _ytAnalytics
-    ? fmt(sum(_ytAnalytics.views))
-    : fmt(sum(getYTViews()));
-
-  /* ─ 플랫폼 비교 차트 ─ */
-  var ytViews     = _ytAnalytics ? sum(_ytAnalytics.views) : sum(getYTViews());
-  var igViewTotal = (IG_MEDIA||[]).reduce(function(a,m){ return a+(m.views||0); }, 0);
-  var ttLikeTotal = TIKTOK_DATA ? (TIKTOK_DATA.likes_count||0) : 0;
+  var ytViewsTotal = _ytAnalytics ? sum(_ytAnalytics.views) : sum(getYTViews());
+  var igViewTotal  = (IG_MEDIA||[]).reduce(function(a,m){ return a+(m.views||0); }, 0);
+  var periodLabel  = { daily:'최근 7일', weekly:'최근 8주', monthly:'최근 12개월', yearly:'전체' }[period] || '';
   var el = document.getElementById('platformChartDesc');
-  if (el) el.textContent = periodLabel+' YouTube 조회수 · Instagram 게시물 조회수 · TikTok 좋아요';
+  if (el) el.textContent = periodLabel+' YouTube 조회수 · Instagram 게시물 조회수';
   if (charts.platform) charts.platform.destroy();
   charts.platform = new Chart(document.getElementById('chartPlatformViews'), {
     type: 'bar',
     data: {
-      labels: ['YouTube','Instagram','TikTok'],
+      labels: ['YouTube','Instagram'],
       datasets: [{
         label: '수치',
-        data: [ytViews, igViewTotal, ttLikeTotal||null],
-        backgroundColor: ['rgba(239,68,68,0.75)','rgba(221,42,123,0.75)', ttLikeTotal?'rgba(254,44,85,0.75)':'rgba(254,44,85,0.2)'],
-        borderColor:     ['#ef4444','#dd2a7b','#fe2c55'],
+        data: [ytViewsTotal, igViewTotal],
+        backgroundColor: ['rgba(239,68,68,0.75)','rgba(221,42,123,0.75)'],
+        borderColor:     ['#ef4444','#dd2a7b'],
         borderWidth: 2, borderRadius: 8, borderSkipped: false,
       }]
     },
@@ -846,20 +793,21 @@ function buildSNSCharts(period) {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: function(ctx){
-          if (ctx.dataIndex===2 && !ttLikeTotal) return '  TikTok: scope 업그레이드 후 표시';
-          if (ctx.dataIndex===2) return '  TikTok 좋아요: '+fmt(ctx.parsed.y)+'개';
-          return '  '+ctx.chart.data.labels[ctx.dataIndex]+': '+fmt(ctx.parsed.y)+'회';
-        }}}
+        tooltip: { callbacks: { label: function(ctx){ return '  '+ctx.chart.data.labels[ctx.dataIndex]+': '+fmt(ctx.parsed.y)+'회'; } } }
       },
       scales: {
-        x: { grid: { display: false }, ticks: { color: '#4a2030', font: { size: 13, weight: '600' } } },
-        y: { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 }, callback: function(v){ return fmt(v); } } }
+        x: { grid:{display:false}, ticks:{color:'#4a2030', font:{size:13, weight:'600'}} },
+        y: { grid:{color:'#f5eaec'}, ticks:{color:'#c090a0', font:{size:11}, callback:function(v){ return fmt(v); }} }
       }
     }
   });
+}
 
-  /* ─ 영상 성과 TOP 10 ─ */
+/* ════════════════════════════════════════════════
+   YouTube 섹션 차트 빌드
+   ════════════════════════════════════════════════ */
+function buildYTCharts(period) {
+  /* 영상 성과 TOP 10 */
   var _videoAnalytics = YT_VIDEO_ANALYTICS_CACHE[period];
   var ytLabels, ytViews2;
   if (_videoAnalytics && _videoAnalytics.length) {
@@ -875,30 +823,11 @@ function buildSNSCharts(period) {
   if (charts.ytVideos) charts.ytVideos.destroy();
   charts.ytVideos = new Chart(document.getElementById('chartYTVideos'), {
     type: 'bar',
-    data: {
-      labels: ytLabels,
-      datasets: [{
-        data: ytViews2,
-        backgroundColor: ytColors.map(function(c){ return c+'cc'; }),
-        borderColor: ytColors,
-        borderWidth: 1.5, borderRadius: 4, borderSkipped: false,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      indexAxis: 'y',
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: function(ctx){ return '  '+fmt(ctx.parsed.x)+'회'; } } }
-      },
-      scales: {
-        x: { grid: { color: '#f5eaec' }, ticks: { color: '#c090a0', font: { size: 11 }, callback: function(v){ return fmt(v); } } },
-        y: { grid: { display: false }, ticks: { color: '#4a2030', font: { size: 10 } } }
-      }
-    }
+    data: { labels: ytLabels, datasets: [{ data:ytViews2, backgroundColor:ytColors.map(function(c){ return c+'cc'; }), borderColor:ytColors, borderWidth:1.5, borderRadius:4, borderSkipped:false }] },
+    options: { responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{ legend:{display:false}, tooltip:{callbacks:{label:function(ctx){ return '  '+fmt(ctx.parsed.x)+'회'; }}} }, scales:{ x:{grid:{color:'#f5eaec'}, ticks:{color:'#c090a0', font:{size:11}, callback:function(v){ return fmt(v); }}}, y:{grid:{display:false}, ticks:{color:'#4a2030', font:{size:10}}} } }
   });
 
-  /* ─ 채널 성장 트렌드 ─ */
+  /* 채널 성장 트렌드 */
   var analyticsData = YT_ANALYTICS_CACHE[period];
   var tLabels, tViews, tLikes, tCmts;
   if (analyticsData) {
@@ -922,32 +851,24 @@ function buildSNSCharts(period) {
   if (charts.ytTrend) charts.ytTrend.destroy();
   charts.ytTrend = new Chart(document.getElementById('chartYTTrend'), {
     type: 'line',
-    data: {
-      labels: tLabels,
-      datasets: [
-        { label:'조회수', data:tViews, borderColor:'#e8607a', backgroundColor:'rgba(232,96,122,0.08)', borderWidth:2.5, fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#e8607a', pointBorderColor:'#fff', pointBorderWidth:2 },
-        { label:'좋아요', data:tLikes, borderColor:'#f97316', backgroundColor:'rgba(251,146,60,0.08)',  borderWidth:2.5, fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#f97316', pointBorderColor:'#fff', pointBorderWidth:2 },
-        { label:'댓글',   data:tCmts,  borderColor:'#a855f7', backgroundColor:'rgba(168,85,247,0.08)', borderWidth:2.5, fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#a855f7', pointBorderColor:'#fff', pointBorderWidth:2 },
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position:'top', align:'end', labels: { font:{size:11}, usePointStyle:true, pointStyleWidth:8, color:'#5a3040', padding:14 } },
-        tooltip: { callbacks: { label: function(ctx){ return '  '+ctx.dataset.label+': '+fmt(ctx.parsed.y); } } }
-      },
-      scales: {
-        x: { grid:{display:false}, ticks:{color:'#4a2030', font:{size:10}, maxRotation:30} },
-        y: { grid:{color:'#f5eaec'}, ticks:{color:'#c090a0', font:{size:11}, callback:function(v){ return fmt(v); }} }
-      }
-    }
+    data: { labels: tLabels, datasets: [
+      { label:'조회수', data:tViews, borderColor:'#e8607a', backgroundColor:'rgba(232,96,122,0.08)', borderWidth:2.5, fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#e8607a', pointBorderColor:'#fff', pointBorderWidth:2 },
+      { label:'좋아요', data:tLikes, borderColor:'#f97316', backgroundColor:'rgba(251,146,60,0.08)',  borderWidth:2.5, fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#f97316', pointBorderColor:'#fff', pointBorderWidth:2 },
+      { label:'댓글',   data:tCmts,  borderColor:'#a855f7', backgroundColor:'rgba(168,85,247,0.08)', borderWidth:2.5, fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#a855f7', pointBorderColor:'#fff', pointBorderWidth:2 },
+    ]},
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{position:'top', align:'end', labels:{font:{size:11}, usePointStyle:true, pointStyleWidth:8, color:'#5a3040', padding:14}}, tooltip:{callbacks:{label:function(ctx){ return '  '+ctx.dataset.label+': '+fmt(ctx.parsed.y); }}} }, scales:{ x:{grid:{display:false}, ticks:{color:'#4a2030', font:{size:10}, maxRotation:30}}, y:{grid:{color:'#f5eaec'}, ticks:{color:'#c090a0', font:{size:11}, callback:function(v){ return fmt(v); }}} } }
   });
+}
 
-  /* ─ Instagram 게시물 필터 ─ */
+/* ════════════════════════════════════════════════
+   Instagram 섹션 차트 빌드
+   ════════════════════════════════════════════════ */
+function buildIGCharts(period) {
+  var periodLabel = { daily:'최근 7일', weekly:'최근 8주', monthly:'최근 12개월', yearly:'전체' }[period] || '';
   var cutoff = (function(p){
     var d = new Date();
-    if (p==='daily')       d.setDate(d.getDate()-7);
-    else if (p==='weekly') d.setDate(d.getDate()-56);
+    if (p==='daily')        d.setDate(d.getDate()-7);
+    else if (p==='weekly')  d.setDate(d.getDate()-56);
     else if (p==='monthly') d.setDate(d.getDate()-365);
     else return null;
     return d;
@@ -964,58 +885,18 @@ function buildSNSCharts(period) {
     var igViews  = media.map(function(m){ return m.views||0; });
     var igLikes  = media.map(function(m){ return m.like_count||0; });
 
-    /* 게시물별 조회수 차트 */
     if (charts.instaViews) charts.instaViews.destroy();
     charts.instaViews = new Chart(document.getElementById('chartInstaViews'), {
       type: 'bar', indexAxis: 'y',
-      data: {
-        labels: igLabels,
-        datasets: [{
-          label: '조회수',
-          data: igViews,
-          backgroundColor: igViews.map(function(_,i){ return 'rgba(221,42,123,'+(0.55+0.04*i)+')'; }),
-          borderColor: '#dd2a7b',
-          borderWidth: 1.5, borderRadius: 4, borderSkipped: false,
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: function(ctx){ return '  조회수: '+fmt(ctx.parsed.x)+'회'; } } }
-        },
-        scales: {
-          x: { grid:{color:'#f5eaec'}, ticks:{color:'#c090a0', font:{size:11}, callback:function(v){ return fmt(v); }} },
-          y: { grid:{display:false}, ticks:{color:'#4a2030', font:{size:10}} }
-        }
-      }
+      data: { labels:igLabels, datasets:[{ label:'조회수', data:igViews, backgroundColor:igViews.map(function(_,i){ return 'rgba(221,42,123,'+(0.55+0.04*i)+')'; }), borderColor:'#dd2a7b', borderWidth:1.5, borderRadius:4, borderSkipped:false }] },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:function(ctx){ return '  조회수: '+fmt(ctx.parsed.x)+'회'; }}} }, scales:{ x:{grid:{color:'#f5eaec'}, ticks:{color:'#c090a0', font:{size:11}, callback:function(v){ return fmt(v); }}}, y:{grid:{display:false}, ticks:{color:'#4a2030', font:{size:10}}} } }
     });
 
-    /* 게시물별 좋아요 차트 */
     if (charts.instaLikes) charts.instaLikes.destroy();
     charts.instaLikes = new Chart(document.getElementById('chartInstaLikes'), {
       type: 'bar', indexAxis: 'y',
-      data: {
-        labels: igLabels,
-        datasets: [{
-          label: '좋아요',
-          data: igLikes,
-          backgroundColor: igLikes.map(function(_,i){ return 'rgba(129,52,175,'+(0.55+0.04*i)+')'; }),
-          borderColor: '#8134af',
-          borderWidth: 1.5, borderRadius: 4, borderSkipped: false,
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: function(ctx){ return '  좋아요: '+fmt(ctx.parsed.x)+'개'; } } }
-        },
-        scales: {
-          x: { grid:{color:'#f5eaec'}, ticks:{color:'#c090a0', font:{size:11}, callback:function(v){ return fmt(v); }} },
-          y: { grid:{display:false}, ticks:{color:'#4a2030', font:{size:10}} }
-        }
-      }
+      data: { labels:igLabels, datasets:[{ label:'좋아요', data:igLikes, backgroundColor:igLikes.map(function(_,i){ return 'rgba(129,52,175,'+(0.55+0.04*i)+')'; }), borderColor:'#8134af', borderWidth:1.5, borderRadius:4, borderSkipped:false }] },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:function(ctx){ return '  좋아요: '+fmt(ctx.parsed.x)+'개'; }}} }, scales:{ x:{grid:{color:'#f5eaec'}, ticks:{color:'#c090a0', font:{size:11}, callback:function(v){ return fmt(v); }}}, y:{grid:{display:false}, ticks:{color:'#4a2030', font:{size:10}}} } }
     });
 
     document.getElementById('instaViewsMsg').style.display  = 'none';
@@ -1040,13 +921,15 @@ function switchTab(tab) {
   document.querySelector('.dash-tab-btn[data-tab="'+tab+'"]').classList.add('active');
   activeTab = tab;
 
-  /* 비활성 탭에서 변경된 기간이 있으면 새로 빌드 */
   if (tab === 'main' && tabDirty.main) {
-    buildMainCharts(activePeriod);
+    buildMainCharts(mainPeriod);
     tabDirty.main = false;
-  } else if (tab === 'sns' && tabDirty.sns) {
-    buildSNSCharts(activePeriod);
-    tabDirty.sns = false;
+  } else if (tab === 'sns' && !snsInitialized) {
+    /* SNS 탭 첫 진입 시 모든 섹션 빌드 */
+    buildPlatformChart(platformPeriod);
+    buildYTCharts(ytPeriod);
+    buildIGCharts(igPeriod);
+    snsInitialized = true;
   }
 }
 
@@ -1072,8 +955,8 @@ async function loadAnalytics(period) {
       if (!d.error) YT_ANALYTICS_CACHE[period] = d;
     }
     if (needVideo) {
-      var d = await results[idx++].json();
-      if (!d.error && d.videos) YT_VIDEO_ANALYTICS_CACHE[period] = d.videos;
+      var d2 = await results[idx++].json();
+      if (!d2.error && d2.videos) YT_VIDEO_ANALYTICS_CACHE[period] = d2.videos;
     }
   } catch(e) {}
 }
@@ -1089,8 +972,8 @@ async function loadTikTok() {
       var data = await resp.json();
       if (!data.error) {
         TIKTOK_DATA = data;
-        document.getElementById('stat-tiktok').textContent     = fmt(data.follower_count||0);
-        document.getElementById('stat-tiktok-sub').textContent = '좋아요 '+fmt(data.likes_count||0)+' · @coding__hari';
+        document.getElementById('stat-tiktok').textContent       = fmt(data.follower_count||0);
+        document.getElementById('stat-tiktok-sub').textContent   = '좋아요 '+fmt(data.likes_count||0)+' · @coding__hari';
         document.getElementById('tt-stat-followers').textContent = fmt(data.follower_count||0);
         document.getElementById('tt-stat-likes').textContent     = fmt(data.likes_count||0);
         document.getElementById('tt-stat-videos').textContent    = fmt(data.video_count||0);
@@ -1139,36 +1022,46 @@ async function loadDashboard() {
     if (ytResp.ok) {
       var ytData = await ytResp.json();
       if (ytData.videos && ytData.videos.length) YT_REAL = ytData.videos;
+      if (ytData.subscriberCount != null) YT_SUBSCRIBER_COUNT = ytData.subscriberCount;
     }
   } catch(e) { console.error('Dashboard load failed:', e); }
 
   await Promise.all([loadAnalytics('daily'), loadInstagram(), loadTikTok(), loadInstagramMedia()]);
 
+  updateYTCard();
   buildMainCharts('daily');
-  /* SNS 탭은 비활성 상태 — 처음 열 때 빌드됨 */
-  tabDirty.sns = true;
 
   var params = new URLSearchParams(location.search);
   if (params.get('yt_auth') === 'success') alert('✅ YouTube Analytics 연동 완료!');
   if (params.get('yt_auth') === 'error')   alert('❌ YouTube Analytics 연동 실패. 다시 시도해주세요.');
 }
 
-/* ── 기간 버튼 이벤트 ── */
-document.querySelectorAll('.period-btn').forEach(function(btn){
-  btn.addEventListener('click', async function(){
-    document.querySelectorAll('.period-btn').forEach(function(b){ b.classList.remove('active'); });
-    this.classList.add('active');
-    activePeriod = this.dataset.period;
+/* ── 섹션별 기간 버튼 이벤트 ── */
+document.querySelectorAll('.section-period-bar').forEach(function(bar) {
+  bar.querySelectorAll('.period-btn').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      bar.querySelectorAll('.period-btn').forEach(function(b){ b.classList.remove('active'); });
+      this.classList.add('active');
+      var period  = this.dataset.period;
+      var section = bar.dataset.section;
 
-    await loadAnalytics(activePeriod);
-
-    if (activeTab === 'main') {
-      buildMainCharts(activePeriod);
-      tabDirty.sns = true;
-    } else {
-      buildSNSCharts(activePeriod);
-      tabDirty.main = true;
-    }
+      if (section === 'main') {
+        mainPeriod = period;
+        if (activeTab === 'main') buildMainCharts(mainPeriod);
+        else tabDirty.main = true;
+      } else if (section === 'platform') {
+        platformPeriod = period;
+        await loadAnalytics(platformPeriod);
+        buildPlatformChart(platformPeriod);
+      } else if (section === 'yt') {
+        ytPeriod = period;
+        await loadAnalytics(ytPeriod);
+        buildYTCharts(ytPeriod);
+      } else if (section === 'ig') {
+        igPeriod = period;
+        buildIGCharts(igPeriod);
+      }
+    });
   });
 });
 
