@@ -36,6 +36,7 @@
       "Bash(python eval/judge_eval.py --skip-judge --username \"test@test.com\" --password \"password12347890\")",
       "Bash(python eval/load_test.py --users 5 --username \"test@test.com\" --password \"password12347890\")",
       "Bash(grep -n \"HariKnowledge\\\\|hariknowledge\" c:/Workspaces/SKN22-Final-4Team-WEB/backend/chat/migrations/*.py)",
+      "Bash(find /c/Workspaces/SKN22-Final-4Team-WEB/backend -name \"urls.py\" -exec grep -l \"admin_\" {} \\\\;)",
       "Bash(aws --version)",
       "Bash(aws logs describe-log-groups:*)",
       "Bash(aws cloudwatch get-metric-statistics:*)"
