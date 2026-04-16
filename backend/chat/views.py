@@ -451,15 +451,16 @@ def youtube_stats_api(request):
             return json.loads(resp.read())
 
     try:
-        # 1단계: 채널 핸들 → uploads 플레이리스트 ID
+        # 1단계: 채널 핸들 → uploads 플레이리스트 ID + 구독자 수
         ch_data = yt_get('channels', {
-            'part': 'contentDetails',
+            'part': 'contentDetails,statistics',
             'forHandle': channel_handle,
         })
         items = ch_data.get('items', [])
         if not items:
             return JsonResponse({'error': f'Channel not found: {channel_handle}'}, status=404)
         uploads_playlist_id = items[0]['contentDetails']['relatedPlaylists']['uploads']
+        subscriber_count = int(items[0].get('statistics', {}).get('subscriberCount', 0))
 
         # 2단계: 플레이리스트 → 영상 ID 목록 (최대 50개)
         pl_data = yt_get('playlistItems', {
@@ -497,7 +498,7 @@ def youtube_stats_api(request):
         })
 
     result.sort(key=lambda x: x['viewCount'], reverse=True)
-    return JsonResponse({'videos': result})
+    return JsonResponse({'videos': result, 'subscriberCount': subscriber_count})
 
 
 @staff_member_required
