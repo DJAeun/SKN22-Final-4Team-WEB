@@ -658,7 +658,7 @@ html, body {
   font-size: 14px;
   font-family: inherit;
   color: var(--text-main);
-  background: white;
+  background: var(--header-bg);
   transition: border-color 0.2s;
 }
 
@@ -1295,7 +1295,7 @@ html[data-theme="dark"] .date-divider-text {
 
 <!-- SEARCH MODAL (Restored) -->
 <div id="searchModal" style="display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); align-items: flex-start; justify-content: flex-end; padding: 24px;">
-  <div style="background: white; width: 100%; max-width: 360px; height: auto; max-height: calc(100vh - 48px); border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+  <div class="search-modal-panel" style="width: 100%; max-width: 360px; height: auto; max-height: calc(100vh - 48px); border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
     <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
       <h3 style="font-size: 16px; font-weight: 600; color: var(--text-main);">🔍 대화 내용 검색</h3>
       <button onclick="closeSearch()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-dim);">×</button>
@@ -1307,6 +1307,34 @@ html[data-theme="dark"] .date-divider-text {
 </div>
 
 <style>
+/* 검색 모달 패널 */
+.search-modal-panel {
+  background: var(--header-bg);
+}
+html[data-theme="dark"] .search-modal-panel {
+  background: #3d2838;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+}
+html[data-theme="dark"] .search-input-wrapper {
+  background: #2a1e28 !important;
+  border-color: rgba(255,138,155,0.2) !important;
+}
+html[data-theme="dark"] .search-input-wrapper:focus-within {
+  background: #3d2838 !important;
+}
+html[data-theme="dark"] .date-filter-panel {
+  background: #2a1e28 !important;
+  border-color: rgba(255,138,155,0.2) !important;
+}
+html[data-theme="dark"] .date-input {
+  background: #2a1e28;
+  color: var(--text-main);
+  border-color: rgba(255,138,155,0.2);
+}
+html[data-theme="dark"] .search-result-item {
+  background: #2a1e28;
+}
+
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(20px); }
   to { opacity: 1; transform: translateX(0); }
