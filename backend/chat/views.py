@@ -343,7 +343,9 @@ def admin_stats_api(request):
         except Exception:
             return []
 
-    def query_by_period(model, date_field, extra_filter):
+    def query_by_period(model, date_field, extra_filter, count_expr=None):
+        if count_expr is None:
+            count_expr = Count('pk')
         base = model.objects.filter(**extra_filter)
 
         # DAILY — 최근 7일 (1쿼리)
@@ -351,7 +353,7 @@ def admin_stats_api(request):
         daily_rows = safe_qs(
             base.filter(**{f'{date_field}__date__gte': day_start})
                 .annotate(period=TruncDay(date_field))
-                .values('period').annotate(count=Count('pk')).order_by('period')
+                .values('period').annotate(count=count_expr).order_by('period')
         )
         daily_dict = {row['period'].date(): row['count'] for row in daily_rows}
         daily_labels, daily_counts = [], []
@@ -366,7 +368,7 @@ def admin_stats_api(request):
         weekly_rows = safe_qs(
             base.filter(**{f'{date_field}__date__gte': week_mondays[0]})
                 .annotate(period=TruncWeek(date_field))
-                .values('period').annotate(count=Count('pk')).order_by('period')
+                .values('period').annotate(count=count_expr).order_by('period')
         )
         weekly_dict = {row['period'].date(): row['count'] for row in weekly_rows}
         weekly_labels = [f'W{i + 1}' for i in range(8)]
@@ -379,7 +381,7 @@ def admin_stats_api(request):
         monthly_rows = safe_qs(
             base.filter(**{f'{date_field}__date__gte': month_start})
                 .annotate(period=TruncMonth(date_field))
-                .values('period').annotate(count=Count('pk')).order_by('period')
+                .values('period').annotate(count=count_expr).order_by('period')
         )
         monthly_dict = {(row['period'].year, row['period'].month): row['count'] for row in monthly_rows}
         monthly_labels, monthly_counts = [], []
@@ -394,7 +396,7 @@ def admin_stats_api(request):
         yearly_rows = safe_qs(
             base.filter(**{f'{date_field}__date__gte': year_start})
                 .annotate(period=TruncYear(date_field))
-                .values('period').annotate(count=Count('pk')).order_by('period')
+                .values('period').annotate(count=count_expr).order_by('period')
         )
         yearly_dict = {row['period'].year: row['count'] for row in yearly_rows}
         yearly_labels = [str(today.year - i) for i in range(3, -1, -1)]
@@ -407,9 +409,9 @@ def admin_stats_api(request):
             'yearly':  (yearly_labels, yearly_counts),
         }
 
-    visit_data = query_by_period(VisitLog, 'visit_time', {})
+    visit_data = query_by_period(VisitLog, 'visit_time', {}, count_expr=Count('user', distinct=True))
     chat_data  = query_by_period(Message,  'created_at', {'sender_type': True})
-    rpg_data   = query_by_period(RpgChatLog, 'created_at', {'role': 'user'})
+    rpg_data   = query_by_period(RpgChatLog, 'created_at', {})
 
     return JsonResponse({
         period: {
@@ -419,6 +421,492 @@ def admin_stats_api(request):
             'rpgCounts':   rpg_data[period][1],
         }
         for period in ('daily', 'weekly', 'monthly', 'yearly')
+    })
+
+
+@staff_member_required
+def youtube_stats_api(request):
+    """YouTube Data API v3로 채널 영상 목록과 조회수를 자동으로 반환한다 (staff only).
+
+    흐름:
+      1. channels.list → uploads 플레이리스트 ID 획득
+      2. playlistItems.list → 최근 영상 ID 목록 획득 (최대 50개)
+      3. videos.list → 영상별 통계(조회수·좋아요·댓글) 획득
+    """
+    import json
+    import urllib.request as urlreq
+    import urllib.error
+    from urllib.parse import urlencode
+
+    api_key = settings.YOUTUBE_API_KEY
+    channel_handle = settings.YOUTUBE_CHANNEL_HANDLE
+
+    if not api_key:
+        return JsonResponse({'error': 'YOUTUBE_API_KEY not configured'}, status=500)
+
+    def yt_get(endpoint, params):
+        params['key'] = api_key
+        url = f'https://www.googleapis.com/youtube/v3/{endpoint}?{urlencode(params)}'
+        with urlreq.urlopen(url, timeout=10) as resp:
+            return json.loads(resp.read())
+
+    try:
+        # 1단계: 채널 핸들 → uploads 플레이리스트 ID + 구독자 수
+        ch_data = yt_get('channels', {
+            'part': 'contentDetails,statistics',
+            'forHandle': channel_handle,
+        })
+        items = ch_data.get('items', [])
+        if not items:
+            return JsonResponse({'error': f'Channel not found: {channel_handle}'}, status=404)
+        uploads_playlist_id = items[0]['contentDetails']['relatedPlaylists']['uploads']
+        subscriber_count = int(items[0].get('statistics', {}).get('subscriberCount', 0))
+
+        # 2단계: 플레이리스트 → 영상 ID 목록 (최대 50개)
+        pl_data = yt_get('playlistItems', {
+            'part': 'contentDetails',
+            'playlistId': uploads_playlist_id,
+            'maxResults': 50,
+        })
+        video_ids = [
+            item['contentDetails']['videoId']
+            for item in pl_data.get('items', [])
+        ]
+        if not video_ids:
+            return JsonResponse({'videos': []})
+
+        # 3단계: 영상 ID → 통계
+        stats_data = yt_get('videos', {
+            'part': 'statistics,snippet',
+            'id': ','.join(video_ids),
+        })
+
+    except urllib.error.HTTPError as e:
+        return JsonResponse({'error': f'YouTube API error: {e.code}'}, status=502)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=502)
+
+    result = []
+    for item in stats_data.get('items', []):
+        stats = item.get('statistics', {})
+        result.append({
+            'id':           item['id'],
+            'title':        item['snippet']['title'],
+            'viewCount':    int(stats.get('viewCount', 0)),
+            'likeCount':    int(stats.get('likeCount', 0)),
+            'commentCount': int(stats.get('commentCount', 0)),
+        })
+
+    result.sort(key=lambda x: x['viewCount'], reverse=True)
+    return JsonResponse({'videos': result, 'subscriberCount': subscriber_count})
+
+
+@staff_member_required
+def youtube_oauth_start(request):
+    """YouTube Analytics OAuth2 인증 시작 — 구글 로그인 페이지로 리다이렉트."""
+    from urllib.parse import urlencode
+    if not settings.YOUTUBE_CLIENT_ID:
+        return JsonResponse({'error': 'YOUTUBE_CLIENT_ID not configured'}, status=500)
+    redirect_uri = request.build_absolute_uri('/admin/youtube-oauth-callback/')
+    params = {
+        'client_id':     settings.YOUTUBE_CLIENT_ID,
+        'redirect_uri':  redirect_uri,
+        'response_type': 'code',
+        'scope':         'https://www.googleapis.com/auth/yt-analytics.readonly',
+        'access_type':   'offline',
+        'prompt':        'consent',
+    }
+    return redirect('https://accounts.google.com/o/oauth2/auth?' + urlencode(params))
+
+
+@staff_member_required
+def youtube_oauth_callback(request):
+    """OAuth2 콜백 — 인가 코드를 토큰으로 교환 후 캐시에 저장."""
+    import json, time
+    import urllib.request as urlreq
+    from urllib.parse import urlencode
+    from django.core.cache import cache
+
+    if request.GET.get('error') or not request.GET.get('code'):
+        return redirect('/admin/?yt_auth=error')
+
+    redirect_uri = request.build_absolute_uri('/admin/youtube-oauth-callback/')
+    body = urlencode({
+        'code':          request.GET['code'],
+        'client_id':     settings.YOUTUBE_CLIENT_ID,
+        'client_secret': settings.YOUTUBE_CLIENT_SECRET,
+        'redirect_uri':  redirect_uri,
+        'grant_type':    'authorization_code',
+    }).encode()
+    try:
+        req = urlreq.Request(
+            'https://oauth2.googleapis.com/token', data=body,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'}, method='POST',
+        )
+        with urlreq.urlopen(req, timeout=10) as resp:
+            tokens = json.loads(resp.read())
+    except Exception:
+        return redirect('/admin/?yt_auth=error')
+
+    tokens['expires_at'] = time.time() + tokens.get('expires_in', 3600)
+    cache.set('youtube_oauth_tokens', tokens, 60 * 60 * 24 * 90)  # 90일 보관
+    return redirect('/admin/?yt_auth=success')
+
+
+def _get_yt_access_token():
+    """캐시에서 유효한 access_token 반환. 만료 임박 시 refresh_token으로 자동 갱신."""
+    import json, time
+    import urllib.request as urlreq
+    from urllib.parse import urlencode
+    from django.core.cache import cache
+
+    tokens = cache.get('youtube_oauth_tokens')
+    if not tokens:
+        return None
+
+    if time.time() > tokens.get('expires_at', 0) - 300:
+        refresh_token = tokens.get('refresh_token')
+        if not refresh_token:
+            return None
+        body = urlencode({
+            'client_id':     settings.YOUTUBE_CLIENT_ID,
+            'client_secret': settings.YOUTUBE_CLIENT_SECRET,
+            'refresh_token': refresh_token,
+            'grant_type':    'refresh_token',
+        }).encode()
+        try:
+            req = urlreq.Request(
+                'https://oauth2.googleapis.com/token', data=body,
+                headers={'Content-Type': 'application/x-www-form-urlencoded'}, method='POST',
+            )
+            with urlreq.urlopen(req, timeout=10) as resp:
+                new_tokens = json.loads(resp.read())
+            tokens['access_token'] = new_tokens['access_token']
+            tokens['expires_at']   = time.time() + new_tokens.get('expires_in', 3600)
+            cache.set('youtube_oauth_tokens', tokens, 60 * 60 * 24 * 90)
+        except Exception:
+            return None
+
+    return tokens.get('access_token')
+
+
+@staff_member_required
+def youtube_analytics_api(request):
+    """YouTube Analytics API — 기간별 채널 조회수·좋아요·댓글 반환 (staff only)."""
+    import json
+    import urllib.request as urlreq
+    import urllib.error
+    from urllib.parse import urlencode
+    from collections import defaultdict
+
+    access_token = _get_yt_access_token()
+    if not access_token:
+        return JsonResponse({'error': 'not_authenticated'}, status=401)
+
+    period = request.GET.get('period', 'daily')
+    today  = timezone.now().date()
+
+    if period == 'daily':
+        start_date = today - timedelta(days=6)
+        dimension  = 'day'
+    elif period == 'weekly':
+        start_date = today - timedelta(weeks=8)
+        dimension  = 'day'
+    elif period == 'monthly':
+        start_date = date_type(today.year - 1, today.month, 1)
+        dimension  = 'month'
+    else:  # yearly
+        start_date = date_type(today.year - 3, 1, 1)
+        dimension  = 'month'
+
+    api_url = (
+        'https://youtubeanalytics.googleapis.com/v2/reports?'
+        + urlencode({
+            'ids':       'channel==MINE',
+            'startDate': str(start_date),
+            'endDate':   str(today),
+            'metrics':   'views,likes,comments',
+            'dimensions': dimension,
+            'sort':       dimension,
+        })
+    )
+    try:
+        req = urlreq.Request(api_url, headers={'Authorization': f'Bearer {access_token}'})
+        with urlreq.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return JsonResponse({'error': f'Analytics API error: {e.code}'}, status=502)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=502)
+
+    rows = data.get('rows') or []
+
+    if period == 'daily':
+        labels   = [r[0][5:].replace('-', '/') for r in rows]   # YYYY-MM-DD → M/D
+        views    = [r[1] for r in rows]
+        likes    = [r[2] for r in rows]
+        comments = [r[3] for r in rows]
+
+    elif period == 'weekly':
+        current_mon = today - timedelta(days=today.weekday())
+        week_data   = defaultdict(lambda: [0, 0, 0])
+        for r in rows:
+            d = date_type(*[int(x) for x in r[0].split('-')])
+            wi = (current_mon - d).days // 7   # 0=이번주 … 7=8주전
+            if 0 <= wi <= 7:
+                week_data[wi][0] += r[1]
+                week_data[wi][1] += r[2]
+                week_data[wi][2] += r[3]
+        labels   = [f'W{i + 1}' for i in range(8)]
+        views    = [week_data[7 - i][0] for i in range(8)]
+        likes    = [week_data[7 - i][1] for i in range(8)]
+        comments = [week_data[7 - i][2] for i in range(8)]
+
+    elif period == 'monthly':
+        labels   = [r[0][5:].lstrip('0') + '월' for r in rows]  # YYYY-MM → M월
+        views    = [r[1] for r in rows]
+        likes    = [r[2] for r in rows]
+        comments = [r[3] for r in rows]
+
+    else:  # yearly
+        year_data = defaultdict(lambda: [0, 0, 0])
+        for r in rows:
+            y = r[0][:4]
+            year_data[y][0] += r[1]
+            year_data[y][1] += r[2]
+            year_data[y][2] += r[3]
+        years    = sorted(year_data.keys())
+        labels   = [y + '년' for y in years]
+        views    = [year_data[y][0] for y in years]
+        likes    = [year_data[y][1] for y in years]
+        comments = [year_data[y][2] for y in years]
+
+    return JsonResponse({'labels': labels, 'views': views, 'likes': likes, 'comments': comments})
+
+
+@staff_member_required
+def youtube_video_analytics_api(request):
+    """YouTube Analytics API — 기간별 영상별 조회수 반환 (staff only)."""
+    import json
+    import urllib.request as urlreq
+    import urllib.error
+    from urllib.parse import urlencode
+
+    access_token = _get_yt_access_token()
+    if not access_token:
+        return JsonResponse({'error': 'not_authenticated'}, status=401)
+
+    period = request.GET.get('period', 'daily')
+    today  = timezone.now().date()
+
+    if period == 'daily':
+        start_date = today - timedelta(days=6)
+    elif period == 'weekly':
+        start_date = today - timedelta(weeks=8)
+    elif period == 'monthly':
+        start_date = date_type(today.year - 1, today.month, 1)
+    else:
+        start_date = date_type(today.year - 3, 1, 1)
+
+    api_url = (
+        'https://youtubeanalytics.googleapis.com/v2/reports?'
+        + urlencode({
+            'ids':        'channel==MINE',
+            'startDate':  str(start_date),
+            'endDate':    str(today),
+            'metrics':    'views,likes,comments',
+            'dimensions': 'video',
+            'sort':       '-views',
+            'maxResults': 50,
+        })
+    )
+    try:
+        req = urlreq.Request(api_url, headers={'Authorization': f'Bearer {access_token}'})
+        with urlreq.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return JsonResponse({'error': f'Analytics API error: {e.code}'}, status=502)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=502)
+
+    rows = data.get('rows') or []
+    result = [{'id': r[0], 'views': r[1], 'likes': r[2], 'comments': r[3]} for r in rows]
+    return JsonResponse({'videos': result})
+
+
+@staff_member_required
+def instagram_stats_api(request):
+    """Instagram Graph API — 팔로워 수, 게시물 수 반환 (staff only)."""
+    import json
+    import urllib.request as urlreq
+    import urllib.error
+
+    access_token = getattr(settings, 'INSTAGRAM_ACCESS_TOKEN', '')
+    if not access_token:
+        return JsonResponse({'error': 'INSTAGRAM_ACCESS_TOKEN not configured'}, status=500)
+
+    try:
+        url = (
+            'https://graph.instagram.com/v22.0/me'
+            '?fields=followers_count,media_count'
+            f'&access_token={access_token}'
+        )
+        with urlreq.urlopen(url, timeout=10) as resp:
+            data = json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return JsonResponse({'error': f'Instagram API error: {e.code}'}, status=502)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=502)
+
+    return JsonResponse({
+        'followers_count': data.get('followers_count', 0),
+        'media_count':     data.get('media_count', 0),
+    })
+
+
+@staff_member_required
+def instagram_media_api(request):
+    """Instagram Graph API — 게시물 목록 + 좋아요/조회수(Insights) 반환 (staff only)."""
+    import json
+    import urllib.request as urlreq
+    import urllib.error
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    access_token = getattr(settings, 'INSTAGRAM_ACCESS_TOKEN', '')
+    if not access_token:
+        return JsonResponse({'error': 'INSTAGRAM_ACCESS_TOKEN not configured'}, status=500)
+
+    try:
+        url = (
+            'https://graph.instagram.com/v22.0/me/media'
+            '?fields=id,caption,media_type,timestamp,like_count,comments_count'
+            '&limit=20'
+            f'&access_token={access_token}'
+        )
+        with urlreq.urlopen(url, timeout=10) as resp:
+            data = json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return JsonResponse({'error': f'Instagram API error: {e.code}'}, status=502)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=502)
+
+    items = data.get('data', [])
+
+    def fetch_views(media_id):
+        insights_url = (
+            f'https://graph.instagram.com/v22.0/{media_id}/insights'
+            f'?metric=views&access_token={access_token}'
+        )
+        try:
+            with urlreq.urlopen(insights_url, timeout=5) as resp:
+                d = json.loads(resp.read())
+                return media_id, d.get('data', [{}])[0].get('values', [{}])[0].get('value', 0)
+        except Exception:
+            return media_id, 0
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(fetch_views, item['id']): item['id'] for item in items}
+        views_map = {media_id: views for future in as_completed(futures) for media_id, views in [future.result()]}
+
+    media_list = []
+    for item in items:
+        caption = (item.get('caption') or '').strip().split('\n')[0][:30]
+        media_list.append({
+            'id':             item.get('id'),
+            'caption':        caption or f"게시물 {str(item.get('id', ''))[-6:]}",
+            'media_type':     item.get('media_type', 'IMAGE'),
+            'timestamp':      item.get('timestamp', ''),
+            'like_count':     item.get('like_count', 0),
+            'comments_count': item.get('comments_count', 0),
+            'views':          views_map.get(item.get('id'), 0),
+        })
+
+    return JsonResponse({'media': media_list})
+
+
+@staff_member_required
+def tiktok_oauth_start(request):
+    """TikTok OAuth2 인증 시작 — TikTok 로그인 페이지로 리다이렉트."""
+    import secrets
+    from urllib.parse import urlencode
+    if not settings.TIKTOK_CLIENT_KEY:
+        return JsonResponse({'error': 'TIKTOK_CLIENT_KEY not configured'}, status=500)
+    state = secrets.token_urlsafe(16)
+    request.session['tiktok_oauth_state'] = state
+    params = {
+        'client_key':     settings.TIKTOK_CLIENT_KEY,
+        'redirect_uri':   'https://chatting-hari.com/admin/tiktok-oauth-callback/',
+        'response_type':  'code',
+        'scope':          'user.info.basic,user.info.stats',
+        'state':          state,
+    }
+    return redirect('https://www.tiktok.com/v2/auth/authorize/?' + urlencode(params))
+
+
+@staff_member_required
+def tiktok_oauth_callback(request):
+    """TikTok OAuth2 콜백 — 인가 코드를 토큰으로 교환 후 캐시에 저장."""
+    import json, time
+    import urllib.request as urlreq
+    from urllib.parse import urlencode
+    from django.core.cache import cache
+
+    if request.GET.get('error') or not request.GET.get('code'):
+        return redirect('/admin/?tiktok_auth=error')
+
+    body = urlencode({
+        'client_key':     settings.TIKTOK_CLIENT_KEY,
+        'client_secret':  settings.TIKTOK_CLIENT_SECRET,
+        'code':           request.GET['code'],
+        'grant_type':     'authorization_code',
+        'redirect_uri':   'https://chatting-hari.com/admin/tiktok-oauth-callback/',
+    }).encode()
+    try:
+        req = urlreq.Request(
+            'https://open.tiktokapis.com/v2/oauth/token/',
+            data=body,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            method='POST',
+        )
+        with urlreq.urlopen(req, timeout=10) as resp:
+            tokens = json.loads(resp.read())
+    except Exception:
+        return redirect('/admin/?tiktok_auth=error')
+
+    tokens['expires_at'] = time.time() + tokens.get('expires_in', 86400)
+    cache.set('tiktok_oauth_tokens', tokens, 60 * 60 * 24 * 90)
+    return redirect('/admin/?tiktok_auth=success')
+
+
+@staff_member_required
+def tiktok_stats_api(request):
+    """TikTok API — 팔로워 수, 좋아요 수, 영상 수 반환 (staff only)."""
+    import json
+    import urllib.request as urlreq
+    import urllib.error
+    from urllib.parse import urlencode
+    from django.core.cache import cache
+
+    tokens = cache.get('tiktok_oauth_tokens')
+    if not tokens:
+        return JsonResponse({'error': 'not_authenticated'}, status=401)
+
+    access_token = tokens.get('access_token')
+    try:
+        url = 'https://open.tiktokapis.com/v2/user/info/?fields=follower_count,following_count,likes_count,video_count'
+        req = urlreq.Request(url, headers={'Authorization': f'Bearer {access_token}'})
+        with urlreq.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return JsonResponse({'error': f'TikTok API error: {e.code}'}, status=502)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=502)
+
+    user = data.get('data', {}).get('user', {})
+    return JsonResponse({
+        'follower_count':  user.get('follower_count', 0),
+        'likes_count':     user.get('likes_count', 0),
+        'video_count':     user.get('video_count', 0),
     })
 
 

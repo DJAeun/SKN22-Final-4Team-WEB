@@ -254,6 +254,10 @@ export function NDAEntrancePage({ onAccept, defaultNickname }: NDAEntrancePagePr
                     <span className="text-[#d6b57a]">05</span>
                     <span>가이드 버튼을 통해 튜토리얼을 언제든 다시 열어볼 수 있습니다.</span>
                   </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-[#d6b57a]">06</span>
+                    <span>다음 이야기가 쓰여질 때까지 최대 5분 정도 소요될 수 있습니다.</span>
+                  </div>
                 </div>
               </div>
 
