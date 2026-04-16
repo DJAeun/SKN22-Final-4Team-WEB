@@ -52,14 +52,13 @@ class ChatMemory(models.Model):
 
 
 class HariKnowledge(models.Model):
-    persona_id = models.BigAutoField(primary_key=True)
+    persona_id = models.BigAutoField(primary_key=True, db_column='id')
     category = models.CharField(max_length=255, null=True, blank=True)
-    trait_key = models.CharField(max_length=255, null=True, blank=True)
-    trait_value = models.TextField(null=True, blank=True)
+    trait_key = models.CharField(max_length=255, null=True, blank=True, db_column='question')
+    trait_value = models.TextField(null=True, blank=True, db_column='answer')
     is_active = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
-    # VECTOR stored as JSON array (swap to pgvector VectorField if extension is enabled)
-    weight = models.JSONField(null=True, blank=True)
+    # content_vector VECTOR(1536) is managed via raw SQL (pgvector, not a Django field)
 
     class Meta:
         managed = False
