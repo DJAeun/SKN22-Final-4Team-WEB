@@ -51,5 +51,14 @@ html[data-theme="dark"] #s1.hero-section {
   .hero-logo-wrap { top: 20px !important; left: 20px !important; }
   .hero-logo-img { height: 80px !important; }
   #s1 .hero-bottom { padding: 4rem 1.5rem 1.5rem 1.5rem; }
+
+  /* 모바일 히어로 이미지 — 라이트 모드 */
+  #s1.hero-section {
+    background-image: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.3)), url("{% static 'images/hari_mobile_image_light.png' %}");
+  }
+  /* 모바일 히어로 이미지 — 다크 모드 */
+  html[data-theme="dark"] #s1.hero-section {
+    background-image: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.3)), url("{% static 'images/hari_mobile_image_dark.png' %}");
+  }
 }
 </style>
