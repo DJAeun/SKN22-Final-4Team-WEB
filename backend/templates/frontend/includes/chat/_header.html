@@ -204,9 +204,9 @@
     "{% static 'images/hari_image30.webp' %}"
   ];
 
-  /* 배경 사진 목록 (5일마다 순환)
+  /* 배경 사진 목록 (3일마다 순환)
    * 기준: 모자로 얼굴 가림 / 시선 아래·옆 / 전신+먼거리 → 프로필 사진에 얼굴이 가려지지 않는 사진
-   * 1,2,3,4,5,6,7,13,18,23,24,25,26 */
+   * 1,2,3,4,5,6,7,13,18,23,24,25,26,31 */
   var BG_IMGS = [
     "{% static 'images/hari_image1.png' %}",
     "{% static 'images/hari_image2.png' %}",
@@ -220,7 +220,8 @@
     "{% static 'images/hari_image23.webp' %}",
     "{% static 'images/hari_image24.webp' %}",
     "{% static 'images/hari_image25.webp' %}",
-    "{% static 'images/hari_image26.webp' %}"
+    "{% static 'images/hari_image26.webp' %}",
+    "{% static 'images/hari_image31.webp' %}"
   ];
 
   /* 상태 메시지 목록 (3일마다 순환) */
@@ -277,7 +278,7 @@
   /* 현재 값 계산 후 전역 변수에 노출
    * salt 값이 다르면 같은 날짜라도 종류별로 다른 셔플 적용 */
   window.hariCurrentProfile = getItem(PROFILE_IMGS, 3,  1);
-  window.hariCurrentBg      = getItem(BG_IMGS,      5,  2);
+  window.hariCurrentBg      = getItem(BG_IMGS,      3,  2);
   var hariCurrentStatus     = getItem(STATUS_MSGS,  3,  3);
 
   /* DOM에 적용 */
