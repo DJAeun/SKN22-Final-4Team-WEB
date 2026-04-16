@@ -280,6 +280,23 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 CONTACT_EMAIL = 'finalteam4000@gmail.com'
 
+# YouTube Data API v3
+YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY', '')
+YOUTUBE_CHANNEL_HANDLE = os.environ.get('YOUTUBE_CHANNEL_HANDLE', 'Hari-o5m2r')
+
+# YouTube Analytics API (OAuth2)
+YOUTUBE_CLIENT_ID = os.environ.get('YOUTUBE_CLIENT_ID', '')
+YOUTUBE_CLIENT_SECRET = os.environ.get('YOUTUBE_CLIENT_SECRET', '')
+
+# Instagram Graph API
+INSTAGRAM_APP_ID = os.environ.get('INSTAGRAM_APP_ID', '')
+INSTAGRAM_APP_SECRET = os.environ.get('INSTAGRAM_APP_SECRET', '')
+INSTAGRAM_ACCESS_TOKEN = os.environ.get('INSTAGRAM_ACCESS_TOKEN', '')
+
+# TikTok API
+TIKTOK_CLIENT_KEY = os.environ.get('TIKTOK_CLIENT_KEY', '')
+TIKTOK_CLIENT_SECRET = os.environ.get('TIKTOK_CLIENT_SECRET', '')
+
 
 # Logging Configuration
 LOGGING = {

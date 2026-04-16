@@ -40,6 +40,8 @@ function sanitizeVisibleContent(content: string) {
     .replace(/<Status>[\s\S]*?<\/Status>/gi, '')
     .replace(/^[\s[\](){},'"`-]*(Stress|Crack Stage|Current Thought|Inner Thought|Thought|Location|Date|Time)\s*:\s*.*$/gim, '')
     .replace(/<\/?(Planning|Draft|Review|Revision)>/gi, '')
+    .replace(/^\s*`{2,}\s*/g, '')
+    .replace(/^\s*`{2,}\s*$/gm, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
@@ -99,7 +101,7 @@ function renderMessageBody(message: GameMessage, typedText?: string) {
   const imageCommand = message.imageCommand?.trim().toLowerCase();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       {segments.map((segment, index) => {
         if (index % 2 === 1) {
           const command = segment.trim().toLowerCase();
@@ -108,13 +110,15 @@ function renderMessageBody(message: GameMessage, typedText?: string) {
           }
 
           return (
-            <div key={`${message.id}-image-${index}`} className="overflow-hidden rounded-[24px] border border-[#4A3728]/15 bg-white/70 p-3 shadow-[0_10px_30px_rgba(74,55,40,0.08)]">
-              <img
-                src={imageUrl}
-                alt={command}
-                className="mx-auto w-full max-w-[420px] rounded-[18px] object-cover"
-                loading="lazy"
-              />
+            <div key={`${message.id}-image-${index}`} className="flex justify-center py-1">
+              <div className="w-2/3 max-w-[280px] min-w-[180px] border border-white/95 bg-[#fffdf8] p-2 shadow-[0_10px_22px_rgba(74,55,40,0.14)]">
+                <img
+                  src={imageUrl}
+                  alt={command}
+                  className="block h-auto w-full object-cover shadow-[0_2px_10px_rgba(74,55,40,0.10)]"
+                  loading="lazy"
+                />
+              </div>
             </div>
           );
         }
