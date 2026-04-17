@@ -634,27 +634,40 @@ def youtube_analytics_api(request):
         start_date = date_type(today.year - years, 1, 1)
         dimension  = 'month'
 
-    api_url = (
-        'https://youtubeanalytics.googleapis.com/v2/reports?'
-        + urlencode({
-            'ids':       'channel==MINE',
-            'startDate': str(start_date),
-            'endDate':   str(today),
-            'metrics':   'views,likes,comments',
-            'dimensions': dimension,
-            'sort':       dimension,
-        })
-    )
-    try:
-        req = urlreq.Request(api_url, headers={'Authorization': f'Bearer {access_token}'})
+    def _fetch(start, end, dim):
+        url = (
+            'https://youtubeanalytics.googleapis.com/v2/reports?'
+            + urlencode({
+                'ids':        'channel==MINE',
+                'startDate':  str(start),
+                'endDate':    str(end),
+                'metrics':    'views,likes,comments',
+                'dimensions': dim,
+                'sort':       dim,
+            })
+        )
+        req = urlreq.Request(url, headers={'Authorization': f'Bearer {access_token}'})
         with urlreq.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read())
+            return json.loads(resp.read())
+
+    try:
+        data = _fetch(start_date, today, dimension)
     except urllib.error.HTTPError as e:
         return JsonResponse({'error': f'Analytics API error: {e.code}'}, status=502)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=502)
 
     rows = data.get('rows') or []
+
+    # dimension='month' 가 빈 결과를 반환하면 dimension='day' 로 재시도 후 집계
+    use_day_fallback = False
+    if not rows and dimension == 'month':
+        try:
+            fb = _fetch(start_date, today, 'day')
+            rows = fb.get('rows') or []
+            use_day_fallback = True
+        except Exception:
+            pass
 
     if period == 'daily':
         # YYYY-MM-DD → "4월 10일"
@@ -683,17 +696,35 @@ def youtube_analytics_api(request):
         comments = [week_data[weeks - 1 - i][2] for i in range(weeks)]
 
     elif period == 'monthly':
-        # 연도가 2개 이상 걸치면 "'25년 4월" 형식, 단일 연도면 "4월"
-        row_years = {r[0][:4] for r in rows}
-        if len(row_years) > 1:
-            labels = [f"'{r[0][2:4]}년 {int(r[0][5:7])}월" for r in rows]
+        if use_day_fallback:
+            # 일별 데이터를 월별로 집계
+            month_data = defaultdict(lambda: [0, 0, 0])
+            for r in rows:
+                mk = r[0][:7]  # "YYYY-MM"
+                month_data[mk][0] += r[1]
+                month_data[mk][1] += r[2]
+                month_data[mk][2] += r[3]
+            months_sorted = sorted(month_data.keys())
+            row_years = {mk[:4] for mk in months_sorted}
+            if len(row_years) > 1:
+                labels = [f"'{mk[2:4]}년 {int(mk[5:7])}월" for mk in months_sorted]
+            else:
+                labels = [f"{int(mk[5:7])}월" for mk in months_sorted]
+            views    = [month_data[mk][0] for mk in months_sorted]
+            likes    = [month_data[mk][1] for mk in months_sorted]
+            comments = [month_data[mk][2] for mk in months_sorted]
         else:
-            labels = [f"{int(r[0][5:7])}월" for r in rows]
-        views    = [r[1] for r in rows]
-        likes    = [r[2] for r in rows]
-        comments = [r[3] for r in rows]
+            # 연도가 2개 이상 걸치면 "'25년 4월" 형식, 단일 연도면 "4월"
+            row_years = {r[0][:4] for r in rows}
+            if len(row_years) > 1:
+                labels = [f"'{r[0][2:4]}년 {int(r[0][5:7])}월" for r in rows]
+            else:
+                labels = [f"{int(r[0][5:7])}월" for r in rows]
+            views    = [r[1] for r in rows]
+            likes    = [r[2] for r in rows]
+            comments = [r[3] for r in rows]
 
-    else:  # yearly
+    else:  # yearly — r[0] 는 'YYYY-MM' (month dim) 또는 'YYYY-MM-DD' (day fallback) 모두 처리
         year_data = defaultdict(lambda: [0, 0, 0])
         for r in rows:
             y = r[0][:4]
