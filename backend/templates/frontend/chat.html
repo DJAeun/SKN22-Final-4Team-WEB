@@ -876,6 +876,8 @@ html[data-theme="dark"] .date-divider-text {
   display: flex;
   align-items: flex-end;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .message-group.me .msg-bubble-row {
@@ -893,7 +895,10 @@ html[data-theme="dark"] .date-divider-text {
   position: relative;
   box-shadow: var(--bubble-shadow);
   word-wrap: break-word;
-  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 75%;
+  min-width: 0;
 }
 
 /* 하리 말풍선 */
