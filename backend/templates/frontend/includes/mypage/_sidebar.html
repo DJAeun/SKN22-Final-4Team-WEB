@@ -1,28 +1,9 @@
 
   <!-- SIDEBAR -->
   <nav id="sidebar">
-    <!-- user profile card -->
-    <div class="sb-profile" style="border-radius:10px; margin-bottom:.8rem; overflow:hidden; border:0.5px solid var(--bdr2);">
-      <!-- 배너 그라디언트 -->
-      <div style="height:48px; background:linear-gradient(135deg,#fce4e8 0%,#f9d6e4 55%,#e8d4f0 100%); position:relative;">
-        <div style="position:absolute; inset:0; background:repeating-linear-gradient(135deg, transparent, transparent 8px, rgba(255,255,255,0.15) 8px, rgba(255,255,255,0.15) 9px);"></div>
-      </div>
-      <!-- 이름 + 뱃지 -->
-      <div style="padding:.75rem 1rem .6rem; background:var(--bg2);">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.55rem;">
-          <span id="sb-display-name" style="font-family:'NeoDunggeunmo',sans-serif; font-size:1rem; letter-spacing:.04em; color:var(--ink);">{{ user.username|default:"사용자" }}</span>
-          <span style="font-size:.55rem; letter-spacing:.12em; text-transform:uppercase; background:var(--acc); color:#fff; padding:2px 8px; border-radius:20px; font-weight:600;">FAN+</span>
-        </div>
-        <!-- 사용자 이름 입력 -->
-        <input type="text" id="sb-username" placeholder="사용자 이름" value="{{ user.username|default:'' }}"
-               oninput="document.getElementById('sb-display-name').textContent = this.value || '사용자'"
-               style="width:100%; padding:.45rem .6rem; border:0.5px solid var(--bdr2); background:var(--bg); border-radius:6px; font-size:.78rem; color:var(--ink); margin-bottom:.45rem;" />
-      </div>
-    </div>
-    <div class="sb-hr"></div>
     <div class="sb-lbl">메뉴</div>
     <ul class="sb-nav">
-      <li><a class="sb-link on" href="#" onclick="navTo('abouthari');return false">
+      <li><a class="sb-link on" href="/abouthari/">
         <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>About Bori
       </a></li>
     </ul>
