@@ -650,24 +650,30 @@ def youtube_analytics_api(request):
         with urlreq.urlopen(req, timeout=10) as resp:
             return json.loads(resp.read())
 
+    # dimension='month' 는 일부 채널에서 HTTP 에러 또는 빈 응답을 반환할 수 있음
+    # → 두 경우 모두 dimension='day' 로 폴백 후 월/연별 집계
+    use_day_fallback = False
     try:
         data = _fetch(start_date, today, dimension)
-    except urllib.error.HTTPError as e:
-        return JsonResponse({'error': f'Analytics API error: {e.code}'}, status=502)
+        rows = data.get('rows') or []
+        if not rows and dimension == 'month':
+            raise ValueError('empty_month')   # 빈 응답도 폴백 트리거
+    except (urllib.error.HTTPError, ValueError) as e:
+        if dimension == 'month':
+            # dimension='month' 실패 → dimension='day' 로 재시도
+            try:
+                data = _fetch(start_date, today, 'day')
+                rows = data.get('rows') or []
+                use_day_fallback = True
+            except urllib.error.HTTPError as e2:
+                return JsonResponse({'error': f'Analytics API error: {e2.code}'}, status=502)
+            except Exception as e2:
+                return JsonResponse({'error': str(e2)}, status=502)
+        else:
+            code = e.code if hasattr(e, 'code') else 0
+            return JsonResponse({'error': f'Analytics API error: {code}'}, status=502)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=502)
-
-    rows = data.get('rows') or []
-
-    # dimension='month' 가 빈 결과를 반환하면 dimension='day' 로 재시도 후 집계
-    use_day_fallback = False
-    if not rows and dimension == 'month':
-        try:
-            fb = _fetch(start_date, today, 'day')
-            rows = fb.get('rows') or []
-            use_day_fallback = True
-        except Exception:
-            pass
 
     if period == 'daily':
         # YYYY-MM-DD → "4월 10일"
