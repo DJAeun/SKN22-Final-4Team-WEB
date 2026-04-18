@@ -1802,6 +1802,7 @@ function doForgot(){
   },900);
 }
 function socialLogin(provider){
+  localStorage.setItem('pendingSocialLogin', provider);
   window.location.href='/accounts/'+provider+'/login/?process=login';
 }
 function toggleUserMenu(){
@@ -1949,6 +1950,20 @@ function closeTermsModal(e){
   overlay.style.display = 'none';
   document.body.style.overflow = '';
 }
+
+{% if user.is_authenticated %}
+(function(){
+  const provider = localStorage.getItem('pendingSocialLogin');
+  if(provider){
+    localStorage.removeItem('pendingSocialLogin');
+    const name = '{{ user.username }}';
+    const label = provider === 'google' ? '구글' : provider === 'naver' ? '네이버' : provider;
+    setTimeout(()=>{
+      showAuthToast('👋', '반가워, ' + name + '!', label + ' 계정으로 로그인했어.');
+    }, 300);
+  }
+})();
+{% endif %}
 
 </script>
 
