@@ -340,35 +340,37 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
 
 /* ── AUTH TOAST ── */
 #auth-toast {
-  position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(120%);
-  z-index:9999; min-width:280px; max-width:380px;
-  background:#fff; border-radius:16px;
-  box-shadow:0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(255,123,138,0.15);
-  padding:1rem 1.4rem 1rem 1rem;
-  display:flex; align-items:center; gap:0.85rem;
-  transition:transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+  position:fixed; top:1.5rem; left:50%; transform:translateX(-50%) translateY(-140%);
+  z-index:9999; min-width:300px; max-width:420px;
+  background:#fff; border-radius:20px;
+  box-shadow:0 12px 48px rgba(0,0,0,0.14), 0 4px 16px rgba(255,123,138,0.18);
+  padding:1.1rem 1.5rem 1.1rem 1.2rem;
+  display:flex; align-items:center; gap:1rem;
+  transition:transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s;
   opacity:0;
-  border-left:4px solid var(--acc);
+  border-left:5px solid var(--acc);
 }
 #auth-toast.show {
   transform:translateX(-50%) translateY(0);
   opacity:1;
 }
 #auth-toast.hide {
-  transform:translateX(-50%) translateY(120%);
+  transform:translateX(-50%) translateY(-140%);
   opacity:0;
 }
 .auth-toast-icon {
-  font-size:1.8rem; flex-shrink:0; line-height:1;
+  font-size:2.2rem; flex-shrink:0; line-height:1;
+  filter:drop-shadow(0 2px 6px rgba(255,123,138,0.3));
 }
 .auth-toast-body { flex:1; }
 .auth-toast-title {
   font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
-  font-size:0.95rem; font-weight:700; color:#2a2420; margin-bottom:2px;
+  font-size:1rem; font-weight:800; color:#2a2420; margin-bottom:3px;
+  letter-spacing:-0.01em;
 }
 .auth-toast-msg {
   font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
-  font-size:0.8rem; color:#8c847e; line-height:1.4;
+  font-size:0.82rem; color:#8c847e; line-height:1.5;
 }
 .auth-toast-close {
   background:none; border:none; cursor:pointer;
@@ -1629,7 +1631,7 @@ function doLogin(){
   }).then(data=>{
     closeAuth();
     const username = data.user?.username || data.username || '';
-    showAuthToast('🎉', '로그인 완료!', username ? username + ' 님, 하리와 함께해요 ✨' : '하리와 함께해요 ✨');
+    showAuthToast('👋', '반가워, ' + (username || ''), '오늘도 좋은 하루 보내!');
     setTimeout(() => window.location.reload(), 1800);
   }).catch(err=>{
     btn.textContent='로그인 →'; btn.disabled=false;
@@ -1773,13 +1775,13 @@ function doSignup(){
   }).then(data=>{
     closeAuth();
     const username = data.user?.username || data.username || nickname;
-    showAuthToast('🌸', '가입 완료!', username + ' 님, 하리 팬클럽에 오신 걸 환영해요 ✨');
+    showAuthToast('🎉', '가입 완료!', '잘 왔어, ' + username + '. 앞으로 잘 부탁해!');
     setTimeout(() => window.location.reload(), 2000);
   }).catch(err=>{
     btn.textContent='가입하기 →'; btn.disabled=false;
     if(err._loginFailed){
       closeAuth();
-      showAuthToast('✅', '가입 완료!', '로그인 탭에서 로그인해주세요.');
+      showAuthToast('✅', '가입 완료!', '로그인 탭에서 로그인하면 돼.');
       setTimeout(() => window.location.reload(), 2000);
       return;
     }
