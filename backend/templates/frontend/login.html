@@ -237,6 +237,7 @@ function doLogin(){
     return r.json();
   })
   .then(() => {
+    sessionStorage.removeItem('hari-mypage-withdrawal-state');
     window.location.href = '/';
   })
   .catch(err => {

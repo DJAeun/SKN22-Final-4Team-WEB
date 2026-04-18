@@ -262,6 +262,7 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 </style>
 </head>
 <body>
+<form id="logout-csrf-form" style="display:none;">{% csrf_token %}</form>
 
 
 {% include "frontend/includes/mypage/_topbar.html" %}
@@ -277,8 +278,94 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
   </main>
 </div>
 
+<div id="subscription-cancel-modal"
+     style="display:none; position:fixed; inset:0; background:rgba(42,36,32,0.45); z-index:500; align-items:center; justify-content:center;">
+  <div style="background:var(--bg); border:0.5px solid var(--bdr2); border-radius:22px; padding:2rem 2.1rem 1.8rem; max-width:390px; width:90%; box-shadow:0 14px 50px rgba(255,123,138,0.2);">
+    <div style="display:flex; align-items:center; gap:.9rem; margin-bottom:.9rem;">
+      <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#ff7b8a,#ff9aa2); color:#fff; font-size:1.2rem; flex-shrink:0;">✓</div>
+      <div style="text-align:left;">
+        <div style="font-family:'NeoDunggeunmo',sans-serif; font-size:1rem; letter-spacing:.04em; color:var(--ink); margin-bottom:.15rem;">구독 해지</div>
+        <div style="font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.55rem; letter-spacing:.16em; text-transform:uppercase; color:var(--acc);">cancel subscription</div>
+      </div>
+    </div>
+    <p style="font-size:.92rem; color:var(--ink); line-height:1.7; margin-bottom:1rem;">
+      구독을 해지하면 <strong>다음 결제일부터 자동 결제</strong>가 중단돼요.<br>
+      지금은 남은 기간까지는 그대로 이용할 수 있어요.
+    </p>
+    <div style="display:grid; gap:.55rem; margin-bottom:1.1rem;">
+      <div style="display:flex; justify-content:space-between; gap:1rem; padding:.85rem 1rem; border:0.5px solid var(--bdr); border-radius:14px; background:linear-gradient(180deg,#fff 0%,#fff7f9 100%);">
+        <span style="color:var(--dim); font-size:.72rem; letter-spacing:.08em;">현재 상태</span>
+        <span style="color:var(--acc); font-weight:700; font-size:.82rem;" id="subscriptionCancelCurrent">FAN+ · 활성</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; gap:1rem; padding:.85rem 1rem; border:0.5px solid var(--bdr); border-radius:14px; background:linear-gradient(180deg,#fff 0%,#fff7f9 100%);">
+        <span style="color:var(--dim); font-size:.72rem; letter-spacing:.08em;">해지 후</span>
+        <span style="color:var(--ink); font-weight:700; font-size:.82rem;" id="subscriptionCancelAfter">다음 결제 없음</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:.55rem;">
+      <button onclick="closeSubscriptionCancelModal()"
+              style="background:transparent; border:0.5px solid var(--bdr2); color:var(--dim); font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; padding:.82rem 1rem; border-radius:16px; cursor:pointer; flex:1;">
+        돌아가기
+      </button>
+      <button onclick="confirmSubscriptionCancel()"
+              style="background:linear-gradient(135deg,#e50914,#ff5f6d); border:none; color:#fff; font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; padding:.82rem 1rem; border-radius:16px; cursor:pointer; box-shadow:0 8px 18px rgba(229,9,20,0.24); flex:1;">
+        해지 확정
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="withdrawal-modal"
+     style="display:none; position:fixed; inset:0; background:rgba(42,36,32,0.45); z-index:550; align-items:center; justify-content:center;">
+  <div style="background:var(--bg); border:0.5px solid var(--bdr2); border-radius:22px; padding:2rem 2.1rem 1.8rem; max-width:390px; width:90%; box-shadow:0 14px 50px rgba(255,123,138,0.2);">
+    <div style="display:flex; align-items:center; gap:.9rem; margin-bottom:1rem;">
+      <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#2a2420,#5b4a43); color:#fff; font-size:1.2rem; flex-shrink:0;">!</div>
+      <div style="text-align:left;">
+        <div style="font-family:'NeoDunggeunmo',sans-serif; font-size:1.04rem; letter-spacing:.04em; color:var(--ink); margin-bottom:.15rem;">회원 탈퇴</div>
+        <div style="font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.55rem; letter-spacing:.16em; text-transform:uppercase; color:var(--dim);">account removal</div>
+      </div>
+    </div>
+    <p style="font-size:.92rem; color:var(--ink); line-height:1.7; margin-bottom:1rem;">
+      탈퇴를 진행하면 현재 계정의 로그인 상태가 해제되고, 메인 화면으로 이동합니다.<br>
+      마이페이지에 보이던 계정 정보도 함께 정리됩니다.
+    </p>
+    <div style="display:grid; gap:.55rem; margin-bottom:1.1rem;">
+      <div style="display:flex; justify-content:space-between; gap:1rem; padding:.95rem 1rem; border:0.5px solid var(--bdr); border-radius:16px; background:linear-gradient(180deg,#fff 0%,#fcfcfc 100%);">
+        <span style="color:var(--dim); font-size:.72rem; letter-spacing:.08em;">처리 상태</span>
+        <span style="color:var(--ink); font-weight:700; font-size:.82rem;">탈퇴 요청 확인</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; gap:1rem; padding:.95rem 1rem; border:0.5px solid var(--bdr); border-radius:16px; background:linear-gradient(180deg,#fff 0%,#fcfcfc 100%);">
+        <span style="color:var(--dim); font-size:.72rem; letter-spacing:.08em;">결과</span>
+        <span style="color:var(--ink); font-weight:700; font-size:.82rem;">메인 화면으로 이동</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:.55rem;">
+      <button type="button" onclick="closeWithdrawalModal()"
+              style="background:transparent; border:0.5px solid var(--bdr2); color:var(--dim); font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; padding:.82rem 1rem; border-radius:16px; cursor:pointer; flex:1;">
+        취소
+      </button>
+      <button type="button" onclick="confirmWithdrawal()"
+              style="background:linear-gradient(135deg,#2a2420,#4d4038); border:none; color:#fff; font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; padding:.82rem 1rem; border-radius:16px; cursor:pointer; box-shadow:0 8px 18px rgba(42,36,32,0.22); flex:1;">
+        탈퇴 진행
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
 <script>
 let pts = 3250, checkedIn = false;
+let accountExitRunning = false;
+const SUBSCRIPTION_STATE_KEY = 'hari-mypage-subscription-state';
+const SUBSCRIPTION_PLAN_KEY = 'hari-mypage-subscription-plan';
+const SUBSCRIPTION_PAID_AT_KEY = 'hari-mypage-subscription-paid-at';
+const WITHDRAWAL_STATE_KEY = 'hari-mypage-withdrawal-state';
+const PLAN_INFO = {
+  fan:     { label: 'FAN',   display: 'FAN · 활성',   badge: 'FAN' },
+  fanplus: { label: 'FAN+',  display: 'FAN+ · 활성',  badge: 'FAN+' },
+  bori:    { label: 'BORI',  display: 'BORI · 활성',  badge: 'BORI' },
+};
 
 function navTo(p) {
   document.querySelectorAll('.pg').forEach(x => x.classList.remove('on'));
@@ -297,12 +384,173 @@ function checkIn() {
   if (checkedIn) { toast('오늘은 이미 출석했어요! 내일 다시 오세요 🌸'); return; }
   checkedIn = true; updPts(50); toast('출석 체크 완료! +50 pts 적립 ✦');
 }
+
+function getSubscriptionState() {
+  return localStorage.getItem(SUBSCRIPTION_STATE_KEY) || 'active';
+}
+
+function getSubscriptionPlan() {
+  return localStorage.getItem(SUBSCRIPTION_PLAN_KEY) || 'fanplus';
+}
+
+function getPaidAtDate() {
+  const raw = localStorage.getItem(SUBSCRIPTION_PAID_AT_KEY);
+  if (!raw) return null;
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatDateKorean(date) {
+  return date.getFullYear() + '.' +
+    String(date.getMonth() + 1).padStart(2, '0') + '.' +
+    String(date.getDate()).padStart(2, '0');
+}
+
+function addOneMonth(date) {
+  const next = new Date(date.getTime());
+  next.setMonth(next.getMonth() + 1);
+  return next;
+}
+
+function setSubscriptionState(state) {
+  localStorage.setItem(SUBSCRIPTION_STATE_KEY, state);
+  applySubscriptionState(state);
+}
+
+function applySubscriptionState(state) {
+  const isCanceled = state === 'canceled';
+  const planKey = getSubscriptionPlan();
+  const planInfo = PLAN_INFO[planKey] || PLAN_INFO.fanplus;
+  const paidAt = getPaidAtDate();
+  const nextBilling = paidAt ? addOneMonth(paidAt) : null;
+  document.querySelectorAll('[data-subscription-state]').forEach(el => {
+    el.textContent = isCanceled ? '● 구독 해지됨' : '● ' + planInfo.display;
+    el.style.color = isCanceled ? 'var(--dim)' : 'var(--acc)';
+  });
+  document.querySelectorAll('[data-subscription-next-billing]').forEach(el => {
+    el.textContent = isCanceled
+      ? '다음 결제 없음'
+      : (nextBilling ? formatDateKorean(nextBilling) : '미정');
+    el.style.color = isCanceled ? 'var(--dim)' : 'var(--ink)';
+  });
+  document.querySelectorAll('[data-subscription-plan-label]').forEach(el => {
+    el.textContent = isCanceled ? '구독 해지됨' : planInfo.display;
+  });
+  document.querySelectorAll('[data-subscription-plan-badge]').forEach(el => {
+    el.textContent = planInfo.badge;
+  });
+  document.querySelectorAll('[data-subscription-manage]').forEach(el => {
+    el.textContent = isCanceled ? '다시 구독하기' : '구독 관리';
+  });
+  document.querySelectorAll('[data-subscription-cancel]').forEach(el => {
+    el.style.display = isCanceled ? 'none' : '';
+  });
+
+  // 카드 라벨을 조금 더 크게 보여주기
+  document.querySelectorAll('#pg-myinfo .card span[style*="display:block"][style*="text-transform:uppercase"]').forEach(el => {
+    if (el.textContent === '이용 중' || el.textContent === '다음 결제' || el.textContent === '결제일') {
+      el.style.fontSize = '0.62rem';
+      el.style.marginBottom = '0.35rem';
+    }
+  });
+}
+
+function openSubscriptionCancelModal() {
+  if (getSubscriptionState() === 'canceled') {
+    toast('이미 구독이 취소된 상태예요');
+    return;
+  }
+  const planKey = getSubscriptionPlan();
+  const planInfo = PLAN_INFO[planKey] || PLAN_INFO.fanplus;
+  const currentEl = document.getElementById('subscriptionCancelCurrent');
+  const afterEl = document.getElementById('subscriptionCancelAfter');
+  if (currentEl) currentEl.textContent = planInfo.display;
+  if (afterEl) afterEl.textContent = '다음 결제 없음';
+  const modal = document.getElementById('subscription-cancel-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeSubscriptionCancelModal() {
+  const modal = document.getElementById('subscription-cancel-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function confirmSubscriptionCancel() {
+  setSubscriptionState('canceled');
+  closeSubscriptionCancelModal();
+  toast('구독 취소가 완료되었습니다.');
+}
+
+function openWithdrawalModal() {
+  const modal = document.getElementById('withdrawal-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeWithdrawalModal() {
+  const modal = document.getElementById('withdrawal-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function getCookie(name) {
+  const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  if (v) return v.pop();
+  const fallback = document.querySelector('#logout-csrf-form input[name="csrfmiddlewaretoken"]');
+  return fallback ? fallback.value : '';
+}
+
+async function doLogout() {
+  if (accountExitRunning) return;
+  accountExitRunning = true;
+  sessionStorage.removeItem(WITHDRAWAL_STATE_KEY);
+  const logoutRequest = fetch('/api/auth/logout/', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'Content-Type': 'application/json',
+    },
+    body: '{}',
+  });
+  const timeout = new Promise(resolve => setTimeout(resolve, 900));
+  await Promise.race([logoutRequest.catch(() => {}), timeout]);
+  window.location.replace('/homepage/');
+}
+
+function confirmWithdrawal() {
+  if (accountExitRunning) return;
+  localStorage.removeItem(SUBSCRIPTION_STATE_KEY);
+  localStorage.removeItem(SUBSCRIPTION_PLAN_KEY);
+  localStorage.removeItem(SUBSCRIPTION_PAID_AT_KEY);
+  localStorage.removeItem('hari-mypage-subscription-label');
+  localStorage.removeItem('hari-mypage-subscription-price');
+  localStorage.removeItem('hari-subscription-plan');
+  sessionStorage.setItem(WITHDRAWAL_STATE_KEY, 'withdrawn');
+  closeWithdrawalModal();
+  doLogout();
+}
+
 let toastT;
 function toast(msg) {
-  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('on');
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg; t.classList.add('on');
   clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2800);
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBuy(); });
+applySubscriptionState(getSubscriptionState());
+const IS_AUTHENTICATED = {% if user.is_authenticated %}true{% else %}false{% endif %};
+  if (sessionStorage.getItem(WITHDRAWAL_STATE_KEY) === 'withdrawn') {
+  if (IS_AUTHENTICATED) {
+    sessionStorage.removeItem(WITHDRAWAL_STATE_KEY);
+  } else {
+    window.location.href = '/homepage/';
+  }
+}
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  closeSubscriptionCancelModal();
+  closeWithdrawalModal();
+  if (typeof closeBuy === 'function') closeBuy();
+});
 </script>
 </body>
 </html>

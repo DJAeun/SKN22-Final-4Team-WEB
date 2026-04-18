@@ -237,6 +237,111 @@
     .cancel-btn:hover { background-color: #e2e2e2; border-color: #999; }
     .cancel-btn.hidden { display: none; }
 
+    .payment-log-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.45);
+      z-index: 200;
+      padding: 20px;
+    }
+    .payment-log-card {
+      width: min(100%, 440px);
+      background: var(--bg-white);
+      border: 1px solid var(--border-gray);
+      border-radius: 22px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.24);
+      padding: 28px 26px 24px;
+    }
+    .payment-log-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .payment-log-check {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #e50914, #ff5f6d);
+      color: #fff;
+      font-size: 22px;
+      box-shadow: 0 8px 18px rgba(229,9,20,0.26);
+      flex-shrink: 0;
+    }
+    .payment-log-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(16,185,129,0.12);
+      color: #059669;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      margin-bottom: 18px;
+    }
+    .payment-log-desc {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+    .payment-log-list {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .payment-log-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 14px;
+      border: 1px solid var(--border-gray);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #fff 0%, #fcfcfc 100%);
+      font-size: 14px;
+    }
+    .payment-log-key {
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+    .payment-log-val {
+      font-weight: 600;
+      text-align: right;
+    }
+    .payment-log-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .payment-log-actions button {
+      height: 50px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .payment-log-confirm {
+      background: var(--netflix-red);
+      color: #fff;
+      border: none;
+      flex: 1;
+    }
+    .payment-log-close {
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid var(--border-gray);
+      flex: 1;
+    }
+
     html[data-theme="dark"] .cancel-btn {
       background-color: #2a2420;
       border-color: var(--border-gray);
@@ -502,19 +607,86 @@
     </div>
   </div>
 
+  <div class="payment-log-overlay" id="paymentLogOverlay" onclick="closePaymentLog(event)">
+    <div class="payment-log-card" onclick="event.stopPropagation()">
+      <div class="payment-log-badge">PAYMENT COMPLETED</div>
+      <div class="payment-log-title">
+        <span class="payment-log-check">✓</span>
+        <span>결제 완료</span>
+      </div>
+      <div class="payment-log-desc">선택한 멤버십 결제가 정상적으로 완료되었어요. 마이페이지 구독 상태도 바로 반영할게요.</div>
+      <div class="payment-log-list">
+        <div class="payment-log-item"><span class="payment-log-key">선택 멤버십</span><span class="payment-log-val" id="paymentLogPlan">FAN+</span></div>
+        <div class="payment-log-item"><span class="payment-log-key">결제 금액</span><span class="payment-log-val" id="paymentLogPrice">₩39,900</span></div>
+        <div class="payment-log-item"><span class="payment-log-key">결제 수단</span><span class="payment-log-val" id="paymentLogMethod">카드 결제</span></div>
+        <div class="payment-log-item"><span class="payment-log-key">승인 상태</span><span class="payment-log-val" id="paymentLogStatus">승인 완료</span></div>
+        <div class="payment-log-item"><span class="payment-log-key">결제 시각</span><span class="payment-log-val" id="paymentLogTime">-</span></div>
+        <div class="payment-log-item"><span class="payment-log-key">주문 번호</span><span class="payment-log-val" id="paymentLogOrder">-</span></div>
+      </div>
+      <div class="payment-log-actions">
+        <button class="payment-log-close" onclick="closePaymentLog()">닫기</button>
+        <button class="payment-log-confirm" onclick="confirmPaymentLog()">마이페이지로</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    let selectedTier = 'fanplus';
+    const PLAN_INFO = {
+      fan:     { label: 'FAN',   price: '₩19,900', pageTitle: 'FAN 멤버십' },
+      fanplus: { label: 'FAN+',  price: '₩39,900', pageTitle: 'FAN+ 멤버십' },
+      bori:    { label: 'BORI',  price: '₩59,900', pageTitle: 'BORI 멤버십' },
+    };
+    let selectedTier = localStorage.getItem('hari-subscription-plan') || 'fanplus';
+
+    function syncSelectedPlanCard() {
+      const target = document.querySelector(`.plan-card[onclick*="'${selectedTier}'"]`);
+      if (target) selectPlan(target, selectedTier);
+    }
 
     function selectPlan(el, tier) {
       document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
       el.classList.add('selected');
       selectedTier = tier;
+      localStorage.setItem('hari-subscription-plan', tier);
     }
 
     function nextStep() {
-      alert(selectedTier.toUpperCase() + ' 멤버십을 선택하셨습니다. 결제 페이지로 이동합니다.');
-      // window.location.href = '/checkout/?plan=' + selectedTier;
+      showPaymentLog();
     }
+
+    function showPaymentLog() {
+      const info = PLAN_INFO[selectedTier] || PLAN_INFO.fanplus;
+      const now = new Date();
+      const orderNo = 'HARI-' + now.getFullYear() +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        String(now.getDate()).padStart(2, '0') +
+        '-' + String(now.getTime()).slice(-6);
+      document.getElementById('paymentLogPlan').textContent = info.label;
+      document.getElementById('paymentLogPrice').textContent = info.price;
+      document.getElementById('paymentLogMethod').textContent = '카드 결제';
+      document.getElementById('paymentLogStatus').textContent = '승인 완료';
+      document.getElementById('paymentLogTime').textContent = now.toLocaleString('ko-KR');
+      document.getElementById('paymentLogOrder').textContent = orderNo;
+      document.getElementById('paymentLogOverlay').style.display = 'flex';
+    }
+
+    function closePaymentLog(e) {
+      if (e && e.target !== e.currentTarget) return;
+      document.getElementById('paymentLogOverlay').style.display = 'none';
+    }
+
+    function confirmPaymentLog() {
+      const info = PLAN_INFO[selectedTier] || PLAN_INFO.fanplus;
+      const paidAt = new Date();
+      localStorage.setItem('hari-mypage-subscription-plan', selectedTier);
+      localStorage.setItem('hari-mypage-subscription-state', 'active');
+      localStorage.setItem('hari-mypage-subscription-paid-at', paidAt.toISOString());
+      localStorage.setItem('hari-mypage-subscription-label', info.label);
+      localStorage.setItem('hari-mypage-subscription-price', info.price);
+      window.location.href = '/mypage/';
+    }
+
+    syncSelectedPlanCard();
 
     function cancelSubscription() {
       if (confirm('정말로 구독을 취소하시겠습니까?\n구독 해지 후 서비스 이용이 제한됩니다.')) {
