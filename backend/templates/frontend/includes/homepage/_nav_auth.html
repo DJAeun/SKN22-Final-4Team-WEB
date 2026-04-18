@@ -452,16 +452,28 @@
       <div class="auth-field">
         <label class="auth-label" for="signupEmail">이메일</label>
         <div style="position:relative; display:flex; align-items:center; gap:0.5rem;">
-          <input class="auth-inp" id="signupEmail" name="signupEmail" type="email" placeholder="hello@hari.kr" style="flex:1;">
+          <input class="auth-inp" id="signupEmail" name="signupEmail" type="email" placeholder="hello@hari.kr" style="flex:1;" oninput="debounceEmailCheck(this.value)">
+          <span id="email-status" style="font-size:1rem; flex-shrink:0; line-height:1;"></span>
         </div>
+        <div id="email-message" class="auth-field-msg"></div>
       </div>
       <div class="auth-field">
         <label class="auth-label" for="signup-pw">비밀번호</label>
         <div style="position:relative; display:flex; align-items:center; gap:0.5rem;">
           <div class="pw-wrap" style="flex:1;">
-            <input class="auth-inp" id="signup-pw" name="signup-pw" type="password" placeholder="8자 이상">
+            <input class="auth-inp" id="signup-pw" name="signup-pw" type="password" placeholder="8자 이상" oninput="debouncePasswordCheck(this.value)">
             <button class="pw-toggle" type="button" onclick="togglePw('signup-pw',this)">표시</button>
           </div>
+          <span id="password-status" style="font-size:1rem; flex-shrink:0; line-height:1;"></span>
+        </div>
+        <div id="password-message" class="auth-field-msg"></div>
+        <div id="pw-strength-wrap" class="pw-strength-wrap" style="display:none;">
+          <div id="pw-strength-bar" class="pw-strength-bar"></div>
+        </div>
+        <div id="pw-criteria" class="pw-criteria" style="display:none;">
+          <div class="pw-rule" id="rule-len"><span class="pw-rule-dot"></span>8자 이상</div>
+          <div class="pw-rule" id="rule-eng"><span class="pw-rule-dot"></span>영문 포함</div>
+          <div class="pw-rule" id="rule-num"><span class="pw-rule-dot"></span>숫자 포함</div>
         </div>
       </div>
 
@@ -549,6 +561,17 @@ if (typeof switchTab === 'undefined') {
     const panelEl = document.getElementById('panel-' + tab);
     if (tabEl) tabEl.classList.add('on');
     if (panelEl) panelEl.classList.add('on');
+    if (tab !== 'signup') {
+      ['email-status','email-message','password-status','password-message'].forEach(id=>{
+        const el=document.getElementById(id); if(el) el.textContent='';
+      });
+      const cr=document.getElementById('pw-criteria'); if(cr) cr.style.display='none';
+      const sw=document.getElementById('pw-strength-wrap'); if(sw) sw.style.display='none';
+      const bar=document.getElementById('pw-strength-bar'); if(bar){ bar.style.width='0'; }
+      ['rule-len','rule-eng','rule-num'].forEach(id=>{
+        const el=document.getElementById(id); if(el) el.className='pw-rule';
+      });
+    }
   };
 }
 

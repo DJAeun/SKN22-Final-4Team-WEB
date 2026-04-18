@@ -299,6 +299,88 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
 .user-dropdown a:hover, .user-dropdown button:hover { background:rgba(255,123,138,0.08); }
 .user-dropdown .logout-btn { color:var(--acc); border-top:0.5px solid var(--bdr); }
 
+/* ── AUTH FIELD VALIDATION ── */
+.auth-field-msg {
+  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  font-size:0.73rem; min-height:1.1rem; margin-top:4px;
+  transition:color 0.2s;
+}
+.pw-criteria {
+  display:flex; gap:0.5rem; margin-top:0.5rem; flex-wrap:wrap;
+}
+.pw-rule {
+  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  font-size:0.72rem; color:#c0b8b2;
+  display:flex; align-items:center; gap:4px;
+  transition:color 0.25s;
+}
+.pw-rule.ok  { color:#06d6a0; }
+.pw-rule.fail{ color:#ff7b8a; }
+.pw-rule-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:#c0b8b2; flex-shrink:0;
+  transition:background 0.25s;
+}
+.pw-rule.ok  .pw-rule-dot { background:#06d6a0; }
+.pw-rule.fail .pw-rule-dot { background:#ff7b8a; }
+.pw-strength-wrap {
+  margin-top:7px; height:3px;
+  background:#f0ece8; border-radius:2px; overflow:hidden;
+}
+.pw-strength-bar {
+  height:100%; width:0; border-radius:2px;
+  transition:width 0.35s ease, background 0.35s ease;
+}
+:root[data-theme="dark"] .pw-criteria .pw-rule { color:#6b6460; }
+:root[data-theme="dark"] .pw-strength-wrap { background:#3d3530; }
+
+/* ── AUTH TOAST ── */
+#auth-toast {
+  position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(120%);
+  z-index:9999; min-width:280px; max-width:380px;
+  background:#fff; border-radius:16px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(255,123,138,0.15);
+  padding:1rem 1.4rem 1rem 1rem;
+  display:flex; align-items:center; gap:0.85rem;
+  transition:transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+  opacity:0;
+  border-left:4px solid var(--acc);
+}
+#auth-toast.show {
+  transform:translateX(-50%) translateY(0);
+  opacity:1;
+}
+#auth-toast.hide {
+  transform:translateX(-50%) translateY(120%);
+  opacity:0;
+}
+.auth-toast-icon {
+  font-size:1.8rem; flex-shrink:0; line-height:1;
+}
+.auth-toast-body { flex:1; }
+.auth-toast-title {
+  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  font-size:0.95rem; font-weight:700; color:#2a2420; margin-bottom:2px;
+}
+.auth-toast-msg {
+  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  font-size:0.8rem; color:#8c847e; line-height:1.4;
+}
+.auth-toast-close {
+  background:none; border:none; cursor:pointer;
+  font-size:1rem; color:#c0b8b2; padding:0; flex-shrink:0;
+  transition:color 0.2s;
+}
+.auth-toast-close:hover { color:#2a2420; }
+:root[data-theme="dark"] #auth-toast {
+  background:#2a2420;
+  box-shadow:0 8px 40px rgba(0,0,0,0.4), 0 2px 8px rgba(255,123,138,0.2);
+}
+:root[data-theme="dark"] .auth-toast-title { color:#f5f1ed; }
+:root[data-theme="dark"] .auth-toast-msg { color:#9e9490; }
+:root[data-theme="dark"] .auth-toast-close { color:#6b6460; }
+:root[data-theme="dark"] .auth-toast-close:hover { color:#f5f1ed; }
+
 /* ── AUTH MODAL ── */
 #auth-overlay {
   position:fixed; inset:0; z-index:500;
@@ -1493,6 +1575,21 @@ function checkStrength(inp){
     b.className='pw-bar'+(i<=s?' '+cls[s]:'');
   }
 }
+function showAuthToast(icon, title, msg) {
+  const toast = document.getElementById('auth-toast');
+  document.getElementById('auth-toast-icon').textContent = icon;
+  document.getElementById('auth-toast-title').textContent = title;
+  document.getElementById('auth-toast-msg').textContent = msg;
+  toast.classList.remove('hide');
+  toast.classList.add('show');
+  clearTimeout(window._authToastTimer);
+  window._authToastTimer = setTimeout(() => hideAuthToast(), 3000);
+}
+function hideAuthToast() {
+  const toast = document.getElementById('auth-toast');
+  toast.classList.remove('show');
+  toast.classList.add('hide');
+}
 function doLogin(){
   const btn=document.querySelector('#panel-login .auth-submit');
   const email=document.querySelector('#panel-login input[type="email"]').value;
@@ -1506,8 +1603,11 @@ function doLogin(){
   }).then(r=>{
     if(!r.ok) return r.json().then(d=>{throw d;});
     return r.json();
-  }).then(()=>{
-    window.location.reload();
+  }).then(data=>{
+    closeAuth();
+    const username = data.user?.username || data.username || '';
+    showAuthToast('🎉', '로그인 완료!', username ? username + ' 님, 하리와 함께해요 ✨' : '하리와 함께해요 ✨');
+    setTimeout(() => window.location.reload(), 1800);
   }).catch(err=>{
     btn.textContent='로그인 →'; btn.disabled=false;
     const msg=err.non_field_errors?err.non_field_errors[0]
@@ -1584,30 +1684,60 @@ function debouncePasswordCheck(password){
   clearTimeout(passwordCheckTimeout);
   const statusEl=document.getElementById('password-status');
   const messageEl=document.getElementById('password-message');
+  const criteriaEl=document.getElementById('pw-criteria');
+  const strengthWrap=document.getElementById('pw-strength-wrap');
   if(!password){
-    statusEl.textContent='';
-    messageEl.textContent='';
+    if(statusEl) statusEl.textContent='';
+    if(messageEl){ messageEl.textContent=''; }
+    if(criteriaEl) criteriaEl.style.display='none';
+    if(strengthWrap) strengthWrap.style.display='none';
     window.passwordValidated=false;
     return;
   }
-  statusEl.textContent='🔄';
-  messageEl.textContent='검증 중...';
+  if(criteriaEl) criteriaEl.style.display='flex';
+  if(strengthWrap) strengthWrap.style.display='block';
   passwordCheckTimeout=setTimeout(()=>{
     checkPasswordValidity(password);
-  },300);
+  },200);
 }
 function checkPasswordValidity(password){
   const statusEl=document.getElementById('password-status');
   const messageEl=document.getElementById('password-message');
-  if(password.length<8){
-    statusEl.textContent='❌';
-    messageEl.textContent='8자 이상이어야 합니다.';
-    messageEl.style.color='#ff7b8a';
+  const bar=document.getElementById('pw-strength-bar');
+
+  const hasLen=/^.{8,}$/.test(password);
+  const hasEng=/[a-zA-Z]/.test(password);
+  const hasNum=/[0-9]/.test(password);
+  const hasSpc=/[^a-zA-Z0-9]/.test(password);
+
+  function setRule(id, ok){
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.className='pw-rule'+(ok?' ok':(password.length>0?' fail':''));
+  }
+  setRule('rule-len', hasLen);
+  setRule('rule-eng', hasEng);
+  setRule('rule-num', hasNum);
+
+  const score=[hasLen,hasEng,hasNum,hasSpc].filter(Boolean).length;
+  if(bar){
+    const pcts=['0%','25%','50%','75%','100%'];
+    const colors=['','#ff7b8a','#ffd166','#06d6a0','#06d6a0'];
+    bar.style.width=pcts[score];
+    bar.style.background=colors[score];
+  }
+
+  if(!hasLen){
+    if(statusEl) statusEl.textContent='❌';
+    if(messageEl){ messageEl.textContent='8자 이상이어야 합니다.'; messageEl.style.color='#ff7b8a'; }
     window.passwordValidated=false;
-  }else{
-    statusEl.textContent='✅';
-    messageEl.textContent='사용 가능한 비밀번호입니다.';
-    messageEl.style.color='#06d6a0';
+  } else if(score>=3){
+    if(statusEl) statusEl.textContent='✅';
+    if(messageEl){ messageEl.textContent='안전한 비밀번호예요!'; messageEl.style.color='#06d6a0'; }
+    window.passwordValidated=true;
+  } else {
+    if(statusEl) statusEl.textContent='⚠️';
+    if(messageEl){ messageEl.textContent='영문·숫자·특수문자를 섞으면 더 안전해요.'; messageEl.style.color='#ffd166'; }
     window.passwordValidated=true;
   }
 }
@@ -1620,10 +1750,10 @@ function doSignup(){
   const pw=document.getElementById('signup-pw').value;
   const agreed=panel.querySelector('input[type="checkbox"][required]');
 
-  if(!email||!pw||!name||!nickname){alert('\uBAA8\uB4E0 \uD544\uB4DC\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694.');return;}
-  if(!agreed.checked){alert('\uC774\uC6A9\uC57D\uAD00\uC5D0 \uB3D9\uC758\uD574\uC8FC\uC138\uC694.');return;}
+  if(!email||!pw||!name||!nickname){alert('모든 필드를 입력해주세요.');return;}
+  if(!agreed.checked){alert('이용약관에 동의해주세요.');return;}
 
-  btn.textContent='\uAC00\uC785 \uC911...'; btn.disabled=true;
+  btn.textContent='가입 중...'; btn.disabled=true;
 
   fetch('/api/auth/registration/',{
     method:'POST',
@@ -1633,15 +1763,34 @@ function doSignup(){
     if(!r.ok) return r.json().then(d=>{throw d;});
     return r.json();
   }).then(()=>{
-    window.location.reload();
+    btn.textContent='로그인 중...';
+    return fetch('/api/auth/login/',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+      body:JSON.stringify({email:email,password:pw})
+    });
+  }).then(r=>{
+    if(!r.ok) return r.json().then(d=>{throw {_loginFailed:true,...d};});
+    return r.json();
+  }).then(data=>{
+    closeAuth();
+    const username = data.user?.username || data.username || nickname;
+    showAuthToast('🌸', '가입 완료!', username + ' 님, 하리 팬클럽에 오신 걸 환영해요 ✨');
+    setTimeout(() => window.location.reload(), 2000);
   }).catch(err=>{
-    btn.textContent='\uAC00\uC785\uD558\uAE30 \u2192'; btn.disabled=false;
+    btn.textContent='가입하기 →'; btn.disabled=false;
+    if(err._loginFailed){
+      closeAuth();
+      showAuthToast('✅', '가입 완료!', '로그인 탭에서 로그인해주세요.');
+      setTimeout(() => window.location.reload(), 2000);
+      return;
+    }
     const msg=err.username?(Array.isArray(err.username)?err.username[0]:err.username)
       :err.email?(Array.isArray(err.email)?err.email[0]:err.email)
       :err.password?(Array.isArray(err.password)?err.password[0]:err.password)
       :err.non_field_errors?err.non_field_errors[0]
       :err.detail?err.detail
-      :'\uD68C\uC6D0\uAC00\uC785\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.';
+      :'회원가입에 실패했습니다.';
     alert(msg);
   });
 }
@@ -1836,6 +1985,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // §4 비디오 슬라이더 로직은 더 이상 사용하지 않음 (직접 iframe 임베드 방식으로 변경됨)
 });
 </script>
+
+<!-- ── AUTH TOAST ── -->
+<div id="auth-toast">
+  <div class="auth-toast-icon" id="auth-toast-icon">🎉</div>
+  <div class="auth-toast-body">
+    <div class="auth-toast-title" id="auth-toast-title">로그인 완료!</div>
+    <div class="auth-toast-msg" id="auth-toast-msg">하리와 함께해요 ✨</div>
+  </div>
+  <button class="auth-toast-close" onclick="hideAuthToast()">✕</button>
+</div>
 </body>
 </html>
 
