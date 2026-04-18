@@ -1,0 +1,276 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}HARI Admin{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'images/hari_favicon.png' %}?v=2">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      color: #2a1f24;
+      background:
+        radial-gradient(circle at top left, rgba(255, 151, 168, 0.14), transparent 30%),
+        linear-gradient(180deg, #fff7f8 0%, #fff1f4 100%);
+    }
+    .login-shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .login-card {
+      width: min(100%, 880px);
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      overflow: hidden;
+      border: 1px solid rgba(225, 84, 107, 0.16);
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 20px 60px rgba(225, 84, 107, 0.12);
+      backdrop-filter: blur(16px);
+    }
+    .brand-pane {
+      padding: 44px 40px;
+      background:
+        linear-gradient(180deg, rgba(255, 105, 128, 0.98), rgba(221, 73, 99, 0.98)),
+        url("{% static 'images/hari_image13.png' %}") center/cover no-repeat;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      min-height: 520px;
+    }
+    .brand-pane::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(34, 17, 24, 0.1), rgba(34, 17, 24, 0.45));
+    }
+    .brand-content,
+    .brand-foot {
+      position: relative;
+      z-index: 1;
+    }
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+    }
+    .brand-title {
+      margin: 18px 0 10px;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 1.06;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+    .brand-copy {
+      margin: 0;
+      max-width: 24ch;
+      font-size: 15px;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    .brand-foot {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .chip {
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.92);
+    }
+    .form-pane {
+      padding: 44px 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.9);
+    }
+    .form-wrap {
+      width: min(100%, 360px);
+    }
+    .form-kicker {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      color: #e1546b;
+      margin-bottom: 10px;
+    }
+    .form-title {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.15;
+      font-weight: 800;
+      color: #24171d;
+    }
+    .form-desc {
+      margin: 0 0 26px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #7d6871;
+    }
+    .errorlist {
+      list-style: none;
+      margin: 0 0 16px;
+      padding: 13px 15px;
+      border-radius: 14px;
+      background: #fff2f4;
+      border: 1px solid rgba(225, 84, 107, 0.16);
+      color: #b54359;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .field {
+      margin-bottom: 14px;
+    }
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #5e4752;
+    }
+    .field input {
+      width: 100%;
+      height: 50px;
+      border-radius: 15px;
+      border: 1px solid #ead8dd;
+      background: #fff;
+      padding: 0 16px;
+      font-size: 15px;
+      color: #24171d;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field input:focus {
+      border-color: #e1546b;
+      box-shadow: 0 0 0 4px rgba(225, 84, 107, 0.12);
+    }
+    .submit-btn {
+      width: 100%;
+      height: 52px;
+      margin-top: 8px;
+      border: none;
+      border-radius: 15px;
+      background: linear-gradient(135deg, #e1546b, #ff6d7f);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 14px 28px rgba(225, 84, 107, 0.22);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .submit-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 34px rgba(225, 84, 107, 0.26);
+    }
+    .foot-note {
+      margin-top: 18px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #a08a93;
+    }
+    .foot-note strong { color: #5d4751; }
+    @media (max-width: 860px) {
+      .login-card {
+        grid-template-columns: 1fr;
+      }
+      .brand-pane {
+        min-height: 260px;
+      }
+    }
+    @media (max-width: 520px) {
+      .login-shell { padding: 12px; }
+      .login-card { border-radius: 22px; }
+      .brand-pane,
+      .form-pane { padding: 28px 20px; }
+      .form-title { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-shell">
+    <div class="login-card">
+      <section class="brand-pane">
+        <div class="brand-content">
+          <div class="brand-badge">
+            <span style="width:8px;height:8px;border-radius:50%;background:#fff;display:inline-block;"></span>
+            HARI Admin
+          </div>
+          <h1 class="brand-title">관리자 로그인</h1>
+          <p class="brand-copy">
+            운영에 필요한 메뉴만 깔끔하게 보여주는
+            관리자 전용 화면입니다.
+          </p>
+        </div>
+
+        <div class="brand-foot">
+          <div class="chip">대시보드</div>
+          <div class="chip">회원 관리</div>
+          <div class="chip">콘텐츠 관리</div>
+        </div>
+      </section>
+
+      <section class="form-pane">
+        <div class="form-wrap">
+          <div class="form-kicker">Secure Access</div>
+          <h2 class="form-title">로그인</h2>
+          <p class="form-desc">관리자 계정으로 로그인해 주세요.</p>
+
+          {% if form.errors and not form.non_field_errors %}
+            <ul class="errorlist">
+              <li>아이디 또는 비밀번호를 다시 확인해 주세요.</li>
+            </ul>
+          {% endif %}
+
+          {% if form.non_field_errors %}
+            <ul class="errorlist">
+              {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+
+          <form method="post" action="{{ app_path }}" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <div class="field">
+              <label for="id_username">사용자 이름</label>
+              <input type="text" name="username" autofocus autocapitalize="none" autocomplete="username" maxlength="150" required id="id_username" value="{{ form.username.value|default:'' }}">
+            </div>
+
+            <div class="field">
+              <label for="id_password">비밀번호</label>
+              <input type="password" name="password" autocomplete="current-password" required id="id_password">
+            </div>
+
+            <button class="submit-btn" type="submit">로그인</button>
+          </form>
+
+          <p class="foot-note">
+            <strong>주의:</strong> 관리자 전용 화면입니다.
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

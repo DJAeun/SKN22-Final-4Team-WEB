@@ -55,7 +55,7 @@
           </div>
           <div style="background:var(--bg);padding:.9rem 1rem;">
             <span style="font-family:'NeoDunggeunmo',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.25rem;">다음 결제</span>
-            <span style="font-size:.85rem;color:var(--ink);">2025.05.01</span>
+            <span class="subscription-next-billing" data-subscription-next-billing style="font-size:.85rem;color:var(--ink);">2025.05.01</span>
           </div>
           <div style="background:var(--bg);padding:.9rem 1rem;">
             <span style="font-family:'NeoDunggeunmo',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.25rem;">결제 수단</span>
@@ -63,12 +63,12 @@
           </div>
           <div style="background:var(--bg);padding:.9rem 1rem;">
             <span style="font-family:'NeoDunggeunmo',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.25rem;">구독 상태</span>
-            <span style="font-size:.85rem;color:var(--grn);">● 활성</span>
+            <span class="subscription-state" data-subscription-state style="font-size:.85rem;color:var(--grn);">● 활성</span>
           </div>
         </div>
         <div style="display:flex;gap:.5rem;">
-          <button class="save-btn" style="background:transparent;border:0.5px solid var(--bdr2);color:var(--dim);font-size:.6rem;box-shadow:none;" onclick="toast('구독 관리 페이지로 이동합니다')">구독 관리</button>
-          <button class="save-btn" style="background:transparent;border:0.5px solid rgba(200,74,58,.35);color:#c84a3a;font-size:.6rem;box-shadow:none;" onclick="toast('구독을 취소하려면 고객센터에 문의해주세요')">구독 취소</button>
+          <button class="save-btn" data-subscription-manage style="background:transparent;border:0.5px solid var(--bdr2);color:var(--dim);font-size:.6rem;box-shadow:none;" onclick="window.location.href='/membership/'">구독 관리</button>
+          <button class="save-btn" data-subscription-cancel style="background:transparent;border:0.5px solid rgba(200,74,58,.35);color:#c84a3a;font-size:.6rem;box-shadow:none;" onclick="openSubscriptionCancelModal()">구독 취소</button>
         </div>
       </div>
 
@@ -78,8 +78,8 @@
         <div class="danger-zone" style="border-radius:10px;">
           <div class="dz-title">계정 관리</div>
           <div style="display:flex;gap:.6rem;flex-wrap:wrap">
-            <button class="dz-btn" onclick="window.location.href='/api/chat/logout/'">로그아웃</button>
-            <button class="dz-btn" onclick="toast('계정 탈퇴는 고객센터에 문의해주세요')">회원 탈퇴</button>
+            <button class="dz-btn" type="button" onclick="doLogout()">로그아웃</button>
+            <button class="dz-btn" type="button" onclick="openWithdrawalModal()">회원 탈퇴</button>
           </div>
         </div>
       </div>

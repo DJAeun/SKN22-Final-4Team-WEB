@@ -1630,6 +1630,7 @@ function doLogin(){
     return r.json();
   }).then(data=>{
     closeAuth();
+    sessionStorage.removeItem('hari-mypage-withdrawal-state');
     const username = data.user?.username || data.username || '';
     showAuthToast('👋', '반가워, ' + (username || ''), '오늘도 좋은 하루 보내!');
     setTimeout(() => window.location.reload(), 1800);
@@ -1774,6 +1775,7 @@ function doSignup(){
     return r.json();
   }).then(data=>{
     closeAuth();
+    sessionStorage.removeItem('hari-mypage-withdrawal-state');
     const username = data.user?.username || data.username || nickname;
     showAuthToast('🎉', '가입 완료!', '잘 왔어, ' + username + '. 앞으로 잘 부탁해!');
     setTimeout(() => window.location.reload(), 2000);
@@ -1815,11 +1817,15 @@ document.addEventListener('click',function(e){
     if(dd) dd.classList.remove('show');
   }
 });
-function doLogout(){
-  fetch('/api/auth/logout/',{
+async function doLogout(){
+  sessionStorage.removeItem('hari-mypage-withdrawal-state');
+  await fetch('/api/auth/logout/',{
     method:'POST',
-    headers:{'X-CSRFToken':getCookie('csrftoken'),'Content-Type':'application/json'}
-  }).finally(()=>{ window.location.href='/'; });
+    credentials:'include',
+    headers:{'X-CSRFToken':getCookie('csrftoken'),'Content-Type':'application/json'},
+    keepalive:true
+  }).catch(()=>{});
+  window.location.replace('/homepage/');
 }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAuth(); });
 
