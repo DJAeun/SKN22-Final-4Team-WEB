@@ -194,6 +194,18 @@
   .tt-stat-item-label { font-size: 0.68rem; color: #b08090; font-weight: 600; letter-spacing: .04em; margin-bottom: 8px; text-transform: uppercase; }
   .tt-stat-item-value { font-size: 1.6rem; font-weight: 800; color: #fe2c55; line-height: 1; }
   .tt-note { padding: 9px 14px; background: #fafafa; border-radius: 8px; font-size: 0.75rem; color: #b08090; border: 1px solid #f5e0e6; line-height: 1.55; }
+  .tt-connect-wrap { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+  .tt-connect-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: #fe2c55; font-weight: 700; text-decoration: none;
+  }
+  .tt-connect-link:hover { text-decoration: underline; }
+  .tt-connect-note { font-size: 0.69rem; color: #c090a0; line-height: 1.45; }
+  .tt-connected-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 2px 8px; border-radius: 999px; font-size: 0.67rem; font-weight: 700;
+    background: #ecfdf5; color: #15803d; margin-bottom: 2px;
+  }
 
   /* ── 정책 툴팁 ── */
   .policy-tip {
@@ -378,7 +390,12 @@
         </div>
         <div class="stat-label">TikTok 팔로워</div>
         <div class="stat-value" id="stat-tiktok">—</div>
-        <div class="stat-sub" id="stat-tiktok-sub">@coding__hari</div>
+        <div class="stat-sub" id="stat-tiktok-sub">
+          <div class="tt-connect-wrap">
+            <a href="/admin/tiktok-oauth-start/" class="tt-connect-link">🔗 TikTok 연동하기</a>
+            <span class="tt-connect-note">연동하면 아래 계정 통계도 자동으로 함께 불러와요</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -515,7 +532,7 @@
 
       <div class="chart-card">
         <div class="chart-card-title">TikTok 계정 통계</div>
-        <div class="chart-card-desc">팔로워 · 총 좋아요 · 영상 수 (@coding__hari)</div>
+        <div class="chart-card-desc">팔로워 · 총 좋아요 · 영상 수 (@coding__hari, 연동 시 자동 반영)</div>
         <div class="tt-stats-grid">
           <div class="tt-stat-item">
             <div class="tt-stat-item-label">팔로워</div>
@@ -1249,35 +1266,76 @@ async function loadAnalytics(period, range) {
 
 function _setTikTokConn(connected) {
   var sub = document.getElementById('stat-tiktok-sub');
-  if (!connected && sub) {
-    sub.innerHTML = '<a href="/admin/tiktok-oauth-start/" style="color:#fe2c55;font-weight:600;text-decoration:none;">🔗 연동하기</a>';
+  if (!sub) return;
+  if (!connected) {
+    sub.innerHTML = [
+      '<div class="tt-connect-wrap">',
+      '  <a href="/admin/tiktok-oauth-start/" class="tt-connect-link">🔗 TikTok 연동하기</a>',
+      '  <span class="tt-connect-note">연동하면 아래 계정 통계도 자동으로 함께 불러와요</span>',
+      '</div>'
+    ].join('');
+  } else {
+    sub.innerHTML = '<span class="tt-connected-badge">연동됨</span>';
   }
+}
+
+function renderTikTokDisconnected() {
+  TIKTOK_DATA = null;
+  _setTikTokConn(false);
+  var statEl = document.getElementById('stat-tiktok');
+  var followerEl = document.getElementById('tt-stat-followers');
+  var likesEl = document.getElementById('tt-stat-likes');
+  var videosEl = document.getElementById('tt-stat-videos');
+  if (statEl) statEl.textContent = '—';
+  if (followerEl) followerEl.textContent = '—';
+  if (likesEl) likesEl.textContent = '—';
+  if (videosEl) videosEl.textContent = '—';
+}
+
+function renderTikTokConnected(data) {
+  if (!data) {
+    renderTikTokDisconnected();
+    return;
+  }
+  TIKTOK_DATA = data;
+  _setTikTokConn(true);
+  var followerCount = data.follower_count || 0;
+  var likesCount = data.likes_count || 0;
+  var videoCount = data.video_count || 0;
+  var statEl = document.getElementById('stat-tiktok');
+  var subEl = document.getElementById('stat-tiktok-sub');
+  var followerEl = document.getElementById('tt-stat-followers');
+  var likesEl = document.getElementById('tt-stat-likes');
+  var videosEl = document.getElementById('tt-stat-videos');
+  if (statEl) statEl.textContent = fmt(followerCount);
+  if (subEl) subEl.innerHTML = '좋아요 ' + fmt(likesCount) + ' · @coding__hari';
+  if (followerEl) followerEl.textContent = fmt(followerCount);
+  if (likesEl) likesEl.textContent = fmt(likesCount);
+  if (videosEl) videosEl.textContent = fmt(videoCount);
 }
 
 async function loadTikTok() {
   try {
     var resp = await fetch('/admin/tiktok-stats/');
     if (resp.status === 401) {
-      _setTikTokConn(false);
-      document.getElementById('stat-tiktok-sub').textContent = '연동이 필요합니다';
+      renderTikTokDisconnected();
+      return;
+    }
+    if (!resp.ok) {
+      renderTikTokDisconnected();
       return;
     }
     if (resp.ok) {
       var data = await resp.json();
       if (!data.error) {
-        TIKTOK_DATA = data;
-        _setTikTokConn(true);
-        document.getElementById('stat-tiktok').textContent       = fmt(data.follower_count || 0);
-        document.getElementById('stat-tiktok-sub').textContent   = '좋아요 ' + fmt(data.likes_count || 0) + ' · @coding__hari';
-        document.getElementById('tt-stat-followers').textContent = fmt(data.follower_count || 0);
-        document.getElementById('tt-stat-likes').textContent     = fmt(data.likes_count || 0);
-        document.getElementById('tt-stat-videos').textContent    = fmt(data.video_count || 0);
+        renderTikTokConnected(data);
       } else {
-        _setTikTokConn(false);
-        document.getElementById('stat-tiktok-sub').textContent = '연동이 필요합니다';
+        renderTikTokDisconnected();
       }
     }
-  } catch(e) {}
+  } catch(e) {
+    renderTikTokDisconnected();
+  }
 }
 
 async function checkIgToken() {
