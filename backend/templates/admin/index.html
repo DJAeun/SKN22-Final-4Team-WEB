@@ -78,6 +78,7 @@
     background: #ffffff; border: 1px solid #f5e0e6; border-radius: 12px;
     padding: 18px 20px; box-shadow: 0 1px 4px rgba(200,80,100,0.06);
     transition: box-shadow 0.18s, border-color 0.18s; position: relative; overflow: hidden;
+    min-width: 0; box-sizing: border-box;
   }
   .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
   .stat-card.c-pink::before   { background: #e8607a; }
@@ -104,9 +105,47 @@
   .chart-card {
     background: #ffffff; border: 1px solid #f5e0e6; border-radius: 12px;
     padding: 20px 22px; box-shadow: 0 1px 4px rgba(200,80,100,0.05);
+    min-width: 0; box-sizing: border-box;
   }
   .chart-card-title { font-size: 0.87rem; font-weight: 700; color: #2d1a22; margin-bottom: 2px; }
   .chart-card-desc  { font-size: 0.71rem; color: #b08090; margin-bottom: 16px; }
+
+  /* ── 커스텀 토스트 ── */
+  #adminToast {
+    position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-80px);
+    z-index: 9999; min-width: 280px; max-width: 420px;
+    background: #fff; border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(45,26,34,0.18), 0 2px 8px rgba(45,26,34,0.1);
+    padding: 16px 20px 16px 16px;
+    display: flex; align-items: flex-start; gap: 12px;
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+    opacity: 0; pointer-events: none;
+  }
+  #adminToast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
+  #adminToast .toast-icon {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+  }
+  #adminToast.toast-success .toast-icon { background: #f0fdf4; }
+  #adminToast.toast-error   .toast-icon { background: #fff1f2; }
+  #adminToast.toast-info    .toast-icon { background: #eff6ff; }
+  #adminToast .toast-body { flex: 1; min-width: 0; }
+  #adminToast .toast-title {
+    font-size: 0.82rem; font-weight: 700; color: #2d1a22; margin-bottom: 2px;
+  }
+  #adminToast .toast-msg { font-size: 0.76rem; color: #8b5a6a; }
+  #adminToast .toast-close {
+    background: none; border: none; cursor: pointer; color: #c090a0;
+    font-size: 1rem; line-height: 1; padding: 0; margin-top: -2px; flex-shrink: 0;
+  }
+  #adminToast .toast-close:hover { color: #e8607a; }
+  #adminToast .toast-bar {
+    position: absolute; bottom: 0; left: 0; height: 3px; border-radius: 0 0 14px 14px;
+    transition: width linear;
+  }
+  #adminToast.toast-success .toast-bar { background: #22c55e; }
+  #adminToast.toast-error   .toast-bar { background: #f43f5e; }
+  #adminToast.toast-info    .toast-bar { background: #3b82f6; }
 
   /* ── 차트 레이아웃 ── */
   .chart-row-half { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
@@ -114,7 +153,7 @@
   @media (max-width: 900px) { .chart-row-half { grid-template-columns: 1fr; } }
 
   /* ── 지표 탭 버튼 ── */
-  .metric-tab-bar { display: flex; gap: 4px; flex-shrink: 0; align-items: center; }
+  .metric-tab-bar { display: flex; gap: 4px; flex-shrink: 0; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
   .metric-tab-btn {
     padding: 5px 13px; border: 1.5px solid #f0c8d4; background: #fff8fa;
     border-radius: 14px; font-family: inherit; font-size: 0.72rem; font-weight: 500; color: #a07090;
@@ -124,10 +163,11 @@
   .metric-tab-btn.active { background: #e8607a; border-color: #e8607a; color: #fff; font-weight: 700; }
 
   /* ── 플랫폼 섹션 ── */
-  .platform-section { margin-bottom: 24px; }
+  .platform-section { margin-bottom: 24px; min-width: 0; }
   .platform-header {
     display: flex; align-items: center; gap: 10px; padding: 11px 18px;
     border-radius: 10px; margin-bottom: 14px; font-size: 0.88rem; font-weight: 700;
+    flex-wrap: wrap; min-width: 0;
   }
   .platform-header svg { width: 17px; height: 17px; flex-shrink: 0; }
   .platform-header.yt-hdr { background: linear-gradient(135deg, #fff4f4, #ffe8e8); border: 1px solid #fecaca; color: #991b1b; }
@@ -136,21 +176,78 @@
   .platform-header.ig-hdr svg { stroke: #dd2a7b; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .platform-header.tt-hdr { background: linear-gradient(135deg, #f0fffe, #fff0f4); border: 1px solid #a5f3fc; color: #0f172a; }
   .platform-header.tt-hdr svg { fill: #010101; stroke: none; }
-  .platform-badge { margin-left: auto; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.04em; padding: 3px 10px; border-radius: 12px; background: rgba(0,0,0,0.06); }
+  .platform-badge { margin-left: auto; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.04em; padding: 3px 10px; border-radius: 12px; background: rgba(0,0,0,0.06); flex-shrink: 0; }
 
   /* ── SNS 플랫폼 요약 카드 ── */
-  .sns-overview-card { background: #fff; border: 1px solid #f5e0e6; border-radius: 12px; padding: 20px 22px; box-shadow: 0 1px 4px rgba(200,80,100,0.05); margin-bottom: 22px; }
+  .sns-overview-card {
+    background: #fff; border: 1px solid #f5e0e6; border-radius: 12px; padding: 20px 22px;
+    box-shadow: 0 1px 4px rgba(200,80,100,0.05); margin-bottom: 22px;
+    min-width: 0; box-sizing: border-box;
+  }
+
+  .sns-overview-card .period-bar { justify-content: flex-end; }
+  .sns-overview-card .period-hint { margin-left: 0; }
 
   /* ── TikTok 스탯 그리드 ── */
   .tt-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
   .tt-stat-item { background: #fff8f9; border: 1px solid #ffe0e8; border-radius: 10px; padding: 18px 14px; text-align: center; }
   .tt-stat-item-label { font-size: 0.68rem; color: #b08090; font-weight: 600; letter-spacing: .04em; margin-bottom: 8px; text-transform: uppercase; }
   .tt-stat-item-value { font-size: 1.6rem; font-weight: 800; color: #fe2c55; line-height: 1; }
-  .tt-note { padding: 9px 14px; background: #fafafa; border-radius: 8px; font-size: 0.75rem; color: #b08090; border: 1px solid #f5e0e6; }
+  .tt-note { padding: 9px 14px; background: #fafafa; border-radius: 8px; font-size: 0.75rem; color: #b08090; border: 1px solid #f5e0e6; line-height: 1.55; }
+
+  /* ── 정책 툴팁 ── */
+  .policy-tip {
+    position: relative; cursor: help;
+    border-bottom: 1.5px dashed #f0b0c0; display: inline;
+  }
+  .policy-tip::after {
+    content: attr(data-tip);
+    position: absolute; bottom: calc(100% + 10px); left: 50%;
+    transform: translateX(-50%);
+    background: #1a0a12; color: #f8e8ee;
+    font-size: 0.72rem; line-height: 1.6; font-weight: 400;
+    padding: 12px 15px; border-radius: 10px;
+    width: 320px; white-space: pre-line;
+    box-shadow: 0 6px 24px rgba(45,26,34,0.28);
+    pointer-events: none; opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    transform: translateX(-50%) translateY(4px);
+    z-index: 9999;
+  }
+  .policy-tip::before {
+    content: '';
+    position: absolute; bottom: calc(100% + 4px); left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent; border-top-color: #1a0a12;
+    pointer-events: none; opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 9999;
+  }
+  .policy-tip:hover::after,
+  .policy-tip:hover::before { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 700px) {
+    .dash-wrap { max-width: 100%; }
+    .chart-card, .sns-overview-card, .stat-card { padding-left: 16px; padding-right: 16px; }
+    .sns-overview-card .period-bar { justify-content: flex-start; }
+    .sns-overview-card .period-hint { margin-left: 6px; }
+    .metric-tab-bar { justify-content: flex-start; }
+  }
 
   /* ── 빈 데이터 메시지 ── */
   .no-data-msg { display: flex; align-items: center; justify-content: center; color: #c090a0; font-size: 0.85rem; }
 </style>
+
+<!-- 커스텀 토스트 -->
+<div id="adminToast" role="alert">
+  <div class="toast-icon" id="toastIcon"></div>
+  <div class="toast-body">
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-msg"   id="toastMsg"></div>
+  </div>
+  <button class="toast-close" onclick="closeToast()">✕</button>
+  <div class="toast-bar" id="toastBar" style="width:100%;"></div>
+</div>
 
 <div class="dash-wrap">
 
@@ -305,7 +402,12 @@
         <canvas id="chartPlatformViews"></canvas>
       </div>
       <div style="margin-top:10px;padding:8px 14px;background:#fafafa;border:1px solid #f0e0e6;border-radius:8px;font-size:0.73rem;color:#b08090;">
-        ⚠️ TikTok은 API 정책상 기술적으로 데이터 수집이 불가합니다
+        ⚠️ <span class="policy-tip" data-tip="TikTok API 정책 제한 안내
+
+• TikTok은 플랫폼 정책상 일반 개발자 API로 채널 통계를 수집할 수 없습니다.
+• 조회수·팔로워 등 유의미한 데이터는 Research API 또는 Content Kit 승인이 필요하며, 5~7일 심사 + 사용 목적 증명이 요구됩니다.
+• Research API는 하루 1,000건 요청 제한, 30일 데이터 갱신 주기, 수집 데이터 의무 삭제 조건이 적용됩니다.
+• 현재 계정은 Content Kit 미승인 상태로, 기본 계정 정보(팔로워·좋아요·영상 수)만 조회 가능합니다.">TikTok은 API 정책상 기술적으로 데이터 수집이 불가합니다</span>
       </div>
     </div>
 
@@ -345,8 +447,8 @@
               <div class="chart-card-desc" id="ytMetricDesc">기간 내 총 조회수 추이</div>
             </div>
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-              <a id="ytAuthBtn" href="/admin/youtube-oauth-start/" style="display:none;flex-shrink:0;font-size:0.72rem;padding:5px 12px;background:#fff0f4;border:1px solid #e8607a;border-radius:6px;color:#e8607a;text-decoration:none;white-space:nowrap;">
-                📊 Google 연동
+              <a id="ytAuthBtn" href="/admin/youtube-oauth-start/" style="display:none;flex-shrink:0;font-size:0.72rem;padding:5px 12px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;color:#c2410c;text-decoration:none;white-space:nowrap;font-weight:600;">
+                🔗 Google 연동하기
               </a>
               <div class="metric-tab-bar" id="ytMetricTabs">
                 <button class="metric-tab-btn active" data-metric="views">👁 조회수</button>
@@ -429,7 +531,13 @@
           </div>
         </div>
         <div class="tt-note">
-          영상별 조회수는 TikTok 정책상 현재 볼 수 없어요. (Content Kit 미승인 상태)
+          <span class="policy-tip" data-tip="Content Kit 미승인 — 영상별 조회수 불가 이유
+
+• 영상별 조회수(video view count)는 TikTok Research API에서만 제공되며, 연구 목적 승인 계정에 한해 접근 가능합니다.
+• Content Kit은 TikTok의 비감사(unaudited) API 등급으로, 승인 전까지 콘텐츠 업로드·조회가 비공개(SELF_ONLY)로 제한됩니다.
+• 승인을 받으려면 사용 목적 증명, 워킹 프로토타입 제출, 5~7일 심사 절차가 필요합니다.
+• 승인 후에도 24시간 내 5명 사용자 제한, 게시 시 비공개 설정 등 운영 제약이 유지됩니다.
+• 현재는 계정 수준 통계(팔로워·총 좋아요·영상 수)만 조회 가능합니다.">영상별 조회수는 TikTok 정책상 현재 볼 수 없어요. (Content Kit 미승인 상태)</span> — <a href="https://developers.tiktok.com/doc/research-api-faq" target="_blank" style="color:#fe2c55;font-size:0.7rem;">공식 문서 →</a>
         </div>
       </div>
     </div><!-- /TikTok section -->
@@ -439,6 +547,36 @@
 </div><!-- /.dash-wrap -->
 
 <script>
+/* ── 커스텀 토스트 ── */
+var _toastTimer = null;
+var _toastBarTimer = null;
+function showToast(type, title, msg, duration) {
+  duration = duration || 4000;
+  var toast = document.getElementById('adminToast');
+  var icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  toast.className = 'toast-' + type;
+  document.getElementById('toastIcon').textContent  = icons[type] || 'ℹ️';
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastMsg').textContent   = msg;
+  var bar = document.getElementById('toastBar');
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  toast.classList.add('show');
+  clearTimeout(_toastTimer);
+  clearTimeout(_toastBarTimer);
+  _toastBarTimer = setTimeout(function() {
+    bar.style.transition = 'width ' + duration + 'ms linear';
+    bar.style.width = '0%';
+  }, 50);
+  _toastTimer = setTimeout(closeToast, duration + 50);
+}
+function closeToast() {
+  var toast = document.getElementById('adminToast');
+  toast.classList.remove('show');
+  clearTimeout(_toastTimer);
+  clearTimeout(_toastBarTimer);
+}
+
 Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
 Chart.defaults.font.size   = 12;
 
@@ -825,7 +963,8 @@ function buildYTCharts(period) {
   currentYTAnalytics = analytics;  /* 지표 탭 전환 시 재사용 */
 
   /* Google 연동 버튼 */
-  document.getElementById('ytAuthBtn').style.display = analytics ? 'none' : 'inline-block';
+  var authBtn = document.getElementById('ytAuthBtn');
+  authBtn.style.display = analytics ? 'none' : 'inline-block';
 
   /* id→title 매핑 */
   var idToTitle = {};
@@ -927,39 +1066,41 @@ function buildYTMetricChart() {
 /* ════════════════════════════════════════════════
    Instagram 섹션 차트 빌드
    ════════════════════════════════════════════════ */
-function buildIGCharts(period) {
+function buildIGCharts(period, forceMetric) {
   var cutoff  = getPeriodCutoff(period);
   var label   = getPeriodLabel(period);
+  var metric  = forceMetric || igMetric;  /* 명시적으로 지표 확정 */
 
-  /* 기간 필터 후 조회수 기준 정렬 → Top5 */
+  /* 기간 필터 후 현재 지표 기준 정렬 → Top5 */
   var filtered = (IG_MEDIA || []).filter(function(m){
     return !cutoff || (m.timestamp && new Date(m.timestamp) >= cutoff);
   });
-  var sorted = filtered.slice().sort(function(a, b){ return (b.views || 0) - (a.views || 0); });
+  var getScore = metric === 'likes'
+    ? function(m){ return Number(m.like_count) || 0; }
+    : function(m){ return Number(m.views)      || 0; };
+  var sorted = filtered.slice().sort(function(a, b){ return getScore(b) - getScore(a); });
   var top5   = sorted.slice(0, 5);
 
   var descEl = document.getElementById('instaMetricDesc');
 
   if (top5.length) {
     var igLabels = top5.map(function(m){ var c = m.caption || '게시물'; return c.length > 14 ? c.slice(0,14)+'…' : c; });
-    var igViews  = top5.map(function(m){ return m.views || 0; });
-    var igLikes  = top5.map(function(m){ return m.like_count || 0; });
-
-    /* 설명 */
-    if (descEl) descEl.textContent = label + ' · Top 5 게시물 (조회수 기준)';
+    var igData   = top5.map(getScore);
 
     /* 지표에 따라 데이터 / 색상 결정 */
     var data, bgColor, bdColor, tipTxt;
-    if (igMetric === 'likes') {
-      data    = igLikes;
-      bgColor = igLikes.map(function(_,i){ return 'rgba(129,52,175,' + Math.min(0.9, 0.55 + 0.07*i) + ')'; });
+    if (metric === 'likes') {
+      data    = igData;
+      bgColor = igData.map(function(_,i){ return 'rgba(129,52,175,' + Math.max(0.35, 0.85 - 0.1*i) + ')'; });
       bdColor = '#8134af';
       tipTxt  = '좋아요';
+      if (descEl) descEl.textContent = label + ' · Top 5 게시물 (좋아요 기준)';
     } else {
-      data    = igViews;
-      bgColor = igViews.map(function(_,i){ return 'rgba(221,42,123,' + Math.min(0.9, 0.55 + 0.07*i) + ')'; });
+      data    = igData;
+      bgColor = igData.map(function(_,i){ return 'rgba(221,42,123,' + Math.max(0.35, 0.85 - 0.1*i) + ')'; });
       bdColor = '#dd2a7b';
       tipTxt  = '조회수';
+      if (descEl) descEl.textContent = label + ' · Top 5 게시물 (조회수 기준)';
     }
 
     document.getElementById('instaChartWrap').style.display = 'block';
@@ -1050,7 +1191,7 @@ document.querySelectorAll('.section-period-bar').forEach(function(bar) {
         igPeriod = period;
         var igHintEl = document.getElementById('igPeriodHint');
         if (igHintEl) igHintEl.textContent = getCurrentPeriodInfo(period).hint;
-        buildIGCharts(igPeriod);
+        buildIGCharts(igPeriod, igMetric);
       }
     });
   });
@@ -1076,7 +1217,7 @@ document.getElementById('igMetricTabs').querySelectorAll('.metric-tab-btn').forE
     document.getElementById('igMetricTabs').querySelectorAll('.metric-tab-btn').forEach(function(b){ b.classList.remove('active'); });
     this.classList.add('active');
     igMetric = this.dataset.metric;
-    buildIGCharts(igPeriod);
+    buildIGCharts(igPeriod, igMetric);
   });
 });
 
@@ -1106,24 +1247,34 @@ async function loadAnalytics(period, range) {
   } catch(e) {}
 }
 
+function _setTikTokConn(connected) {
+  var sub = document.getElementById('stat-tiktok-sub');
+  if (!connected && sub) {
+    sub.innerHTML = '<a href="/admin/tiktok-oauth-start/" style="color:#fe2c55;font-weight:600;text-decoration:none;">🔗 연동하기</a>';
+  }
+}
+
 async function loadTikTok() {
   try {
     var resp = await fetch('/admin/tiktok-stats/');
     if (resp.status === 401) {
-      document.getElementById('stat-tiktok-sub').innerHTML = '<a href="/admin/tiktok-oauth-start/" style="color:#fe2c55;">🎵 TikTok 연동</a>';
+      _setTikTokConn(false);
+      document.getElementById('stat-tiktok-sub').textContent = '연동이 필요합니다';
       return;
     }
     if (resp.ok) {
       var data = await resp.json();
       if (!data.error) {
         TIKTOK_DATA = data;
+        _setTikTokConn(true);
         document.getElementById('stat-tiktok').textContent       = fmt(data.follower_count || 0);
         document.getElementById('stat-tiktok-sub').textContent   = '좋아요 ' + fmt(data.likes_count || 0) + ' · @coding__hari';
         document.getElementById('tt-stat-followers').textContent = fmt(data.follower_count || 0);
         document.getElementById('tt-stat-likes').textContent     = fmt(data.likes_count || 0);
         document.getElementById('tt-stat-videos').textContent    = fmt(data.video_count || 0);
       } else {
-        document.getElementById('stat-tiktok-sub').innerHTML = '<a href="/admin/tiktok-oauth-start/" style="color:#fe2c55;">🎵 TikTok 연동</a>';
+        _setTikTokConn(false);
+        document.getElementById('stat-tiktok-sub').textContent = '연동이 필요합니다';
       }
     }
   } catch(e) {}
@@ -1246,8 +1397,25 @@ async function loadDashboard() {
   buildMainCharts('daily');
 
   var params = new URLSearchParams(location.search);
-  if (params.get('yt_auth') === 'success') alert('✅ YouTube Analytics 연동 완료!');
-  if (params.get('yt_auth') === 'error')   alert('❌ YouTube Analytics 연동 실패. 다시 시도해주세요.');
+  var ytAuthResult = params.get('yt_auth');
+  var ttAuthResult = params.get('tiktok_auth');
+  if (ytAuthResult || ttAuthResult) {
+    /* URL에서 파라미터 즉시 제거 — 새로고침해도 재발하지 않음 */
+    params.delete('yt_auth');
+    params.delete('tiktok_auth');
+    var newUrl = location.pathname + (params.toString() ? '?' + params.toString() : '');
+    history.replaceState(null, '', newUrl);
+    if (ytAuthResult === 'success') {
+      showToast('success', 'YouTube Analytics 연동 완료', 'Google 계정이 성공적으로 연결되었습니다.');
+    } else if (ytAuthResult) {
+      showToast('error', 'YouTube Analytics 연동 실패', '다시 시도해주세요. 문제가 지속되면 관리자에게 문의하세요.');
+    }
+    if (ttAuthResult === 'success') {
+      showToast('success', 'TikTok 연동 완료', 'TikTok 계정이 성공적으로 연결되었습니다.');
+    } else if (ttAuthResult) {
+      showToast('error', 'TikTok 연동 실패', '다시 시도해주세요. 문제가 지속되면 관리자에게 문의하세요.');
+    }
+  }
 }
 
 loadDashboard();

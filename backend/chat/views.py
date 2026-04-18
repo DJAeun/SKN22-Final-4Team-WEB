@@ -391,15 +391,15 @@ def admin_stats_api(request):
             monthly_labels.append(f'{m}월')
             monthly_counts.append(monthly_dict.get((y, m), 0))
 
-        # YEARLY — 최근 4년 (1쿼리)
-        year_start = date_type(today.year - 3, 1, 1)
+        # YEARLY — 최근 5년 (1쿼리)
+        year_start = date_type(today.year - 4, 1, 1)
         yearly_rows = safe_qs(
             base.filter(**{f'{date_field}__date__gte': year_start})
                 .annotate(period=TruncYear(date_field))
                 .values('period').annotate(count=count_expr).order_by('period')
         )
         yearly_dict = {row['period'].year: row['count'] for row in yearly_rows}
-        yearly_labels = [str(today.year - i) for i in range(3, -1, -1)]
+        yearly_labels = [str(today.year - i) for i in range(4, -1, -1)]
         yearly_counts = [yearly_dict.get(int(y), 0) for y in yearly_labels]
 
         return {
@@ -621,7 +621,7 @@ def youtube_analytics_api(request):
         dimension   = 'day'
     elif period == 'monthly':
         months = range_n if range_n in (6, 12, 24) else 12
-        sm = today.month - months
+        sm = today.month - months + 1
         sy = today.year + sm // 12
         sm = sm % 12
         if sm == 0:
@@ -631,7 +631,7 @@ def youtube_analytics_api(request):
         dimension  = 'month'
     else:  # yearly
         years      = range_n if range_n in (2, 3, 5) else 3
-        start_date = date_type(today.year - years, 1, 1)
+        start_date = date_type(today.year - years + 1, 1, 1)
         dimension  = 'month'
 
     def _fetch(start, end, dim):
@@ -676,11 +676,15 @@ def youtube_analytics_api(request):
         return JsonResponse({'error': str(e)}, status=502)
 
     if period == 'daily':
-        # YYYY-MM-DD → "4월 10일"
-        labels   = [f"{int(r[0][5:7])}월 {int(r[0][8:])}일" for r in rows]
-        views    = [r[1] for r in rows]
-        likes    = [r[2] for r in rows]
-        comments = [r[3] for r in rows]
+        # YouTube Analytics 지연으로 rows가 부족할 수 있어 7일 슬롯 전부 생성 후 0 채움
+        days_n   = range_n if range_n in (7, 14, 30) else 7
+        sd       = today - timedelta(days=days_n - 1)
+        all_dates = [sd + timedelta(days=i) for i in range(days_n)]
+        row_dict  = {r[0]: r for r in rows}
+        labels   = [f"{d.month}월 {d.day}일" for d in all_dates]
+        views    = [row_dict.get(str(d), [None, 0, 0, 0])[1] for d in all_dates]
+        likes    = [row_dict.get(str(d), [None, 0, 0, 0])[2] for d in all_dates]
+        comments = [row_dict.get(str(d), [None, 0, 0, 0])[3] for d in all_dates]
 
     elif period == 'weekly':
         weeks       = range_n if range_n in (4, 8, 12) else 8
@@ -695,8 +699,8 @@ def youtube_analytics_api(request):
                 week_data[wi][1] += r[2]
                 week_data[wi][2] += r[3]
         week_starts = [current_mon - timedelta(weeks=weeks - 1 - i) for i in range(weeks)]
-        # "4월 14일주" 형식
-        labels   = [f'{ws.month}월 {ws.day}일주' for ws in week_starts]
+        # "4월 2주" 형식 (해당 월의 몇 번째 주인지)
+        labels   = [f'{ws.month}월 {(ws.day - 1) // 7 + 1}주' for ws in week_starts]
         views    = [week_data[weeks - 1 - i][0] for i in range(weeks)]
         likes    = [week_data[weeks - 1 - i][1] for i in range(weeks)]
         comments = [week_data[weeks - 1 - i][2] for i in range(weeks)]
@@ -773,7 +777,7 @@ def youtube_video_analytics_api(request):
         start_date = today - timedelta(days=today.weekday()) - timedelta(weeks=weeks - 1)
     elif period == 'monthly':
         months = range_n if range_n in (6, 12, 24) else 12
-        sm = today.month - months
+        sm = today.month - months + 1
         sy = today.year + sm // 12
         sm = sm % 12
         if sm == 0:
@@ -782,7 +786,7 @@ def youtube_video_analytics_api(request):
         start_date = date_type(sy, sm, 1)
     else:
         years      = range_n if range_n in (2, 3, 5) else 3
-        start_date = date_type(today.year - years, 1, 1)
+        start_date = date_type(today.year - years + 1, 1, 1)
 
     api_url = (
         'https://youtubeanalytics.googleapis.com/v2/reports?'
