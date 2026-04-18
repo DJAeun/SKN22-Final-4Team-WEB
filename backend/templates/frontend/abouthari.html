@@ -12,6 +12,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/LoveType.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2210@1.0/SejongGeulgot.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 <script src="{% static 'js/theme.js' %}"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -21,6 +24,7 @@
   --f-cute:'LoveType',sans-serif;
   --f-thin:'SejongGeulgot',sans-serif;
   --f-neo:'NeoDunggeunmo',sans-serif;
+  --f-round:'Jua',sans-serif;
   --bg:#ffffff;--ink:#2a2420;--acc:#ff7b8a;--acc2:#ffd166;--acc3:#06d6a0;
   --dim:#9e9490;--bdr:rgba(255,123,138,0.12);--bdr2:rgba(255,123,138,0.22);
 }
@@ -38,7 +42,7 @@ body{background:var(--bg);color:var(--ink);font-family:Pretendard,'Apple SD Goth
 /* NAV */
 .pf-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;border-bottom:.5px solid var(--bdr);background:rgba(255,255,255,0.95);backdrop-filter:blur(16px);}
 .pf-nav-logo img{height:44px;width:auto;mix-blend-mode:multiply;}
-.pf-nav-back{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);text-decoration:none;display:flex;align-items:center;gap:.5rem;transition:color .2s;}
+.pf-nav-back{font-family:var(--f-round);font-size:.78rem;letter-spacing:.02em;color:var(--dim);text-decoration:none;display:flex;align-items:center;gap:.5rem;transition:color .2s;}
 .pf-nav-back:hover{color:var(--acc);}
 .pf-nav-back svg{transition:transform .2s;}
 .pf-nav-back:hover svg{transform:translateX(-3px);}
@@ -73,12 +77,15 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 .pf-info-panel{overflow-y:auto;padding:3.5rem 3rem;border-left:.5px solid var(--bdr);}
 
 /* 이름 헤더 */
-.pf-tag{font-family:'DM Mono',monospace;font-size:.54rem;letter-spacing:.26em;text-transform:uppercase;color:var(--dim);margin-bottom:1.4rem;}
+.pf-tag{font-family:var(--f-round);font-size:.78rem;letter-spacing:.04em;color:var(--acc);margin-bottom:1.4rem;}
 
 
 /* Name block */
-.pf-name{font-family:var(--f-playful);font-size:clamp(2.8rem,5vw,5rem);line-height:1.1;letter-spacing:-0.02em;color:var(--ink);margin-bottom:.35rem;}
-.pf-name-en{font-family:'DM Mono',monospace;font-size:.66rem;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:1.8rem;}
+.pf-name{
+  font-family:'Jua',sans-serif; font-size:clamp(3rem,5vw,5.2rem); line-height:1.15; letter-spacing:.02em;
+  color:var(--ink); margin-bottom:.35rem;
+}
+.pf-name-en{font-family:var(--f-round);font-size:.82rem;letter-spacing:.05em;color:var(--dim);margin-bottom:1.8rem;}
 
 /* Bio */
 .pf-bio{font-size:.94rem;line-height:1.7;letter-spacing:-0.01em;color:var(--ink);max-width:480px;margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:.5px solid var(--bdr);}
@@ -87,28 +94,28 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 .pf-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:.5px solid var(--bdr);margin-bottom:2.5rem;}
 .pf-stat{padding:1.2rem 1rem;border-right:.5px solid var(--bdr);text-align:center;}
 .pf-stat:last-child{border-right:none;}
-.pf-stat-num{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--ink);display:block;line-height:1;}
-.pf-stat-lbl{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-top:.3rem;}
+.pf-stat-num{font-family:var(--f-round);font-size:2rem;color:var(--ink);display:block;line-height:1.1;}
+.pf-stat-lbl{font-family:var(--f-round);font-size:.76rem;letter-spacing:.02em;color:var(--dim);display:block;margin-top:.3rem;}
 
 /* Keywords */
 .pf-keywords{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:.5px solid var(--bdr);}
-.pf-kw{font-family:'DM Mono',monospace;font-size:.82rem;letter-spacing:.1em;padding:5px 14px;border:.5px solid var(--bdr2);color:var(--dim);transition:all .2s;}
-.pf-kw:hover{border-color:var(--acc);color:var(--acc);}
+.pf-kw{font-family:var(--f-round);font-size:.82rem;letter-spacing:.01em;padding:6px 16px;border:.5px solid var(--bdr2);border-radius:20px;color:var(--dim);transition:all .2s;}
+.pf-kw:hover{border-color:var(--acc);color:var(--acc);background:rgba(255,123,138,0.06);}
 
 /* SNS */
-.pf-sns-title{font-family:'DM Mono',monospace;font-size:.78rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:1.2rem;}
+.pf-sns-title{font-family:var(--f-round);font-size:.88rem;letter-spacing:.02em;color:var(--dim);margin-bottom:1.2rem;}
 .pf-sns-grid{display:flex;flex-direction:column;gap:.5rem;margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:.5px solid var(--bdr);}
-.pf-sns-item{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1rem;border:.5px solid var(--bdr);text-decoration:none;transition:all .2s;}
+.pf-sns-item{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.1rem;border:.5px solid var(--bdr);border-radius:14px;text-decoration:none;transition:all .2s;}
 .pf-sns-item:hover{border-color:var(--acc);background:rgba(255,123,138,0.04);}
 .pf-sns-left{display:flex;align-items:center;gap:.9rem;}
-.pf-sns-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.pf-sns-name{font-family:var(--f-playful);font-size:.95rem;color:var(--ink);}
-.pf-sns-handle{font-family:'DM Mono',monospace;font-size:.78rem;letter-spacing:.1em;color:var(--dim);}
-.pf-sns-arr{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--dim);transition:transform .2s;}
+.pf-sns-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pf-sns-name{font-family:var(--f-round);font-size:.95rem;color:var(--ink);}
+.pf-sns-handle{font-family:var(--f-round);font-size:.78rem;letter-spacing:.01em;color:var(--dim);}
+.pf-sns-arr{font-family:var(--f-round);font-size:.75rem;color:var(--dim);transition:transform .2s;}
 .pf-sns-item:hover .pf-sns-arr{transform:translateX(4px);color:var(--acc);}
 
 /* Gallery preview */
-.pf-gallery-title{font-family:'DM Mono',monospace;font-size:.54rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:center;}
+.pf-gallery-title{font-family:var(--f-round);font-size:.82rem;letter-spacing:.02em;color:var(--dim);margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:center;}
 .pf-gallery-link{color:var(--acc);text-decoration:none;border-bottom:.5px solid var(--acc);padding-bottom:1px;transition:color .2s;}
 .pf-gallery-link:hover{color:var(--ink);}
 .pf-gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;}
@@ -118,19 +125,19 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 
 /* QUOTE */
 .pf-quote{margin-bottom:2rem;padding:1.4rem 1.6rem;background:rgba(255,123,138,0.04);border-left:3px solid var(--acc);border-radius:0 10px 10px 0;}
-.pf-quote-text{font-family:var(--f-playful);font-size:1.05rem;color:var(--ink);line-height:1.8;letter-spacing:-0.01em;margin-bottom:.4rem;}
-.pf-quote-from{font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);}
+.pf-quote-text{font-family:var(--f-round);font-size:1.05rem;color:var(--ink);line-height:1.8;letter-spacing:.01em;margin-bottom:.4rem;}
+.pf-quote-from{font-family:var(--f-round);font-size:.8rem;letter-spacing:.02em;color:var(--dim);}
 
 /* LIKES */
 .pf-likes{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:2rem;padding-bottom:2rem;border-bottom:.5px solid var(--bdr);}
 .pf-like-item{display:flex;align-items:center;gap:.7rem;padding:.75rem .9rem;border:.5px solid var(--bdr);border-radius:10px;transition:border-color .2s,background .2s;}
 .pf-like-item:hover{border-color:var(--acc);background:rgba(255,123,138,0.04);}
 .pf-like-icon{font-size:1.2rem;flex-shrink:0;}
-.pf-like-text{font-size:.82rem;color:var(--ink);font-weight:400;letter-spacing:-0.01em;line-height:1.5;}
+.pf-like-text{font-family:var(--f-round);font-size:.84rem;color:var(--ink);letter-spacing:.01em;line-height:1.5;}
 
 /* CTA */
 .pf-cta{margin-top:2.5rem;padding-top:2.5rem;border-top:.5px solid var(--bdr);display:flex;gap:1rem;}
-.pf-btn{font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.82rem;font-weight:500;letter-spacing:-0.01em;padding:.85rem 1.8rem;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem;border-radius:8px;}
+.pf-btn{font-family:var(--f-round);font-size:.88rem;letter-spacing:.01em;padding:.85rem 1.8rem;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem;border-radius:24px;}
 .pf-btn-primary{background:var(--acc);color:#fff;border:.5px solid var(--acc);}
 .pf-btn-primary:hover{background:#ff4c6c;border-color:#ff4c6c;}
 .pf-btn-secondary{background:transparent;color:var(--ink);border:.5px solid var(--bdr2);}
@@ -260,7 +267,7 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" width="16" height="16" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#fff" stroke="none"/></svg>
           </div>
           <div>
-            <div class="pf-sns-name">Instagram</div>
+            <div class="pf-sns-name">전달 하리</div>
             <div class="pf-sns-handle">@jeondal__hari</div>
           </div>
         </div>
@@ -272,7 +279,7 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" width="16" height="16" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#fff" stroke="none"/></svg>
           </div>
           <div>
-            <div class="pf-sns-name" style="display:flex;align-items:center;gap:.5rem;">Instagram <span style="font-size:.6rem;letter-spacing:.06em;background:rgba(255,123,138,0.15);color:var(--acc);padding:1px 6px;border-radius:3px;font-weight:600;">기록</span></div>
+            <div class="pf-sns-name" style="display:flex;align-items:center;gap:.5rem;">기록 하리</div>
             <div class="pf-sns-handle">@girok_hari</div>
           </div>
         </div>

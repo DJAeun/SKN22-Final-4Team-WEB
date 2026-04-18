@@ -12,6 +12,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/LoveType.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2210@1.0/SejongGeulgot.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <script src="{% static 'js/theme.js' %}"></script>
 <style>
@@ -23,6 +26,7 @@
   --f-cute:    'LoveType', sans-serif;
   --f-thin:    'SejongGeulgot', sans-serif;
   --f-neo:     'NeoDunggeunmo', sans-serif;
+  --f-round:   'Jua', sans-serif;
   /* ── HARI COLOR SYSTEM v3 ──────────────────
      컨셉: Bright & Cheerful — 밝고 털털하고 귀여운 하리
      베이스: 따뜻한 순백 (눈에 편함)
@@ -421,31 +425,31 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
   margin-bottom:2rem;
 }
 .auth-tab {
-  font-family:'DM Mono',monospace; font-size:.62rem;
-  letter-spacing:.16em; text-transform:uppercase;
+  font-family:'Jua',sans-serif; font-size:.82rem;
+  letter-spacing:.02em;
   padding:.7rem 0; margin-right:1.8rem;
   background:transparent; border:none; border-bottom:1.5px solid transparent;
   color:var(--dim); cursor:pointer;
   transition:color .2s, border-color .2s;
   margin-bottom:-0.5px;
 }
-.auth-tab.on { color:var(--ink); border-bottom-color:var(--ink); }
+.auth-tab.on { color:var(--ink); border-bottom-color:var(--acc); }
 
 /* panels */
 .auth-panel { display:none; flex-direction:column; gap:.9rem; }
 .auth-panel.on { display:flex; }
 
 .auth-title {
-  font-family:'Bebas Neue',sans-serif;
-  font-size:2.3rem; letter-spacing:.04em;
+  font-family:'WagleWagle',sans-serif;
+  font-size:2.1rem; letter-spacing:.01em;
   background:linear-gradient(135deg, var(--acc) 0%, #ff5c73 100%);
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
   background-clip:text;
-  line-height:1; margin-bottom:.5rem; font-weight:700;
+  line-height:1.15; margin-bottom:.5rem;
 }
 .auth-sub {
-  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
-  font-size:1.05rem; font-weight:400; line-height:1.8; color:var(--dim);
+  font-family:'Jua',sans-serif;
+  font-size:.95rem; line-height:1.8; color:var(--dim);
   margin-bottom:.8rem;
 }
 
@@ -474,8 +478,8 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
 /* divider */
 .auth-divider {
   display:flex; align-items:center; gap:.8rem;
-  font-family:'DM Mono',monospace; font-size:.54rem;
-  letter-spacing:.14em; text-transform:uppercase; color:var(--dim);
+  font-family:'Jua',sans-serif; font-size:.78rem;
+  letter-spacing:.02em; color:var(--dim);
 }
 .auth-divider::before, .auth-divider::after {
   content:''; flex:1; height:0.5px; background:var(--bdr);
@@ -494,8 +498,8 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
 .auth-inp-row { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
 
 .auth-label {
-  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.78rem;
-  font-weight:600; letter-spacing:.02em;
+  font-family:'Jua',sans-serif; font-size:.82rem;
+  letter-spacing:.01em;
   color:var(--dim); margin-bottom:.4rem; display:block;
 }
 .auth-field { display:flex; flex-direction:column; }
@@ -503,15 +507,30 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
 /* checkbox */
 .auth-check {
   display:flex; align-items:flex-start; gap:.6rem;
-  font-size:.75rem; color:var(--dim); cursor:pointer; line-height:1.6;
+  font-family:'Jua',sans-serif; font-size:.78rem;
+  color:var(--dim); cursor:pointer; line-height:1.7;
 }
-.auth-check input { accent-color:var(--acc); margin-top:3px; flex-shrink:0; }
+.auth-check input { accent-color:var(--acc); margin-top:4px; flex-shrink:0; }
 .auth-check a { color:var(--acc); text-decoration:none; border-bottom:0.5px solid var(--acc); }
+.auth-required-badge {
+  display:inline-block; font-family:'Jua',sans-serif; font-size:.65rem;
+  background:rgba(255,123,138,0.12); color:var(--acc);
+  border:0.5px solid rgba(255,123,138,0.3); border-radius:20px;
+  padding:1px 7px; margin-left:3px; vertical-align:middle;
+  line-height:1.6;
+}
+.auth-optional-badge {
+  display:inline-block; font-family:'Jua',sans-serif; font-size:.65rem;
+  background:rgba(158,148,144,0.1); color:var(--dim);
+  border:0.5px solid rgba(158,148,144,0.25); border-radius:20px;
+  padding:1px 7px; margin-left:3px; vertical-align:middle;
+  line-height:1.6;
+}
 
 /* forgot */
 .auth-forgot {
-  font-family:'DM Mono',monospace; font-size:.56rem;
-  letter-spacing:.1em; color:var(--dim); text-decoration:none;
+  font-family:'Jua',sans-serif; font-size:.76rem;
+  letter-spacing:.01em; color:var(--dim); text-decoration:none;
   border-bottom:0.5px solid var(--bdr2);
   align-self:flex-end; cursor:pointer;
   background:transparent; border-left:none; border-top:none; border-right:none;
@@ -522,11 +541,11 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
 /* submit */
 .auth-submit {
   background:linear-gradient(135deg, #ff7b8a 0%, #ff5c73 100%); border:none; color:#fff;
-  font-family:'DM Mono',monospace; font-size:.85rem;
-  letter-spacing:.14em; text-transform:uppercase;
-  padding:1rem; cursor:pointer; width:100%; font-weight:700;
+  font-family:'Jua',sans-serif; font-size:1rem;
+  letter-spacing:.02em;
+  padding:1rem; cursor:pointer; width:100%;
   transition:all .3s;
-  border-radius:10px;
+  border-radius:24px;
   box-shadow:0 4px 15px rgba(255,123,138,0.4);
 }
 .auth-submit:hover {
@@ -536,12 +555,13 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
 .auth-submit:active { transform:translateY(0); }
 
 .auth-switch {
-  font-size:.9rem; color:var(--dim); text-align:center; line-height:1.8;
+  font-family:'Jua',sans-serif; font-size:.82rem;
+  color:var(--dim); text-align:center; line-height:1.8;
 }
 .auth-switch button {
   background:transparent; border:none; border-bottom:0.5px solid var(--acc);
-  color:var(--acc); font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.9rem;
-  cursor:pointer; padding:0; transition:color .2s; font-weight:500;
+  color:var(--acc); font-family:'Jua',sans-serif; font-size:.82rem;
+  cursor:pointer; padding:0; transition:color .2s;
 }
 .auth-switch button:hover { color:var(--ink); }
 
@@ -676,16 +696,19 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 
 .profile-info-content { display:flex; flex-direction:column; gap:2.5rem; }
 .profile-name-row { display:flex; align-items:baseline; justify-content:space-between; border-bottom:0.5px solid var(--bdr); padding-bottom:1.5rem; }
-.profile-char-name { font-family:var(--f-playful); font-size:4rem; color:var(--ink); line-height:1.1; letter-spacing:-0.02em; }
-.profile-more-link { font-family:var(--f-pixel); font-size:.85rem; color:var(--acc); text-decoration:none; border-bottom:1px solid var(--acc); padding-bottom:2px; }
+.profile-char-name {
+  font-family:'Jua',sans-serif; font-size:4.4rem; line-height:1.1; letter-spacing:.02em; color:var(--ink);
+}
+.profile-more-link { font-family:var(--f-round); font-size:.88rem; color:var(--acc); text-decoration:none; border-bottom:1.5px solid var(--acc); padding-bottom:2px; letter-spacing:.01em; }
 
 .profile-sns-row { display:flex; gap:1.5rem; flex-wrap:wrap; }
 .profile-sns-row a { display:flex; align-items:center; gap:.8rem; text-decoration:none; transition:transform .2s; }
 .profile-sns-row a:hover { transform:translateY(-3px); }
 .sns-icon-wrap { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
-.sns-icon-name { font-family:var(--f-pixel); font-size:.75rem; color:var(--dim); text-transform:uppercase; letter-spacing:.05em; }
+.sns-icon-name { font-family:var(--f-round); font-size:.78rem; color:var(--dim); letter-spacing:.01em; }
 
-.profile-desc-box { font-family:'Noto Sans KR',Pretendard,'Apple SD Gothic Neo',sans-serif; font-size:1.05rem; line-height:1.8; letter-spacing:-0.01em; font-weight:400; color:var(--ink); background:rgba(255,123,138,0.03); padding:2rem; border-left:3px solid var(--acc); }
+.profile-desc-box { font-family:'Jua',sans-serif; font-size:.95rem; line-height:1.9; letter-spacing:.01em; color:var(--ink); background:rgba(255,123,138,0.03); padding:2rem; border-left:3px solid var(--acc); }
+#s2 .sec-title { font-family:'Jua',sans-serif; font-size:clamp(1.8rem,4vw,3rem); letter-spacing:.02em; }
 
 @media(max-width:1024px){
   .profile-main-container { flex-direction:column; gap:3rem; }
@@ -1631,53 +1654,28 @@ function debounceEmailCheck(email){
   const statusEl=document.getElementById('email-status');
   const messageEl=document.getElementById('email-message');
   if(!email){
-    statusEl.textContent='';
-    messageEl.textContent='';
+    if(statusEl) statusEl.textContent='';
+    if(messageEl) messageEl.textContent='';
     window.emailValidated=false;
     return;
   }
-  statusEl.textContent='🔄';
-  messageEl.textContent='검증 중...';
   emailCheckTimeout=setTimeout(()=>{
     checkEmailValidity(email);
-  },500);
+  },300);
 }
 function checkEmailValidity(email){
   const statusEl=document.getElementById('email-status');
   const messageEl=document.getElementById('email-message');
   const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if(!emailRegex.test(email)){
-    statusEl.textContent='❌';
-    messageEl.textContent='유효하지 않은 이메일 형식입니다.';
-    messageEl.style.color='#ff7b8a';
+    if(statusEl) statusEl.textContent='❌';
+    if(messageEl){ messageEl.textContent='올바른 이메일 형식이 아닙니다.'; messageEl.style.color='#ff7b8a'; }
     window.emailValidated=false;
     return;
   }
-  fetch('/api/auth/verify-email/',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
-    body:JSON.stringify({email:email})
-  }).then(r=>{
-    if(!r.ok) return r.json().then(d=>{throw d;});
-    return r.json();
-  }).then(data=>{
-    if(data.valid||data.available){
-      statusEl.textContent='✅';
-      messageEl.textContent='사용 가능한 이메일입니다.';
-      messageEl.style.color='#06d6a0';
-      window.emailValidated=true;
-    }else{
-      statusEl.textContent='❌';
-      messageEl.textContent=data.message||'이미 가입된 이메일입니다.';
-      messageEl.style.color='#ff7b8a';
-      window.emailValidated=false;
-    }
-  }).catch(err=>{
-    statusEl.textContent='⚠️';
-    messageEl.textContent='검증 서버 오류입니다.';
-    messageEl.style.color='#ffd166';
-    window.emailValidated=false;
-  });
+  if(statusEl) statusEl.textContent='✅';
+  if(messageEl){ messageEl.textContent='사용 가능한 이메일 형식입니다.'; messageEl.style.color='#06d6a0'; }
+  window.emailValidated=true;
 }
 // 비밀번호 검증
 function debouncePasswordCheck(password){
