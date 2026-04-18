@@ -859,7 +859,7 @@ html[data-theme="dark"] .date-divider-text {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-width: 65%;
+  max-width: 72%;
 }
 
 .message-group.me .msg-content {
@@ -903,10 +903,12 @@ html[data-theme="dark"] .date-divider-text {
   letter-spacing: -0.02em;
   position: relative;
   box-shadow: var(--bubble-shadow);
+  white-space: pre-wrap;
   word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  max-width: 75%;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+  line-break: strict;
+  max-width: 100%;
   min-width: 0;
 }
 
