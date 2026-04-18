@@ -1635,7 +1635,7 @@ function renderSingleHariBubble(text, options = {}) {
 
   const html = `
     <div class="message-group other ${groupClass} ${animate ? '' : 'no-animate'}" id="${msgId}">
-      <div class="msg-profile" style="${isFirst ? '' : 'visibility:hidden;width:44px;flex-shrink:0;'}">
+      <div class="msg-profile" onclick="openHariProfile()" title="하리 프로필 보기" style="${isFirst ? 'cursor:pointer;' : 'visibility:hidden;width:44px;flex-shrink:0;'}">
         <img src="${window.hariCurrentProfile || '{% static 'images/hari_image19.webp' %}'}" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
       </div>
       <div class="msg-content">
@@ -1791,7 +1791,7 @@ function showTyping() {
   const messages = document.getElementById('messages');
   const typingHTML = `
     <div class="typing-indicator" id="typingIndicator">
-      <div class="msg-profile">
+      <div class="msg-profile" onclick="openHariProfile()" title="하리 프로필 보기" style="cursor:pointer;">
         <img src="${window.hariCurrentProfile || '{% static 'images/hari_image19.webp' %}'}" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
       </div>
       <div class="typing-bubble">
