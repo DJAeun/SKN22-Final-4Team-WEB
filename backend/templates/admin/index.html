@@ -716,7 +716,7 @@ function makeDemoLabels(period) {
     }
   } else if (period === 'weekly') {
     /* 최근 4주 */
-    labels = ['3주 전', '2주 전', '지난 주', '이번 주'];
+    labels = makeWeeklyLabels(4);
   } else if (period === 'monthly') {
     /* 최근 6개월 */
     for (i = 5; i >= 0; i--) {
@@ -727,6 +727,31 @@ function makeDemoLabels(period) {
     /* 최근 5년 */
     var y = now.getUTCFullYear();
     for (i = 4; i >= 0; i--) labels.push((y - i) + '년');
+  }
+  return labels;
+}
+
+function getWeekOfMonth(date) {
+  return Math.floor((date.getUTCDate() - 1) / 7) + 1;
+}
+
+function formatWeeklyLabel(date) {
+  return (date.getUTCMonth() + 1) + '월 ' + getWeekOfMonth(date) + '주';
+}
+
+function makeWeeklyLabels(count) {
+  var now = getKSTNow();
+  var y = now.getUTCFullYear();
+  var mo = now.getUTCMonth();
+  var d = now.getUTCDate();
+  var dow = new Date(Date.UTC(y, mo, d)).getDay();  /* 0 = 일요일 */
+  var mondayOffset = dow === 0 ? -6 : 1 - dow;
+  var thisMonday = new Date(Date.UTC(y, mo, d + mondayOffset));
+  var i, labels = [];
+
+  for (i = count - 1; i >= 0; i--) {
+    var weekStart = new Date(thisMonday.getTime() - i * 7 * 86400 * 1000);
+    labels.push(formatWeeklyLabel(weekStart));
   }
   return labels;
 }
@@ -872,6 +897,11 @@ function buildMainCharts(period) {
     ? real.chatCounts.slice(-n)  : DEMO[period].chatCounts;
   var rpg    = (real && real.rpgCounts   && real.rpgCounts.length)
     ? real.rpgCounts.slice(-n)   : DEMO[period].roleplayCounts;
+
+  /* 주간 라벨은 "4월 1주" 형식으로 통일 */
+  if (period === 'weekly') {
+    labels = makeWeeklyLabels(Math.max(visits.length, chats.length, rpg.length, n));
+  }
 
   /* stat 카드 = 마지막 값 (현재 기간 단위의 총합) */
   var lastVisit = visits.length ? visits[visits.length - 1] : 0;
