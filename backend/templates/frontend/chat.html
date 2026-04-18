@@ -806,9 +806,18 @@ html[data-theme="dark"] .date-divider-text {
 .message-group {
   display: flex;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   align-items: flex-end;
   animation: msgFadeIn 0.3s ease-out;
+}
+
+/* 연속 말풍선: 같은 사람이 이어질 때 간격 좁힘 */
+.message-group.continued {
+  margin-bottom: 3px;
+}
+.message-group.continued + .message-group.continued,
+.message-group.continued + .message-group {
+  margin-top: 0;
 }
 
 @keyframes msgFadeIn {
@@ -886,11 +895,11 @@ html[data-theme="dark"] .date-divider-text {
 
 /* 말풍선 공통 스타일 */
 .msg-bubble {
-  padding: 12px 18px;
+  padding: 10px 16px;
   border-radius: 20px;
-  font-size: 1rem;
+  font-size: 0.97rem;
   font-family: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-  line-height: 1.6;
+  line-height: 1.65;
   letter-spacing: -0.02em;
   position: relative;
   box-shadow: var(--bubble-shadow);
@@ -915,6 +924,26 @@ html[data-theme="dark"] .date-divider-text {
   color: white;
   border: none;
   font-weight: 400;
+}
+
+/* 연속 말풍선 모서리 그룹 (카카오톡 스타일) */
+/* 하리(other) 연속 */
+.message-group.other.bubble-mid .msg-bubble,
+.message-group.other.bubble-last .msg-bubble {
+  border-top-left-radius: 6px;
+}
+.message-group.other.bubble-first .msg-bubble,
+.message-group.other.bubble-mid .msg-bubble {
+  border-bottom-left-radius: 6px;
+}
+/* 내(me) 연속 */
+.message-group.me.bubble-mid .msg-bubble,
+.message-group.me.bubble-last .msg-bubble {
+  border-top-right-radius: 6px;
+}
+.message-group.me.bubble-first .msg-bubble,
+.message-group.me.bubble-mid .msg-bubble {
+  border-bottom-right-radius: 6px;
 }
 
 
@@ -1575,7 +1604,8 @@ function sanitizeHari(text) {
 
 function splitMessage(text) {
   if (!text) return [];
-  return text.split(/\n+/).filter(s => s.trim().length > 0);
+  // 빈 줄(\n\n 이상)에서만 말풍선 분리, 단순 줄바꿈은 같은 말풍선 내 <br>로 처리
+  return text.split(/\n{2,}/).map(s => s.trim()).filter(s => s.length > 0);
 }
 
 function renderSingleHariBubble(text, options = {}) {
@@ -1584,14 +1614,29 @@ function renderSingleHariBubble(text, options = {}) {
   const now = timestamp ? new Date(timestamp) : new Date();
   const timeStr = formatTime(now);
   const dateKey = checkAndAddDateDivider(now);
-  
+
   const msgId = 'msg-' + (++messageCounter);
   chatHistory.push({ id: msgId, date: dateKey, time: timeStr, sender: 'hari', text: text });
 
+  // 연속 말풍선 클래스 결정
+  let groupClass = '';
+  if (!isFirst && !isLast) groupClass = 'bubble-mid continued';
+  else if (!isFirst && isLast) groupClass = 'bubble-last continued';
+  else if (isFirst && !isLast) groupClass = 'bubble-first continued';
+
+  // 직전 말풍선의 시간 숨기기 (연속일 때)
+  if (!isFirst) {
+    const prev = messages.querySelector('.message-group.other:last-child');
+    if (prev) {
+      const prevMeta = prev.querySelector('.msg-meta');
+      if (prevMeta) prevMeta.style.display = 'none';
+    }
+  }
+
   const html = `
-    <div class="message-group other ${animate ? '' : 'no-animate'}" id="${msgId}">
-      <div class="msg-profile" style="${isFirst ? '' : 'visibility: hidden; height: 0; margin-top: -8px;'}">
-        <img src="${window.hariCurrentProfile || '{% static 'images/hari_image19.webp' %}'}" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
+    <div class="message-group other ${groupClass} ${animate ? '' : 'no-animate'}" id="${msgId}">
+      <div class="msg-profile" style="${isFirst ? '' : 'visibility:hidden;width:44px;flex-shrink:0;'}">
+        <img src="${window.hariCurrentProfile || '{% static 'images/hari_image19.webp' %}'}" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
       </div>
       <div class="msg-content">
         ${isFirst ? '<div class="msg-name">하리</div>' : ''}
@@ -1625,6 +1670,7 @@ function appendHariMessage(text, isHistory = false, timestamp = null) {
     renderSingleHariBubble(segments[0], { isFirst: true, isLast: segments.length === 1, animate: true });
 
     if (segments.length > 1) {
+      // slice(1) 이후 인덱스 기준: 마지막은 i === segments.length - 2
       bubbleQueue = segments.slice(1).map((seg, i) => ({ text: seg, isLast: i === segments.length - 2 }));
       scheduleNextBubble();
     } else {
