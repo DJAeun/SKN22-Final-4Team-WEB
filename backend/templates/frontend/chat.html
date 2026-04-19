@@ -1826,13 +1826,25 @@ function closeSearch() {
   document.getElementById('searchModal').style.display = 'none';
 }
 
+let currentSearchTab = 'keyword';
+
 function switchSearchTab(event, tab) {
+  currentSearchTab = tab;
   document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
   event.currentTarget.classList.add('active');
   document.getElementById('dateFilter').style.display = (tab === 'date') ? 'flex' : 'none';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchResults').innerHTML = `
+    <div class="search-no-results" style="text-align: center; padding: 40px 10px; color: var(--text-dim);">
+      <div style="font-size: 32px; margin-bottom: 12px; opacity: 0.3;">💬</div>
+      <div style="font-size: 13px; line-height: 1.6;">
+        ${tab === 'date' ? '날짜를 선택하고 검색해줘!' : '검색어를 입력해줘!'}
+      </div>
+    </div>`;
 }
 
 function performSearch() {
+  if (currentSearchTab !== 'keyword') return;
   const query = document.getElementById('searchInput').value.trim().toLowerCase();
   const resultsContainer = document.getElementById('searchResults');
   if (!query) {
