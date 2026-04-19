@@ -186,7 +186,7 @@ if _db_host:
             'PASSWORD': os.environ.get('DB_PASSWORD') or os.environ.get('RDS_PASSWORD'),
             'HOST': _db_host,
             'PORT': os.environ.get('DB_PORT') or os.environ.get('RDS_PORT', '5432'),
-            'CONN_MAX_AGE': 600,
+            'CONN_MAX_AGE': 0,
             'OPTIONS': {
                 'sslmode': os.environ.get('DB_SSLMODE', 'require'),
                 'connect_timeout': 10,
