@@ -47,7 +47,9 @@
       "Bash(python -c ' *)",
       "Bash(python -u -c ' *)",
       "Bash(python heygen_pipeline/generate_video.py \"c:\\\\Workspaces\\\\SKN22-Final-4Team-WEB\\\\heygen_pipeline\\\\input_audio\\\\voice21_clone3 \\(4\\).wav\" --skip-subtitles)",
-      "Bash(PYTHONIOENCODING=utf-8 python heygen_pipeline/generate_video.py \"c:\\\\Workspaces\\\\SKN22-Final-4Team-WEB\\\\heygen_pipeline\\\\input_audio\\\\voice21_clone3 \\(4\\).wav\" --skip-subtitles)"
+      "Bash(PYTHONIOENCODING=utf-8 python heygen_pipeline/generate_video.py \"c:\\\\Workspaces\\\\SKN22-Final-4Team-WEB\\\\heygen_pipeline\\\\input_audio\\\\voice21_clone3 \\(4\\).wav\" --skip-subtitles)",
+      "Bash(grep -E \"\\\\.\\(py|js|ts|tsx\\)$\")",
+      "Bash(find *)"
     ]
   }
 }

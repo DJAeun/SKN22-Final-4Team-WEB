@@ -2,6 +2,7 @@ import os
 import re
 import random
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import psycopg
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -208,6 +209,7 @@ COBOL이나 메인프레임 같은 옛날 기술은 잘 몰라.
             memory_context = ""
             try:
                 from .memory_vector import (
+                    embed_text,
                     retrieve_hari_knowledge,
                     retrieve_relevant_memories,
                     retrieve_user_persona,
@@ -219,61 +221,18 @@ COBOL이나 메인프레임 같은 옛날 기술은 잘 몰라.
                 # int(session_id) for regular sessions where they are the same.
                 user_id = user_id if user_id is not None else int(session_id)
 
-                # 1. Hari's persona — relevant Q&A from hari_knowledge
-                hari_facts = retrieve_hari_knowledge(user_input, top_k=5)
-                if hari_facts:
-                    qa_lines = [
-                        f"- Q: {f['question']}? → A: {f['answer']}"
-                        for f in hari_facts
-                    ]
-                    memory_context += (
-                        "\n\n[하리 페르소나]\n"
-                        "다음은 너(하리)에 대한 설정이야. "
-                        "이 정보를 바탕으로 일관되게 대답해. "
-                        "설정에 없는 내용은 자연스럽게 만들어도 되지만, 설정과 모순되면 안 돼:\n"
-                        + "\n".join(qa_lines)
-                    )
+                # ── Phase 1: Run embedding + persona DB query in parallel ──
+                # All three vector retrievals embed the same user_input, so we
+                # compute it once and share the vector.
+                query_vector = None
+                persona_facts = []
 
-                # 2. Hari's generated content — her video scripts
-                content_results = retrieve_generated_contents(user_input, top_k=3)
-                if content_results:
-                    content_lines = []
-                    for c in content_results:
-                        line = f"- {c['summary']}" if c.get('summary') else ""
-                        if c.get('title'):
-                            line = f"- [{c['title']}] {c.get('summary', '')}"
-                        if c.get('script_text'):
-                            snippet = c['script_text'][:200]
-                            line += f"\n  (내가 영상에서 한 말: {snippet}...)"
-                        content_lines.append(line)
-                    memory_context += (
-                        "\n\n[하리의 콘텐츠]\n"
-                        "다음은 네가 만들어서 올린 숏폼/릴스 영상들이야. "
-                        "이 주제에 대해 얘기할 때는 네가 직접 만든 콘텐츠라는 걸 자연스럽게 언급해도 돼:\n"
-                        + "\n".join(content_lines)
-                    )
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    fut_embed = pool.submit(embed_text, user_input)
+                    fut_persona = pool.submit(retrieve_user_persona, user_id)
 
-                # 3. Knowledge boundary + web search decision (single LLM call)
-                boundary_result = classify_and_decide_search(user_input, content_results)
-                if boundary_result.needs_search and boundary_result.search_query:
-                    web_results = perform_web_search(boundary_result.search_query, max_results=3)
-                    if web_results:
-                        used_web_search = True
-                        web_lines = [
-                            f"- {r['title']}: {r['content'][:300]}"
-                            for r in web_results
-                        ]
-                        memory_context += (
-                            "\n\n[최신 정보]\n"
-                            "다음은 이 주제에 대한 최신 정보야. "
-                            "이 내용을 네가 원래 알고 있던 것처럼 자연스럽게 말해. "
-                            "출처를 언급하거나 검색했다고 말하지 마. "
-                            "요약하듯이 나열하지 말고 대화하듯이 편하게 풀어서 얘기해:\n"
-                            + "\n".join(web_lines)
-                        )
-
-                # 4. User persona — stable facts about this user
-                persona_facts = retrieve_user_persona(user_id)
+                    query_vector = fut_embed.result()
+                    persona_facts = fut_persona.result()
 
                 # Pull tone/title preferences out of the persona rows so they
                 # don't leak into the [유저 정보] block, and use them to shape
@@ -298,8 +257,79 @@ COBOL이나 메인프레임 같은 옛날 기술은 잘 몰라.
                         + "\n".join(fact_lines)
                     )
 
-                # 5. Past conversations — semantically relevant transcripts
-                memories = retrieve_relevant_memories(user_id, user_input, top_k=3)
+                # ── Phase 2: Run all 3 vector DB queries in parallel ──
+                # Reuse the pre-computed query_vector to skip redundant embeddings.
+                hari_facts = []
+                content_results = []
+                memories = []
+
+                with ThreadPoolExecutor(max_workers=3) as pool:
+                    fut_hari = pool.submit(
+                        retrieve_hari_knowledge, user_input, 5, query_vector
+                    )
+                    fut_content = pool.submit(
+                        retrieve_generated_contents, user_input, 3, 0.3, query_vector
+                    )
+                    fut_memories = pool.submit(
+                        retrieve_relevant_memories, user_id, user_input, 3, query_vector
+                    )
+
+                    hari_facts = fut_hari.result()
+                    content_results = fut_content.result()
+                    memories = fut_memories.result()
+
+                # 1. Hari's persona — relevant Q&A from hari_knowledge
+                if hari_facts:
+                    qa_lines = [
+                        f"- Q: {f['question']}? → A: {f['answer']}"
+                        for f in hari_facts
+                    ]
+                    memory_context += (
+                        "\n\n[하리 페르소나]\n"
+                        "다음은 너(하리)에 대한 설정이야. "
+                        "이 정보를 바탕으로 일관되게 대답해. "
+                        "설정에 없는 내용은 자연스럽게 만들어도 되지만, 설정과 모순되면 안 돼:\n"
+                        + "\n".join(qa_lines)
+                    )
+
+                # 2. Hari's generated content — her video scripts
+                if content_results:
+                    content_lines = []
+                    for c in content_results:
+                        line = f"- {c['summary']}" if c.get('summary') else ""
+                        if c.get('title'):
+                            line = f"- [{c['title']}] {c.get('summary', '')}"
+                        if c.get('script_text'):
+                            snippet = c['script_text'][:200]
+                            line += f"\n  (내가 영상에서 한 말: {snippet}...)"
+                        content_lines.append(line)
+                    memory_context += (
+                        "\n\n[하리의 콘텐츠]\n"
+                        "다음은 네가 만들어서 올린 숏폼/릴스 영상들이야. "
+                        "이 주제에 대해 얘기할 때는 네가 직접 만든 콘텐츠라는 걸 자연스럽게 언급해도 돼:\n"
+                        + "\n".join(content_lines)
+                    )
+
+                # 3. Knowledge boundary + web search decision (sequential — depends on content_results)
+                boundary_result = classify_and_decide_search(user_input, content_results)
+                if boundary_result.needs_search and boundary_result.search_query:
+                    web_results = perform_web_search(boundary_result.search_query, max_results=3)
+                    if web_results:
+                        used_web_search = True
+                        web_lines = [
+                            f"- {r['title']}: {r['content'][:300]}"
+                            for r in web_results
+                        ]
+                        memory_context += (
+                            "\n\n[최신 정보]\n"
+                            "다음은 이 주제에 대한 최신 정보야. "
+                            "이 내용을 네가 원래 알고 있던 것처럼 자연스럽게 말해. "
+                            "출처를 언급하거나 검색했다고 말하지 마. "
+                            "요약하듯이 나열하지 말고 대화하듯이 편하게 풀어서 얘기해:\n"
+                            + "\n".join(web_lines)
+                        )
+
+                # 4. Past conversations
                 if memories:
                     memory_lines = [
                         f"- ({m['ended_at']}): {m['summary'][:500]}"
