@@ -91,7 +91,9 @@
 
 ## 3. System Architecture
 
-새로운 그림 넣기
+<img width="1899" height="1124" alt="readme1" src="https://github.com/user-attachments/assets/c163086b-28a9-4314-bc9b-149e5b994505" />
+<img width="2372" height="914" alt="1e18e22572cb9603" src="https://github.com/user-attachments/assets/17a6de64-eadd-41e5-8758-162a87804746" />
+<img width="2372" height="1062" alt="7f66dae7009ab4f9" src="https://github.com/user-attachments/assets/5d53aac9-451a-4e20-a33b-87dc156bfe80" />
 
 ---
 
