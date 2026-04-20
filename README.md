@@ -133,6 +133,7 @@ pip install -r requirements.txt
 
 ### Run Server
 ```bash
+cd backend
 python manage.py runserver
 ```
 
@@ -190,7 +191,7 @@ SKN22-Final-4Team-WEB/
 │   │   │   ├── video.html         # 영상 페이지
 │   │   │   ├── membership.html    # 멤버십 페이지
 │   │   │   └── includes/          # 재사용 컴포넌트 템플릿
-│   │   │       ├── homepage/      # Hero, About, Gallery, Video, Contact 등
+│   │   │       ├── homepage/      # Hero, About, Gallery, Video, Footer(Contact 포함) 등
 │   │   │       ├── mypage/        # Topbar, Sidebar, MyInfo, BuyModal 등
 │   │   │       └── chat/          # Header, Messages, Input, Status, Search 등
 │   │   └── admin/                 # Django Admin 커스텀 템플릿
@@ -243,17 +244,20 @@ SKN22-Final-4Team-WEB/
 | `/` | `homepage` | 하리 랜딩 홈페이지 |
 | `/homepage/` | `homepage` | 하리 메인 랜딩 페이지 |
 | `/hari-chat/` | `frontend_chat` | 하리 실시간 채팅 UI |
-| `/mypage/` | `mypage` | 팬클럽 대시보드 |
+| `/mypage/` | `mypage` | 팬 대시보드 (내 정보) |
 | `/abouthari/` | `abouthari_page` | 하리 소개 페이지 |
 | `/gallery/` | `gallery_page` | 이미지 갤러리 페이지 |
-| `/news/` | `news_page` | 뉴스/이벤트 페이지 |
 | `/video/` | `video_page` | 영상 콘텐츠 페이지 |
 | `/membership/` | `membership_page` | 멤버십 소개 페이지 |
-| `/contact/` | `contact_form` | 문의 제출 엔드포인트 |
+| `/contact/` | `contact_form` | 문의 제출 엔드포인트 (Footer 내 폼) |
 | `/roleplay/` | `roleplay_page` | 롤플레잉 메인 페이지 |
 | `/health/` | `health_check` | 서버 헬스체크 |
 | `/admin/` | Django Admin | 관리자 페이지 |
 | `/admin/dashboard-stats/` | `admin_stats_api` | 관리자 대시보드 통계 API |
+| `/admin/youtube-stats/` | `youtube_stats_api` | YouTube 채널 통계 API |
+| `/admin/youtube-analytics/` | `youtube_analytics_api` | YouTube Analytics API |
+| `/admin/instagram-stats/` | `instagram_stats_api` | Instagram 통계 API |
+| `/admin/tiktok-stats/` | `tiktok_stats_api` | TikTok 통계 API |
 | `/accounts/` | allauth | 소셜 로그인/계정 관리 |
 | `/api/auth/` | dj-rest-auth | 로그인/로그아웃/JWT 인증 API |
 | `/api/auth/registration/` | `frontend_signup_view` + dj-rest-auth registration | 회원가입 처리 엔드포인트 |
@@ -333,6 +337,15 @@ cp .env.example .env
 | `EMAIL_HOST_PASSWORD` | 메일 발송 SMTP 비밀번호 |
 | `S3_BUCKET` | 스크립트/산출물 S3 버킷 |
 | `HEYGEN_API_KEY` | HeyGen 영상 생성 API 키 |
+| `YOUTUBE_API_KEY` | YouTube Data API v3 키 (영상/채널 정보 조회) |
+| `YOUTUBE_CHANNEL_HANDLE` | YouTube 채널 핸들 (기본값: `Hari-o5m2r`) |
+| `YOUTUBE_CLIENT_ID` | YouTube Analytics OAuth2 클라이언트 ID |
+| `YOUTUBE_CLIENT_SECRET` | YouTube Analytics OAuth2 클라이언트 시크릿 |
+| `INSTAGRAM_APP_ID` | Instagram Graph API 앱 ID |
+| `INSTAGRAM_APP_SECRET` | Instagram Graph API 앱 시크릿 |
+| `INSTAGRAM_ACCESS_TOKEN` | Instagram Graph API 액세스 토큰 |
+| `TIKTOK_CLIENT_KEY` | TikTok API 클라이언트 키 |
+| `TIKTOK_CLIENT_SECRET` | TikTok API 클라이언트 시크릿 |
 
 ---
 
