@@ -38,7 +38,16 @@
       "Bash(grep -n \"HariKnowledge\\\\|hariknowledge\" c:/Workspaces/SKN22-Final-4Team-WEB/backend/chat/migrations/*.py)",
       "Bash(aws --version)",
       "Bash(aws logs describe-log-groups:*)",
-      "Bash(aws cloudwatch get-metric-statistics:*)"
+      "Bash(aws cloudwatch get-metric-statistics:*)",
+      "Bash(grep -r \"openai\\\\|claude\\\\|llm\\\\|gpt\" /c/Workspaces/SKN22-Final-4Team-WEB/backend/*.py /c/Workspaces/SKN22-Final-4Team-WEB/backend/config/*.py)",
+      "WebSearch",
+      "Bash(python cost_calculator.py)",
+      "Bash(PYTHONIOENCODING=utf-8 python cost_calculator.py)",
+      "Bash(pip install *)",
+      "Bash(python -c ' *)",
+      "Bash(python -u -c ' *)",
+      "Bash(python heygen_pipeline/generate_video.py \"c:\\\\Workspaces\\\\SKN22-Final-4Team-WEB\\\\heygen_pipeline\\\\input_audio\\\\voice21_clone3 \\(4\\).wav\" --skip-subtitles)",
+      "Bash(PYTHONIOENCODING=utf-8 python heygen_pipeline/generate_video.py \"c:\\\\Workspaces\\\\SKN22-Final-4Team-WEB\\\\heygen_pipeline\\\\input_audio\\\\voice21_clone3 \\(4\\).wav\" --skip-subtitles)"
     ]
   }
 }
