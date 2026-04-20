@@ -48,14 +48,17 @@ def save_summary_vector(memory_id: int, vector: list) -> None:
         )
 
 
-def retrieve_relevant_memories(user_id: int, query_text: str, top_k: int = 3):
+def retrieve_relevant_memories(user_id: int, query_text: str, top_k: int = 3, query_vector=None):
     """
     Find the top-k most semantically similar past conversations for a user.
 
     Returns list of dicts: [{"summary": str, "ended_at": datetime, "similarity": float}]
     Returns [] on any failure.
+
+    If query_vector is provided, skips the embedding call (for parallelization).
     """
-    query_vector = embed_text(query_text)
+    if query_vector is None:
+        query_vector = embed_text(query_text)
     if query_vector is None:
         return []
 
@@ -85,14 +88,17 @@ def retrieve_relevant_memories(user_id: int, query_text: str, top_k: int = 3):
     ]
 
 
-def retrieve_hari_knowledge(query_text: str, top_k: int = 5):
+def retrieve_hari_knowledge(query_text: str, top_k: int = 5, query_vector=None):
     """
     Find the top-k most relevant Hari persona Q&As for a given query.
 
     Returns list of dicts: [{"category": str, "question": str, "answer": str, "similarity": float}]
     Returns [] on any failure.
+
+    If query_vector is provided, skips the embedding call (for parallelization).
     """
-    query_vector = embed_text(query_text)
+    if query_vector is None:
+        query_vector = embed_text(query_text)
     if query_vector is None:
         return []
 
@@ -122,14 +128,17 @@ def retrieve_hari_knowledge(query_text: str, top_k: int = 5):
     ]
 
 
-def retrieve_generated_contents(query_text: str, top_k: int = 3, min_similarity: float = 0.3):
+def retrieve_generated_contents(query_text: str, top_k: int = 3, min_similarity: float = 0.3, query_vector=None):
     """
     Find the top-k most relevant Hari-generated content (scripts/videos) for a query.
 
     Returns list of dicts with title, script_text, summary, tags, platform,
     uploaded_at, content_url, and similarity. Returns [] on any failure.
+
+    If query_vector is provided, skips the embedding call (for parallelization).
     """
-    query_vector = embed_text(query_text)
+    if query_vector is None:
+        query_vector = embed_text(query_text)
     if query_vector is None:
         return []
 
