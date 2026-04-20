@@ -65,6 +65,20 @@
     margin-left: 6px; white-space: nowrap;
   }
 
+  /* ── IG 주차 선택 바 ── */
+  .ig-week-bar {
+    display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; align-items: center;
+    padding: 8px 12px; background: #faf5ff; border: 1.5px solid #e8d5f8; border-radius: 10px;
+  }
+  .ig-week-bar-label { font-size: 0.72rem; font-weight: 600; color: #7c3aed; margin-right: 4px; white-space: nowrap; }
+  .week-btn {
+    padding: 5px 14px; border: 1.5px solid #c4b5fd; background: #ffffff;
+    border-radius: 20px; font-family: inherit; font-size: 0.76rem; font-weight: 500; color: #7c3aed;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .week-btn:hover  { border-color: #8134af; background: #f3eeff; }
+  .week-btn.active { background: #8134af; border-color: #8134af; color: #ffffff; font-weight: 600; }
+
   /* ── 탭 패널 ── */
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
@@ -501,6 +515,26 @@
         <span class="period-hint" id="igPeriodHint">최근 7일</span>
       </div>
 
+      <!-- IG 일별 세부 선택 (일별 클릭 시 표시) -->
+      <div class="ig-week-bar" id="igDayBar" style="display:none;">
+        <span class="ig-week-bar-label">날짜 선택:</span>
+      </div>
+
+      <!-- IG 주차 세부 선택 (주간별 클릭 시 표시) -->
+      <div class="ig-week-bar" id="igWeekBar" style="display:none;">
+        <span class="ig-week-bar-label">주 선택:</span>
+      </div>
+
+      <!-- IG 월별 세부 선택 (월별 클릭 시 표시) -->
+      <div class="ig-week-bar" id="igMonthBar" style="display:none;">
+        <span class="ig-week-bar-label">월 선택:</span>
+      </div>
+
+      <!-- IG 연별 세부 선택 (연별 클릭 시 표시) -->
+      <div class="ig-week-bar" id="igYearBar" style="display:none;">
+        <span class="ig-week-bar-label">연도 선택:</span>
+      </div>
+
       <!-- Top5 게시물 통계 (조회수/좋아요 탭 전환) -->
       <div class="chart-card chart-full">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
@@ -518,6 +552,11 @@
         </div>
         <div id="instaNoData" class="no-data-msg" style="display:none;height:260px;">
           이 기간에 게시물 데이터가 없습니다
+        </div>
+        <div style="margin-top:12px; padding:10px 14px; background:#faf5ff; border:1.5px solid #e8d5f8; border-radius:10px; font-size:0.74rem; color:#6b21a8; line-height:1.6;">
+          <strong>⚠️ 조회수 0 표시 안내</strong><br>
+          최근 게시물(약 48시간 이내)은 Instagram API가 아직 데이터를 집계 중이라 조회수가 0으로 표시될 수 있습니다.
+          실제 조회수는 Instagram 앱 인사이트에서 확인해 주세요.
         </div>
       </div>
     </div><!-- /Instagram section -->
@@ -682,6 +721,12 @@ var mainPeriod     = 'daily';
 var platformPeriod = 'daily';
 var ytPeriod       = 'daily';
 var igPeriod       = 'daily';
+var igWeekStart    = null;   /* 특정 주 시작일 (Date) */
+var igWeekEnd      = null;   /* 특정 주 종료일 (Date) */
+var igMonthStart   = null;   /* 특정 월 시작일 (Date) */
+var igMonthEnd     = null;   /* 특정 월 종료일 (Date) */
+var igYearStart    = null;   /* 특정 연 시작일 (Date) */
+var igYearEnd      = null;   /* 특정 연 종료일 (Date) */
 var tabDirty       = { main: false };
 var snsInitialized = false;
 
@@ -1111,16 +1156,239 @@ function buildYTMetricChart() {
 }
 
 /* ════════════════════════════════════════════════
+   IG 주차 버튼 생성 (최근 4주)
+   ════════════════════════════════════════════════ */
+function buildIGWeekButtons() {
+  var bar = document.getElementById('igWeekBar');
+  if (!bar) return;
+
+  /* 라벨 유지하고 버튼만 초기화 */
+  var labelEl = bar.querySelector('.ig-week-bar-label');
+  bar.innerHTML = '';
+  if (!labelEl) { labelEl = document.createElement('span'); labelEl.className = 'ig-week-bar-label'; labelEl.textContent = '주 선택:'; }
+  bar.appendChild(labelEl);
+
+  /* KST 기준 이번 주 월요일 계산 */
+  var now = getKSTNow();
+  var dow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).getDay();
+  var mondayOffset = dow === 0 ? -6 : 1 - dow;
+  var thisMonday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + mondayOffset));
+
+  /* 최근 4주 생성 (오래된 순) */
+  var weeks = [];
+  for (var i = 3; i >= 0; i--) {
+    var mon = new Date(thisMonday.getTime() - i * 7 * 86400000);
+    var sun = new Date(mon.getTime() + 6 * 86400000);
+    var weekNum = Math.ceil(mon.getUTCDate() / 7);
+    var monthNum = mon.getUTCMonth() + 1;
+    /* 주가 월 경계를 넘을 경우 일요일 기준 월 사용 */
+    if (sun.getUTCMonth() !== mon.getUTCMonth() && sun.getUTCDate() >= mon.getUTCDate()) {
+      monthNum = sun.getUTCMonth() + 1;
+      weekNum  = 1;
+    }
+    weeks.push({ mon: mon, sun: sun, label: monthNum + '월 ' + weekNum + '주' });
+  }
+
+  weeks.forEach(function(w, idx) {
+    var btn = document.createElement('button');
+    btn.className = 'week-btn' + (idx === weeks.length - 1 ? ' active' : '');
+    btn.textContent = w.label;
+    (function(week) {
+      btn.addEventListener('click', function() {
+        bar.querySelectorAll('.week-btn').forEach(function(b){ b.classList.remove('active'); });
+        this.classList.add('active');
+        igWeekStart = week.mon;
+        igWeekEnd   = week.sun;
+        var hintEl = document.getElementById('igPeriodHint');
+        if (hintEl) hintEl.textContent = week.label;
+        buildIGCharts('weekly');
+      });
+    })(w);
+    bar.appendChild(btn);
+  });
+
+  /* 기본값: 가장 최근 주 */
+  igWeekStart = weeks[weeks.length - 1].mon;
+  igWeekEnd   = weeks[weeks.length - 1].sun;
+  var hintEl = document.getElementById('igPeriodHint');
+  if (hintEl) hintEl.textContent = weeks[weeks.length - 1].label;
+}
+
+/* IG 일별 버튼 생성 (최근 7일) */
+function buildIGDayButtons() {
+  var bar = document.getElementById('igDayBar');
+  if (!bar) return;
+  var labelEl = bar.querySelector('.ig-week-bar-label');
+  bar.innerHTML = '';
+  if (!labelEl) { labelEl = document.createElement('span'); labelEl.className = 'ig-week-bar-label'; labelEl.textContent = '날짜 선택:'; }
+  bar.appendChild(labelEl);
+
+  var mnames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  var dnames = ['일','월','화','수','목','금','토'];
+  var now = getKSTNow();
+  var days = [];
+  for (var i = 6; i >= 0; i--) {
+    var d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i));
+    var dow = d.getDay();
+    days.push({ date: d, label: (d.getUTCMonth()+1) + '/' + d.getUTCDate() + '(' + dnames[dow] + ')' });
+  }
+
+  days.forEach(function(day, idx) {
+    var btn = document.createElement('button');
+    btn.className = 'week-btn' + (idx === days.length - 1 ? ' active' : '');
+    btn.textContent = day.label;
+    (function(d) {
+      btn.addEventListener('click', function() {
+        bar.querySelectorAll('.week-btn').forEach(function(b){ b.classList.remove('active'); });
+        this.classList.add('active');
+        igWeekStart = d.date;
+        igWeekEnd   = d.date;
+        var hintEl = document.getElementById('igPeriodHint');
+        if (hintEl) hintEl.textContent = d.label;
+        buildIGCharts('daily');
+      });
+    })(day);
+    bar.appendChild(btn);
+  });
+
+  /* 기본값: 오늘 */
+  igWeekStart = days[days.length - 1].date;
+  igWeekEnd   = days[days.length - 1].date;
+  var hintEl = document.getElementById('igPeriodHint');
+  if (hintEl) hintEl.textContent = days[days.length - 1].label;
+}
+
+/* IG 월별 버튼 생성 (최근 6개월) */
+function buildIGMonthButtons() {
+  var bar = document.getElementById('igMonthBar');
+  if (!bar) return;
+  var labelEl = bar.querySelector('.ig-week-bar-label');
+  bar.innerHTML = '';
+  if (!labelEl) { labelEl = document.createElement('span'); labelEl.className = 'ig-week-bar-label'; labelEl.textContent = '월 선택:'; }
+  bar.appendChild(labelEl);
+
+  var now = getKSTNow();
+  var months = [];
+  for (var i = 5; i >= 0; i--) {
+    var d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    var y = d.getUTCFullYear();
+    var m = d.getUTCMonth();
+    var start = new Date(Date.UTC(y, m, 1));
+    var end   = new Date(Date.UTC(y, m + 1, 0));
+    months.push({ start: start, end: end, label: (m + 1) + '월' });
+  }
+
+  months.forEach(function(mo, idx) {
+    var btn = document.createElement('button');
+    btn.className = 'week-btn' + (idx === months.length - 1 ? ' active' : '');
+    btn.textContent = mo.label;
+    (function(m) {
+      btn.addEventListener('click', function() {
+        bar.querySelectorAll('.week-btn').forEach(function(b){ b.classList.remove('active'); });
+        this.classList.add('active');
+        igMonthStart = m.start;
+        igMonthEnd   = m.end;
+        var hintEl = document.getElementById('igPeriodHint');
+        if (hintEl) hintEl.textContent = m.label;
+        buildIGCharts('monthly');
+      });
+    })(mo);
+    bar.appendChild(btn);
+  });
+
+  igMonthStart = months[months.length - 1].start;
+  igMonthEnd   = months[months.length - 1].end;
+  var hintEl = document.getElementById('igPeriodHint');
+  if (hintEl) hintEl.textContent = months[months.length - 1].label;
+}
+
+/* IG 연별 버튼 생성 (최근 5년) */
+function buildIGYearButtons() {
+  var bar = document.getElementById('igYearBar');
+  if (!bar) return;
+  var labelEl = bar.querySelector('.ig-week-bar-label');
+  bar.innerHTML = '';
+  if (!labelEl) { labelEl = document.createElement('span'); labelEl.className = 'ig-week-bar-label'; labelEl.textContent = '연도 선택:'; }
+  bar.appendChild(labelEl);
+
+  var now = getKSTNow();
+  var years = [];
+  for (var i = 4; i >= 0; i--) {
+    var y = now.getUTCFullYear() - i;
+    years.push({ start: new Date(Date.UTC(y, 0, 1)), end: new Date(Date.UTC(y, 11, 31)), label: y + '년' });
+  }
+
+  years.forEach(function(yr, idx) {
+    var btn = document.createElement('button');
+    btn.className = 'week-btn' + (idx === years.length - 1 ? ' active' : '');
+    btn.textContent = yr.label;
+    (function(y) {
+      btn.addEventListener('click', function() {
+        bar.querySelectorAll('.week-btn').forEach(function(b){ b.classList.remove('active'); });
+        this.classList.add('active');
+        igYearStart = y.start;
+        igYearEnd   = y.end;
+        var hintEl = document.getElementById('igPeriodHint');
+        if (hintEl) hintEl.textContent = y.label;
+        buildIGCharts('yearly');
+      });
+    })(yr);
+    bar.appendChild(btn);
+  });
+
+  igYearStart = years[years.length - 1].start;
+  igYearEnd   = years[years.length - 1].end;
+  var hintEl = document.getElementById('igPeriodHint');
+  if (hintEl) hintEl.textContent = years[years.length - 1].label;
+}
+
+/* ════════════════════════════════════════════════
    Instagram 섹션 차트 빌드
    ════════════════════════════════════════════════ */
 function buildIGCharts(period, forceMetric) {
-  var cutoff  = getPeriodCutoff(period);
-  var label   = getPeriodLabel(period);
+  var cutoff, rangeEnd, label;
+
+  if (period === 'daily' && igWeekStart) {
+    cutoff   = igWeekStart;
+    rangeEnd = igWeekEnd || igWeekStart;
+    label    = document.querySelector('#igDayBar .week-btn.active')
+                 ? document.querySelector('#igDayBar .week-btn.active').textContent
+                 : getPeriodLabel(period);
+  } else if (period === 'weekly' && igWeekStart && igWeekEnd) {
+    cutoff   = igWeekStart;
+    rangeEnd = igWeekEnd;
+    label    = document.querySelector('#igWeekBar .week-btn.active')
+                 ? document.querySelector('#igWeekBar .week-btn.active').textContent
+                 : getPeriodLabel(period);
+  } else if (period === 'monthly' && igMonthStart && igMonthEnd) {
+    cutoff   = igMonthStart;
+    rangeEnd = igMonthEnd;
+    label    = document.querySelector('#igMonthBar .week-btn.active')
+                 ? document.querySelector('#igMonthBar .week-btn.active').textContent
+                 : getPeriodLabel(period);
+  } else if (period === 'yearly' && igYearStart && igYearEnd) {
+    cutoff   = igYearStart;
+    rangeEnd = igYearEnd;
+    label    = document.querySelector('#igYearBar .week-btn.active')
+                 ? document.querySelector('#igYearBar .week-btn.active').textContent
+                 : getPeriodLabel(period);
+  } else {
+    cutoff   = getPeriodCutoff(period);
+    rangeEnd = null;
+    label    = getPeriodLabel(period);
+  }
   var metric  = forceMetric || igMetric;  /* 명시적으로 지표 확정 */
 
   /* 기간 필터 후 현재 지표 기준 정렬 → Top5 */
   var filtered = (IG_MEDIA || []).filter(function(m){
-    return !cutoff || (m.timestamp && new Date(m.timestamp) >= cutoff);
+    if (!m.timestamp) return false;
+    var t = new Date(m.timestamp);
+    if (cutoff && t < cutoff) return false;
+    if (rangeEnd) {
+      var endDay = new Date(Date.UTC(rangeEnd.getUTCFullYear(), rangeEnd.getUTCMonth(), rangeEnd.getUTCDate(), 23, 59, 59));
+      if (t > endDay) return false;
+    }
+    return true;
   });
   var getScore = metric === 'likes'
     ? function(m){ return Number(m.like_count) || 0; }
@@ -1236,9 +1504,31 @@ document.querySelectorAll('.section-period-bar').forEach(function(bar) {
 
       } else if (section === 'ig') {
         igPeriod = period;
-        var igHintEl = document.getElementById('igPeriodHint');
-        if (igHintEl) igHintEl.textContent = getCurrentPeriodInfo(period).hint;
-        buildIGCharts(igPeriod, igMetric);
+        /* 모든 세부 선택 바 숨김 후 해당 바만 표시 */
+        ['igDayBar','igWeekBar','igMonthBar','igYearBar'].forEach(function(id){
+          var el = document.getElementById(id); if (el) el.style.display = 'none';
+        });
+        igWeekStart = null; igWeekEnd = null;
+        igMonthStart = null; igMonthEnd = null;
+        igYearStart  = null; igYearEnd  = null;
+
+        if (period === 'daily') {
+          var b = document.getElementById('igDayBar'); if (b) b.style.display = 'flex';
+          buildIGDayButtons();
+          buildIGCharts('daily', igMetric);
+        } else if (period === 'weekly') {
+          var b = document.getElementById('igWeekBar'); if (b) b.style.display = 'flex';
+          buildIGWeekButtons();
+          buildIGCharts('weekly', igMetric);
+        } else if (period === 'monthly') {
+          var b = document.getElementById('igMonthBar'); if (b) b.style.display = 'flex';
+          buildIGMonthButtons();
+          buildIGCharts('monthly', igMetric);
+        } else if (period === 'yearly') {
+          var b = document.getElementById('igYearBar'); if (b) b.style.display = 'flex';
+          buildIGYearButtons();
+          buildIGCharts('yearly', igMetric);
+        }
       }
     });
   });

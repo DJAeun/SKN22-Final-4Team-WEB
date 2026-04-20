@@ -304,11 +304,15 @@
       display: flex;
       justify-content: space-between;
       gap: 12px;
+      color: var(--text-main);
       padding: 13px 14px;
       border: 1px solid var(--border-gray);
       border-radius: 14px;
       background: linear-gradient(180deg, #fff 0%, #fcfcfc 100%);
       font-size: 14px;
+    }
+    html[data-theme="dark"] .payment-log-item {
+      background: #2a2420;
     }
     .payment-log-key {
       color: var(--text-dim);
@@ -317,6 +321,7 @@
     .payment-log-val {
       font-weight: 600;
       text-align: right;
+      color: var(--text-main);
     }
     .payment-log-actions {
       display: flex;
