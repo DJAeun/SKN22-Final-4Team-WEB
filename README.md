@@ -350,4 +350,7 @@ cp .env.example .env
 
 ## 11. License
 
-본 프로젝트는 **SK네트웍스 Family AI 22기** 교육 과정의 일환으로 제작되었으며, 모든 권리는 **SKN22-Final-4Team**에 있습니다.
+이 프로젝트는 [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/deed.ko) 라이선스를 따릅니다.
+- **비영리 목적으로만 사용 가능합니다.** (상업적 이용 금지)
+- 사용 시 원작자 및 출처를 반드시 명시해야 합니다.
+- 자유로운 복제, 배포 및 수정이 가능합니다.
