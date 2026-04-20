@@ -342,7 +342,7 @@ cp .env.example .env
 | :---: | :--- | :--- | :--- |
 | <img width="60" alt="Image" src="https://github.com/user-attachments/assets/17c43ef6-fbc6-484e-9fe2-09b365c283d1" /> | **최민호** | **PM** | PM, BM 개발, 시장 조사, QA |
 | <img width="60" alt="Image" src="https://github.com/user-attachments/assets/28447344-fbb5-4f26-90bb-11ad3a8fd477" /> | **박준석** | **Frontend** | 기초 페르소나 구축, UI/UX 설계, 관리자 페이지 설계 |
-| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/71c56c29-1306-4cd4-9fe3-78c1b7942096" /> | **안민제** | **AI Lead** | TTS(GPT-SoVITS) 학습 및 생성, 롤플레잉 서비스 개발 |
+| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/71c56c29-1306-4cd4-9fe3-78c1b7942096" /> | **안민제** | **AI Lead** | TTS(GPT-SoVITS) 파인튜닝 및 추론 엔진, 롤플레잉 서비스 개발 |
 | <img width="60" alt="Image" src="https://github.com/user-attachments/assets/c9470eb1-95db-43b0-b8f0-0d953a559891" /> | **한승혁** | **Backend** | 서버 관리, 이미지/영상 학습 및 생성, DB 총괄, 1:1 채팅 개발 |
 | <img width="60" alt="Image" src="https://github.com/user-attachments/assets/05847c89-5f59-4184-81b3-355e85a85fa5" /> | **엄형은** | **Contents** | 대본 생성, 콘텐츠 생성-업로드 자동화 파이프라인 구축 |
 
