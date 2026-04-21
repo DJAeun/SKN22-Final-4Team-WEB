@@ -66,11 +66,6 @@ html[data-theme="dark"] .sidebar-left::after {
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.4) 60%, rgba(55, 35, 50, 0.95) 100%) !important;
 }
 
-html[data-theme="dark"] .sidebar-right {
-  background: #3d2838 !important;
-  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3) !important;
-}
-
 html[data-theme="dark"] .chat-container {
   background: rgba(55, 35, 50, 0.75) !important;
 }
@@ -184,19 +179,6 @@ html, body {
   background: var(--bg-gradient);
   position: relative;
   overflow: hidden;
-}
-
-/* ═══════════════════════════════════════
-   SIDEBAR RIGHT (Search/Tools)
-   ═══════════════════════════════════════ */
-.sidebar-right {
-  width: 320px;
-  background: var(--bg-main);
-  border-left: none;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  z-index: 10;
 }
 
 /* ═══════════════════════════════════════
@@ -1192,48 +1174,6 @@ html[data-theme="dark"] .date-divider-text {
 }
 
 /* ═══════════════════════════════════════
-   EMOJI PICKER
-   ═══════════════════════════════════════ */
-.emoji-picker {
-  position: absolute;
-  bottom: 80px;
-  left: 24px;
-  background: white;
-  border: 0.5px solid var(--border);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 8px 24px rgba(255, 123, 138, 0.2);
-  display: none;
-  max-width: 340px;
-  z-index: 100;
-}
-
-.emoji-picker.show {
-  display: block;
-  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.emoji-grid {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 10px;
-  max-height: 220px;
-  overflow-y: auto;
-}
-
-
-/* ═══════════════════════════════════════
    CONTAINER QUERIES — chat-main 기준
    ═══════════════════════════════════════ */
 .chat-main { container-type: inline-size; container-name: chat-main; }
@@ -1252,10 +1192,6 @@ html[data-theme="dark"] .date-divider-text {
 /* ═══════════════════════════════════════
    MEDIA QUERIES
    ═══════════════════════════════════════ */
-/* 1280px: 우측 사이드바 숨김 */
-@media (max-width: 1280px) {
-  .sidebar-right { display: none; }
-}
 /* 1024px: 레이아웃 풀너비 */
 @media (max-width: 1024px) {
   .app-container { width: 100%; }
