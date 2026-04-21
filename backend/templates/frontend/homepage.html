@@ -12,6 +12,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/LoveType.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2210@1.0/SejongGeulgot.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <script src="{% static 'js/theme.js' %}"></script>
 <style>
@@ -23,6 +26,7 @@
   --f-cute:    'LoveType', sans-serif;
   --f-thin:    'SejongGeulgot', sans-serif;
   --f-neo:     'NeoDunggeunmo', sans-serif;
+  --f-round:   'Jua', sans-serif;
   /* ── HARI COLOR SYSTEM v3 ──────────────────
      컨셉: Bright & Cheerful — 밝고 털털하고 귀여운 하리
      베이스: 따뜻한 순백 (눈에 편함)
@@ -46,8 +50,6 @@
   --s2-bg:  #fff5f6;          /* Profile — 살짝 따뜻한 핑크, 하리 소개 */
   --s3-bg:  #f6fffe;          /* Gallery — 민트 힌트, 신선한 비주얼 */
   --s4-bg:  #fffdf5;          /* Chat — 레몬 힌트, 말풍선 느낌 */
-  --s5-bg:  #ffffff;          /* News — 깔끔하게 */
-  --s6-bg:  #fff5f6;          /* Contact — 핑크 힌트, 친근한 소통 */
   --s7-bg:  #2a2420;          /* Footer — 차콜, 하리 로고 돋보이게 */
   --mem-bg: #ffffff;
 
@@ -72,8 +74,6 @@ html[data-theme="dark"] {
   --s2-bg:  #251d1a;
   --s3-bg:  #1e2724;
   --s4-bg:  #22201a;
-  --s5-bg:  #1a1612;
-  --s6-bg:  #251d1a;
   --s7-bg:  #0f0e0c;
   --mem-bg: #1a1612;
 
@@ -299,6 +299,90 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
 .user-dropdown a:hover, .user-dropdown button:hover { background:rgba(255,123,138,0.08); }
 .user-dropdown .logout-btn { color:var(--acc); border-top:0.5px solid var(--bdr); }
 
+/* ── AUTH FIELD VALIDATION ── */
+.auth-field-msg {
+  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  font-size:0.73rem; min-height:1.1rem; margin-top:4px;
+  transition:color 0.2s;
+}
+.pw-criteria {
+  display:flex; gap:0.5rem; margin-top:0.5rem; flex-wrap:wrap;
+}
+.pw-rule {
+  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  font-size:0.72rem; color:#c0b8b2;
+  display:flex; align-items:center; gap:4px;
+  transition:color 0.25s;
+}
+.pw-rule.ok  { color:#06d6a0; }
+.pw-rule.fail{ color:#ff7b8a; }
+.pw-rule-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:#c0b8b2; flex-shrink:0;
+  transition:background 0.25s;
+}
+.pw-rule.ok  .pw-rule-dot { background:#06d6a0; }
+.pw-rule.fail .pw-rule-dot { background:#ff7b8a; }
+.pw-strength-wrap {
+  margin-top:7px; height:3px;
+  background:#f0ece8; border-radius:2px; overflow:hidden;
+}
+.pw-strength-bar {
+  height:100%; width:0; border-radius:2px;
+  transition:width 0.35s ease, background 0.35s ease;
+}
+:root[data-theme="dark"] .pw-criteria .pw-rule { color:#6b6460; }
+:root[data-theme="dark"] .pw-strength-wrap { background:#3d3530; }
+
+/* ── AUTH TOAST ── */
+#auth-toast {
+  position:fixed; top:1.5rem; left:50%; transform:translateX(-50%) translateY(-140%);
+  z-index:9999; min-width:300px; max-width:420px;
+  background:#fff; border-radius:20px;
+  box-shadow:0 12px 48px rgba(0,0,0,0.14), 0 4px 16px rgba(255,123,138,0.18);
+  padding:1.1rem 1.5rem 1.1rem 1.2rem;
+  display:flex; align-items:center; gap:1rem;
+  transition:transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s;
+  opacity:0;
+  border-left:5px solid var(--acc);
+}
+#auth-toast.show {
+  transform:translateX(-50%) translateY(0);
+  opacity:1;
+}
+#auth-toast.hide {
+  transform:translateX(-50%) translateY(-140%);
+  opacity:0;
+}
+.auth-toast-icon {
+  font-size:2.2rem; flex-shrink:0; line-height:1;
+  filter:drop-shadow(0 2px 6px rgba(255,123,138,0.3));
+}
+.auth-toast-body { flex:1; }
+.auth-toast-title {
+  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  font-size:1rem; font-weight:800; color:#2a2420; margin-bottom:3px;
+  letter-spacing:-0.01em;
+}
+.auth-toast-msg {
+  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  font-size:0.82rem; color:#8c847e; line-height:1.5;
+}
+.auth-toast-close {
+  background:none; border:none; cursor:pointer;
+  font-size:1rem; color:#c0b8b2; padding:0; flex-shrink:0;
+  transition:color 0.2s;
+}
+.auth-toast-close:hover { color:#2a2420; }
+:root[data-theme="dark"] #auth-toast {
+  background:#2a2420;
+  box-shadow:0 8px 40px rgba(0,0,0,0.4), 0 2px 8px rgba(255,123,138,0.2);
+}
+:root[data-theme="dark"] .auth-toast-title { color:#f5f1ed; }
+:root[data-theme="dark"] .auth-toast-msg { color:#9e9490; }
+:root[data-theme="dark"] .auth-toast-close { color:#6b6460; }
+:root[data-theme="dark"] .auth-toast-close:hover { color:#f5f1ed; }
+
 /* ── AUTH MODAL ── */
 #auth-overlay {
   position:fixed; inset:0; z-index:500;
@@ -339,31 +423,31 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
   margin-bottom:2rem;
 }
 .auth-tab {
-  font-family:'DM Mono',monospace; font-size:.62rem;
-  letter-spacing:.16em; text-transform:uppercase;
+  font-family:'Jua',sans-serif; font-size:.82rem;
+  letter-spacing:.02em;
   padding:.7rem 0; margin-right:1.8rem;
   background:transparent; border:none; border-bottom:1.5px solid transparent;
   color:var(--dim); cursor:pointer;
   transition:color .2s, border-color .2s;
   margin-bottom:-0.5px;
 }
-.auth-tab.on { color:var(--ink); border-bottom-color:var(--ink); }
+.auth-tab.on { color:var(--ink); border-bottom-color:var(--acc); }
 
 /* panels */
 .auth-panel { display:none; flex-direction:column; gap:.9rem; }
 .auth-panel.on { display:flex; }
 
 .auth-title {
-  font-family:'Bebas Neue',sans-serif;
-  font-size:2.3rem; letter-spacing:.04em;
+  font-family:'WagleWagle',sans-serif;
+  font-size:2.1rem; letter-spacing:.01em;
   background:linear-gradient(135deg, var(--acc) 0%, #ff5c73 100%);
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
   background-clip:text;
-  line-height:1; margin-bottom:.5rem; font-weight:700;
+  line-height:1.15; margin-bottom:.5rem;
 }
 .auth-sub {
-  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
-  font-size:1.05rem; font-weight:400; line-height:1.8; color:var(--dim);
+  font-family:'Jua',sans-serif;
+  font-size:.95rem; line-height:1.8; color:var(--dim);
   margin-bottom:.8rem;
 }
 
@@ -392,8 +476,8 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
 /* divider */
 .auth-divider {
   display:flex; align-items:center; gap:.8rem;
-  font-family:'DM Mono',monospace; font-size:.54rem;
-  letter-spacing:.14em; text-transform:uppercase; color:var(--dim);
+  font-family:'Jua',sans-serif; font-size:.78rem;
+  letter-spacing:.02em; color:var(--dim);
 }
 .auth-divider::before, .auth-divider::after {
   content:''; flex:1; height:0.5px; background:var(--bdr);
@@ -412,8 +496,8 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
 .auth-inp-row { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
 
 .auth-label {
-  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.78rem;
-  font-weight:600; letter-spacing:.02em;
+  font-family:'Jua',sans-serif; font-size:.82rem;
+  letter-spacing:.01em;
   color:var(--dim); margin-bottom:.4rem; display:block;
 }
 .auth-field { display:flex; flex-direction:column; }
@@ -421,15 +505,30 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
 /* checkbox */
 .auth-check {
   display:flex; align-items:flex-start; gap:.6rem;
-  font-size:.75rem; color:var(--dim); cursor:pointer; line-height:1.6;
+  font-family:'Jua',sans-serif; font-size:.78rem;
+  color:var(--dim); cursor:pointer; line-height:1.7;
 }
-.auth-check input { accent-color:var(--acc); margin-top:3px; flex-shrink:0; }
+.auth-check input { accent-color:var(--acc); margin-top:4px; flex-shrink:0; }
 .auth-check a { color:var(--acc); text-decoration:none; border-bottom:0.5px solid var(--acc); }
+.auth-required-badge {
+  display:inline-block; font-family:'Jua',sans-serif; font-size:.65rem;
+  background:rgba(255,123,138,0.12); color:var(--acc);
+  border:0.5px solid rgba(255,123,138,0.3); border-radius:20px;
+  padding:1px 7px; margin-left:3px; vertical-align:middle;
+  line-height:1.6;
+}
+.auth-optional-badge {
+  display:inline-block; font-family:'Jua',sans-serif; font-size:.65rem;
+  background:rgba(158,148,144,0.1); color:var(--dim);
+  border:0.5px solid rgba(158,148,144,0.25); border-radius:20px;
+  padding:1px 7px; margin-left:3px; vertical-align:middle;
+  line-height:1.6;
+}
 
 /* forgot */
 .auth-forgot {
-  font-family:'DM Mono',monospace; font-size:.56rem;
-  letter-spacing:.1em; color:var(--dim); text-decoration:none;
+  font-family:'Jua',sans-serif; font-size:.76rem;
+  letter-spacing:.01em; color:var(--dim); text-decoration:none;
   border-bottom:0.5px solid var(--bdr2);
   align-self:flex-end; cursor:pointer;
   background:transparent; border-left:none; border-top:none; border-right:none;
@@ -440,11 +539,11 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
 /* submit */
 .auth-submit {
   background:linear-gradient(135deg, #ff7b8a 0%, #ff5c73 100%); border:none; color:#fff;
-  font-family:'DM Mono',monospace; font-size:.85rem;
-  letter-spacing:.14em; text-transform:uppercase;
-  padding:1rem; cursor:pointer; width:100%; font-weight:700;
+  font-family:'Jua',sans-serif; font-size:1rem;
+  letter-spacing:.02em;
+  padding:1rem; cursor:pointer; width:100%;
   transition:all .3s;
-  border-radius:10px;
+  border-radius:24px;
   box-shadow:0 4px 15px rgba(255,123,138,0.4);
 }
 .auth-submit:hover {
@@ -454,12 +553,13 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
 .auth-submit:active { transform:translateY(0); }
 
 .auth-switch {
-  font-size:.9rem; color:var(--dim); text-align:center; line-height:1.8;
+  font-family:'Jua',sans-serif; font-size:.82rem;
+  color:var(--dim); text-align:center; line-height:1.8;
 }
 .auth-switch button {
   background:transparent; border:none; border-bottom:0.5px solid var(--acc);
-  color:var(--acc); font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.9rem;
-  cursor:pointer; padding:0; transition:color .2s; font-weight:500;
+  color:var(--acc); font-family:'Jua',sans-serif; font-size:.82rem;
+  cursor:pointer; padding:0; transition:color .2s;
 }
 .auth-switch button:hover { color:var(--ink); }
 
@@ -514,7 +614,7 @@ body { background:var(--bg); color:var(--ink); font-family:Pretendard,'Apple SD 
 #drawer-bd.show { opacity:1; pointer-events:all; }
 
 /* TICKER */
-#ticker { position:fixed; bottom:0; left:0; right:0; z-index:200; height:26px; border-top:0.5px solid rgba(255,245,246,0.12); background:var(--s6-bg); overflow:hidden; display:flex; align-items:center; }
+#ticker { position:fixed; bottom:0; left:0; right:0; z-index:200; height:26px; border-top:0.5px solid rgba(255,245,246,0.12); background:var(--bg2); overflow:hidden; display:flex; align-items:center; }
 .ticker-track { display:flex; white-space:nowrap; animation:tick 32s linear infinite; }
 .ticker-track span { font-family:'DM Mono',monospace; font-size:.58rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ink); padding:0 2.5rem; }
 .ticker-track span em { font-style:normal; color:var(--acc); margin-right:.6rem; opacity:.8; }
@@ -594,16 +694,19 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 
 .profile-info-content { display:flex; flex-direction:column; gap:2.5rem; }
 .profile-name-row { display:flex; align-items:baseline; justify-content:space-between; border-bottom:0.5px solid var(--bdr); padding-bottom:1.5rem; }
-.profile-char-name { font-family:var(--f-playful); font-size:4rem; color:var(--ink); line-height:1.1; letter-spacing:-0.02em; }
-.profile-more-link { font-family:var(--f-pixel); font-size:.85rem; color:var(--acc); text-decoration:none; border-bottom:1px solid var(--acc); padding-bottom:2px; }
+.profile-char-name {
+  font-family:'Jua',sans-serif; font-size:4.4rem; line-height:1.1; letter-spacing:.02em; color:var(--ink);
+}
+.profile-more-link { font-family:var(--f-round); font-size:.88rem; color:var(--acc); text-decoration:none; border-bottom:1.5px solid var(--acc); padding-bottom:2px; letter-spacing:.01em; }
 
 .profile-sns-row { display:flex; gap:1.5rem; flex-wrap:wrap; }
 .profile-sns-row a { display:flex; align-items:center; gap:.8rem; text-decoration:none; transition:transform .2s; }
 .profile-sns-row a:hover { transform:translateY(-3px); }
 .sns-icon-wrap { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
-.sns-icon-name { font-family:var(--f-pixel); font-size:.75rem; color:var(--dim); text-transform:uppercase; letter-spacing:.05em; }
+.sns-icon-name { font-family:var(--f-round); font-size:.78rem; color:var(--dim); letter-spacing:.01em; }
 
-.profile-desc-box { font-family:'Noto Sans KR',Pretendard,'Apple SD Gothic Neo',sans-serif; font-size:1.05rem; line-height:1.8; letter-spacing:-0.01em; font-weight:400; color:var(--ink); background:rgba(255,123,138,0.03); padding:2rem; border-left:3px solid var(--acc); }
+.profile-desc-box { font-family:'Jua',sans-serif; font-size:.95rem; line-height:1.9; letter-spacing:.01em; color:var(--ink); background:rgba(255,123,138,0.03); padding:2rem; border-left:3px solid var(--acc); }
+#s2 .sec-title { font-family:'Jua',sans-serif; font-size:clamp(1.8rem,4vw,3rem); letter-spacing:.02em; }
 
 @media(max-width:1024px){
   .profile-main-container { flex-direction:column; gap:3rem; }
@@ -941,234 +1044,6 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
   .ft-big-logo-img { height: 60px !important; }
 }
 
-/* §5 NEWS */
-#s5 { background:var(--s5-bg); }
-.news-grid { display:grid; grid-template-columns:1fr 1fr; }
-
-/* §5 YOUTUBE VIDEOS */
-#s5-yt {
-  background:var(--s5-bg);
-  border-bottom:0.5px solid var(--bdr);
-}
-.yt-api-notice {
-  display:flex; align-items:center; gap:.7rem;
-  padding:.55rem 2.5rem;
-  background:rgba(255,123,138,0.06);
-  border-bottom:0.5px solid var(--bdr);
-  font-family:'DM Mono',monospace; font-size:.54rem;
-  letter-spacing:.1em; color:var(--dim);
-}
-.yt-api-notice strong { color:var(--acc); font-weight:400; }
-.yt-api-notice a {
-  color:var(--acc); text-decoration:none;
-  border-bottom:0.5px solid var(--acc);
-  transition:opacity .2s;
-}
-.yt-api-notice a:hover { opacity:.6; }
-/* §5-YT YOUTUBE SWIPER */
-.yt-swiper-container {
-  position: relative;
-  padding: 1.5rem 0 3.5rem;
-  overflow: hidden;
-  background: var(--s5-bg);
-}
-.swiper-yt {
-  width: 100%;
-  height: 520px;
-  padding: 0 50px;
-}
-/* yt-card는 swiper-slide를 겸하므로 별도 .swiper-slide 오버라이드 */
-.swiper-yt .swiper-slide.yt-card {
-  width: 280px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: var(--s5-bg);
-  border: 0.5px solid var(--bdr);
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform .3s, border-color .22s;
-}
-.swiper-yt .swiper-slide.yt-card:hover {
-  transform: scale(1.02);
-  z-index: 10;
-  border-color: var(--acc);
-}
-.yt-thumb-wrap {
-  position: relative;
-  width: 100%;
-  /* 쇼츠 세로 비율 9:16 */
-  padding-bottom: 177.78%;
-  overflow: hidden;
-  background: #1a1410;
-  flex-shrink: 0;
-}
-.yt-thumb-wrap iframe,
-.yt-thumb-wrap img {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  border: none;
-  object-fit: cover;
-}
-.yt-shorts-badge {
-  position: absolute;
-  right: .6rem; bottom: .6rem;
-  background: #ff0000;
-  color: #fff;
-  font-family: 'DM Mono', monospace;
-  font-size: .46rem;
-  letter-spacing: .08em;
-  padding: 2px 7px;
-  pointer-events: none;
-}
-.yt-info {
-  padding: .8rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: .3rem;
-  background: var(--s5-bg);
-}
-.yt-title {
-  font-size: .78rem;
-  color: var(--ink);
-  line-height: 1.45;
-  font-weight: 400;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.yt-meta {
-  font-family: 'DM Mono', monospace;
-  font-size: .5rem;
-  letter-spacing: .07em;
-  text-transform: uppercase;
-  color: var(--dim);
-}
-.yt-link {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  margin-top: .5rem;
-  font-family: 'DM Mono', monospace;
-  font-size: .54rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: #ff0000;
-  text-decoration: none;
-  border-bottom: 0.5px solid #ff0000;
-  padding-bottom: 1px;
-  transition: opacity .2s;
-}
-.yt-link:hover { opacity: .65; }
-
-/* 갤러리와 동일한 Swiper 내비게이션 오버라이드 */
-.swiper-yt .swiper-button-next,
-.swiper-yt .swiper-button-prev {
-  color: var(--acc);
-  background: rgba(255,255,255,0.85);
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  backdrop-filter: blur(4px);
-  border: 1px solid var(--bdr);
-}
-.swiper-yt .swiper-button-next:after,
-.swiper-yt .swiper-button-prev:after {
-  font-size: 1.1rem;
-  font-weight: bold;
-}
-.swiper-yt .swiper-pagination-bullet-active { background: var(--acc) !important; }
-
-
-/* ── YouTube 영상 모달 플레이어 ── */
-#yt-modal-overlay {
-  position:fixed; inset:0; z-index:600;
-  background:rgba(42,36,32,0.85);
-  backdrop-filter:blur(8px);
-  display:flex; align-items:center; justify-content:center;
-  opacity:0; pointer-events:none;
-  transition:opacity .3s;
-}
-#yt-modal-overlay.show { opacity:1; pointer-events:all; }
-#yt-modal-box {
-  width:90vw; max-width:900px;
-  position:relative;
-  transform:translateY(24px) scale(.97);
-  transition:transform .38s cubic-bezier(.77,0,.18,1);
-}
-#yt-modal-overlay.show #yt-modal-box { transform:translateY(0) scale(1); }
-#yt-modal-iframe-wrap {
-  position:relative; width:100%; aspect-ratio:16/9;
-  background:#000;
-}
-#yt-modal-iframe-wrap iframe {
-  position:absolute; inset:0; width:100%; height:100%; border:none;
-}
-#yt-modal-info {
-  padding:.9rem 1rem .7rem;
-  background:var(--s7-bg);
-  display:flex; align-items:flex-start; justify-content:space-between; gap:1rem;
-}
-#yt-modal-title { font-size:.88rem; color:var(--ink-on-dark); line-height:1.5; flex:1; }
-#yt-modal-close {
-  flex-shrink:0;
-  background:transparent; border:0.5px solid rgba(255,245,246,.22);
-  color:var(--ink-on-dark); font-family:'DM Mono',monospace;
-  font-size:.58rem; letter-spacing:.12em; text-transform:uppercase;
-  padding:5px 14px; cursor:pointer; transition:background .2s; white-space:nowrap;
-}
-#yt-modal-close:hover { background:var(--acc); border-color:var(--acc); }
-.news-col { padding:2.5rem; }
-.news-col:first-child { border-right:0.5px solid var(--bdr); }
-.news-col-label { font-family:'DM Mono',monospace; font-size:.57rem; letter-spacing:.2em; text-transform:uppercase; color:var(--acc); margin-bottom:1.5rem; display:flex; align-items:center; gap:.6rem; }
-.news-col-label::after { content:''; flex:1; height:.5px; background:var(--bdr); }
-.sched-list { list-style:none; }
-.sched-item { display:grid; grid-template-columns:56px 1fr auto; gap:1rem; align-items:center; padding:.7rem 0; border-bottom:0.5px solid var(--bdr); }
-.sched-date { font-family:'DM Mono',monospace; font-size:.58rem; letter-spacing:.06em; color:var(--dim); line-height:1.4; }
-.sched-txt { font-size:.82rem; color:var(--ink); line-height:1.4; }
-.sched-txt small { display:block; font-size:.71rem; color:var(--dim); margin-top:1px; }
-.badge { font-family:'DM Mono',monospace; font-size:.5rem; letter-spacing:.1em; text-transform:uppercase; padding:3px 8px; border:0.5px solid; white-space:nowrap; }
-.badge.up  { color:var(--acc); border-color:rgba(212,120,154,.3); background:rgba(212,120,154,.06); }
-.badge.go  { color:var(--grn); border-color:rgba(46,139,82,.3); background:rgba(46,139,82,.07); }
-.badge.tbd { color:var(--dim); border-color:rgba(158,148,144,0.4); }
-.past-list { list-style:none; }
-.past-item { display:grid; grid-template-columns:78px 1fr 60px; gap:1rem; align-items:start; padding:.7rem 0; border-bottom:0.5px solid var(--bdr); cursor:pointer; transition:padding-left .2s; }
-.past-item:hover { padding-left:.5rem; }
-.past-date { font-family:'DM Mono',monospace; font-size:.57rem; letter-spacing:.06em; color:var(--dim); padding-top:2px; }
-.past-txt { font-size:.82rem; color:var(--ink); line-height:1.45; }
-.past-cat { font-family:'DM Mono',monospace; font-size:.51rem; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); text-align:right; padding-top:2px; }
-
-/* §6 CONTACT */
-#s6 { display:grid; grid-template-columns:1fr 1fr; background:var(--s6-bg); }
-.contact-left { padding:4rem 3rem; border-right:0.5px solid var(--bdr); display:flex; flex-direction:column; justify-content:space-between; }
-.contact-title { font-family:'Bebas Neue',sans-serif; font-size:clamp(3.5rem,7vw,7rem); line-height:.85; color:var(--ink); margin-bottom:1.2rem; }
-.contact-desc { font-size:.85rem; line-height:1.85; color:var(--acc); max-width:380px; margin-bottom:2rem; }
-.contact-info { list-style:none; border-top:0.5px solid var(--bdr); }
-.contact-info li { display:grid; grid-template-columns:90px 1fr; padding:.65rem 0; border-bottom:0.5px solid var(--bdr); }
-.ci-l { font-family:'DM Mono',monospace; font-size:.57rem; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); }
-.ci-v { font-size:.83rem; color:var(--acc); }
-.contact-right { padding:4rem 3rem; background:var(--s5-bg); }
-.contact-form { display:flex; flex-direction:column; gap:.7rem; }
-.cf-row { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
-.cf-inp, .cf-sel, .cf-ta { background:var(--bg); border:0.5px solid var(--bdr2); color:var(--ink); font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.82rem; padding:.65rem .9rem; outline:none; transition:border-color .2s; width:100%; }
-.cf-inp::placeholder, .cf-ta::placeholder { color:var(--dim); }
-.cf-inp:focus, .cf-sel:focus, .cf-ta:focus { border-color:var(--acc); }
-.cf-sel { appearance:none; cursor:pointer; color:var(--dim); }
-.cf-ta { resize:vertical; min-height:100px; max-height:180px; }
-.cf-btn { background:var(--acc); border:none; color:#fff; font-family:'DM Mono',monospace; font-size:.68rem; letter-spacing:.15em; text-transform:uppercase; padding:.75rem 2rem; cursor:pointer; align-self:flex-start; transition:background .2s, transform .1s; }
-.cf-btn:hover { background:var(--acc); }
-.cf-btn:active { transform:scale(.97); }
-
-/* 협업 카테고리 */
-.collab-heading { font-family:'DM Mono',monospace; font-size:.57rem; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin-bottom:1.5rem; }
-.collab-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(90px, 1fr)); gap:1rem; }
-.collab-item { display:flex; flex-direction:column; align-items:center; gap:.5rem; text-align:center; padding:.8rem; border-radius:8px; transition:background .2s; }
-.collab-item:hover { background:rgba(255,123,138,0.08); }
-.collab-icon { font-size:2.2rem; line-height:1; }
-.collab-label { font-size:.72rem; color:var(--ink); line-height:1.3; font-weight:500; }
-
 /* §7 FOOTER v2 — 4-column */
 #s7 { border-bottom:none; background:var(--s7-bg); display:grid; grid-template-columns:1.1fr 0.5px 1fr 0.5px 1fr 0.5px 1fr; min-height:68vh; }
 .ft-div { background:rgba(255,255,255,0.08); }
@@ -1408,19 +1283,15 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
   .mem-faq { grid-template-columns:1fr; gap:1.5rem; padding:2.5rem 1.5rem; }
   .hero-inner{grid-template-columns:1fr;}
   .hero-right{display:none;}
-  #s2,#s6{grid-template-columns:1fr;}
+  #s2{grid-template-columns:1fr;}
   .profile-visual{min-height:320px;}
-  .contact-left{border-right:none;border-bottom:0.5px solid var(--bdr);}
   #s4{grid-template-columns:1fr;}
   .chat-side{border-right:none;border-bottom:0.5px solid var(--bdr);}
-  .news-grid{grid-template-columns:1fr;}
-  .news-col:first-child{border-right:none;border-bottom:0.5px solid var(--bdr);}
   .gal-grid{grid-template-columns:1fr 1fr;grid-auto-rows:180px;}
   .gal-item{grid-column:span 1 !important; grid-row:span 1 !important;}
   #s7{grid-template-columns:1fr;min-height:auto;}
   .ft-div{display:none;}
   .ft-logo-area,.ft-nav-area,.ft-engage-area,.ft-sns-area{border-bottom:0.5px solid var(--bdr);min-height:auto;padding:2rem 1.5rem;}
-  .cf-row{grid-template-columns:1fr;}
 }
 
 /* CONTAINER QUERIES — 섹션 내부 컴포넌트용 */
@@ -1430,12 +1301,7 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
   .gal-grid { grid-template-columns: 1fr 1fr; grid-auto-rows: 150px; }
   .gal-item { grid-column: span 1 !important; grid-row: span 1 !important; }
 }
-/* 채팅 쇼케이스 컨테이너 */
-#s6 { container-type: inline-size; container-name: s6; }
-@container s6 (max-width: 700px) {
-  .chat-showcase { grid-template-columns: 1fr; }
-  .chat-left { border-right: none; border-bottom: 0.5px solid var(--bdr); }
-}
+
 </style>
 </head>
 <body>
@@ -1451,7 +1317,7 @@ section { width:100%; border-bottom:0.5px solid var(--bdr); }
 
 {% include "frontend/includes/homepage/_s4_video.html" %}
 
-{% include "frontend/includes/homepage/_s8_footer.html" %}
+{% include "frontend/includes/homepage/_s5_footer.html" %}
 
 
 </div>
@@ -1493,6 +1359,21 @@ function checkStrength(inp){
     b.className='pw-bar'+(i<=s?' '+cls[s]:'');
   }
 }
+function showAuthToast(icon, title, msg) {
+  const toast = document.getElementById('auth-toast');
+  document.getElementById('auth-toast-icon').textContent = icon;
+  document.getElementById('auth-toast-title').textContent = title;
+  document.getElementById('auth-toast-msg').textContent = msg;
+  toast.classList.remove('hide');
+  toast.classList.add('show');
+  clearTimeout(window._authToastTimer);
+  window._authToastTimer = setTimeout(() => hideAuthToast(), 3000);
+}
+function hideAuthToast() {
+  const toast = document.getElementById('auth-toast');
+  toast.classList.remove('show');
+  toast.classList.add('hide');
+}
 function doLogin(){
   const btn=document.querySelector('#panel-login .auth-submit');
   const email=document.querySelector('#panel-login input[type="email"]').value;
@@ -1506,8 +1387,12 @@ function doLogin(){
   }).then(r=>{
     if(!r.ok) return r.json().then(d=>{throw d;});
     return r.json();
-  }).then(()=>{
-    window.location.reload();
+  }).then(data=>{
+    closeAuth();
+    sessionStorage.removeItem('hari-mypage-withdrawal-state');
+    const username = data.user?.username || data.username || '';
+    showAuthToast('👋', '반가워, ' + (username || ''), '오늘도 좋은 하루 보내!');
+    setTimeout(() => window.location.reload(), 1800);
   }).catch(err=>{
     btn.textContent='로그인 →'; btn.disabled=false;
     const msg=err.non_field_errors?err.non_field_errors[0]
@@ -1531,83 +1416,88 @@ function debounceEmailCheck(email){
   const statusEl=document.getElementById('email-status');
   const messageEl=document.getElementById('email-message');
   if(!email){
-    statusEl.textContent='';
-    messageEl.textContent='';
+    if(statusEl) statusEl.textContent='';
+    if(messageEl) messageEl.textContent='';
     window.emailValidated=false;
     return;
   }
-  statusEl.textContent='🔄';
-  messageEl.textContent='검증 중...';
   emailCheckTimeout=setTimeout(()=>{
     checkEmailValidity(email);
-  },500);
+  },300);
 }
 function checkEmailValidity(email){
   const statusEl=document.getElementById('email-status');
   const messageEl=document.getElementById('email-message');
   const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if(!emailRegex.test(email)){
-    statusEl.textContent='❌';
-    messageEl.textContent='유효하지 않은 이메일 형식입니다.';
-    messageEl.style.color='#ff7b8a';
+    if(statusEl) statusEl.textContent='❌';
+    if(messageEl){ messageEl.textContent='올바른 이메일 형식이 아닙니다.'; messageEl.style.color='#ff7b8a'; }
     window.emailValidated=false;
     return;
   }
-  fetch('/api/auth/verify-email/',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
-    body:JSON.stringify({email:email})
-  }).then(r=>{
-    if(!r.ok) return r.json().then(d=>{throw d;});
-    return r.json();
-  }).then(data=>{
-    if(data.valid||data.available){
-      statusEl.textContent='✅';
-      messageEl.textContent='사용 가능한 이메일입니다.';
-      messageEl.style.color='#06d6a0';
-      window.emailValidated=true;
-    }else{
-      statusEl.textContent='❌';
-      messageEl.textContent=data.message||'이미 가입된 이메일입니다.';
-      messageEl.style.color='#ff7b8a';
-      window.emailValidated=false;
-    }
-  }).catch(err=>{
-    statusEl.textContent='⚠️';
-    messageEl.textContent='검증 서버 오류입니다.';
-    messageEl.style.color='#ffd166';
-    window.emailValidated=false;
-  });
+  if(statusEl) statusEl.textContent='✅';
+  if(messageEl){ messageEl.textContent='사용 가능한 이메일 형식입니다.'; messageEl.style.color='#06d6a0'; }
+  window.emailValidated=true;
 }
 // 비밀번호 검증
 function debouncePasswordCheck(password){
   clearTimeout(passwordCheckTimeout);
   const statusEl=document.getElementById('password-status');
   const messageEl=document.getElementById('password-message');
+  const criteriaEl=document.getElementById('pw-criteria');
+  const strengthWrap=document.getElementById('pw-strength-wrap');
   if(!password){
-    statusEl.textContent='';
-    messageEl.textContent='';
+    if(statusEl) statusEl.textContent='';
+    if(messageEl){ messageEl.textContent=''; }
+    if(criteriaEl) criteriaEl.style.display='none';
+    if(strengthWrap) strengthWrap.style.display='none';
     window.passwordValidated=false;
     return;
   }
-  statusEl.textContent='🔄';
-  messageEl.textContent='검증 중...';
+  if(criteriaEl) criteriaEl.style.display='flex';
+  if(strengthWrap) strengthWrap.style.display='block';
   passwordCheckTimeout=setTimeout(()=>{
     checkPasswordValidity(password);
-  },300);
+  },200);
 }
 function checkPasswordValidity(password){
   const statusEl=document.getElementById('password-status');
   const messageEl=document.getElementById('password-message');
-  if(password.length<8){
-    statusEl.textContent='❌';
-    messageEl.textContent='8자 이상이어야 합니다.';
-    messageEl.style.color='#ff7b8a';
+  const bar=document.getElementById('pw-strength-bar');
+
+  const hasLen=/^.{8,}$/.test(password);
+  const hasEng=/[a-zA-Z]/.test(password);
+  const hasNum=/[0-9]/.test(password);
+  const hasSpc=/[^a-zA-Z0-9]/.test(password);
+
+  function setRule(id, ok){
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.className='pw-rule'+(ok?' ok':(password.length>0?' fail':''));
+  }
+  setRule('rule-len', hasLen);
+  setRule('rule-eng', hasEng);
+  setRule('rule-num', hasNum);
+
+  const score=[hasLen,hasEng,hasNum,hasSpc].filter(Boolean).length;
+  if(bar){
+    const pcts=['0%','25%','50%','75%','100%'];
+    const colors=['','#ff7b8a','#ffd166','#06d6a0','#06d6a0'];
+    bar.style.width=pcts[score];
+    bar.style.background=colors[score];
+  }
+
+  if(!hasLen){
+    if(statusEl) statusEl.textContent='❌';
+    if(messageEl){ messageEl.textContent='8자 이상이어야 합니다.'; messageEl.style.color='#ff7b8a'; }
     window.passwordValidated=false;
-  }else{
-    statusEl.textContent='✅';
-    messageEl.textContent='사용 가능한 비밀번호입니다.';
-    messageEl.style.color='#06d6a0';
+  } else if(score>=3){
+    if(statusEl) statusEl.textContent='✅';
+    if(messageEl){ messageEl.textContent='안전한 비밀번호예요!'; messageEl.style.color='#06d6a0'; }
+    window.passwordValidated=true;
+  } else {
+    if(statusEl) statusEl.textContent='⚠️';
+    if(messageEl){ messageEl.textContent='영문·숫자·특수문자를 섞으면 더 안전해요.'; messageEl.style.color='#ffd166'; }
     window.passwordValidated=true;
   }
 }
@@ -1620,10 +1510,10 @@ function doSignup(){
   const pw=document.getElementById('signup-pw').value;
   const agreed=panel.querySelector('input[type="checkbox"][required]');
 
-  if(!email||!pw||!name||!nickname){alert('\uBAA8\uB4E0 \uD544\uB4DC\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694.');return;}
-  if(!agreed.checked){alert('\uC774\uC6A9\uC57D\uAD00\uC5D0 \uB3D9\uC758\uD574\uC8FC\uC138\uC694.');return;}
+  if(!email||!pw||!name||!nickname){alert('모든 필드를 입력해주세요.');return;}
+  if(!agreed.checked){alert('이용약관에 동의해주세요.');return;}
 
-  btn.textContent='\uAC00\uC785 \uC911...'; btn.disabled=true;
+  btn.textContent='가입 중...'; btn.disabled=true;
 
   fetch('/api/auth/registration/',{
     method:'POST',
@@ -1633,15 +1523,35 @@ function doSignup(){
     if(!r.ok) return r.json().then(d=>{throw d;});
     return r.json();
   }).then(()=>{
-    window.location.reload();
+    btn.textContent='로그인 중...';
+    return fetch('/api/auth/login/',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+      body:JSON.stringify({email:email,password:pw})
+    });
+  }).then(r=>{
+    if(!r.ok) return r.json().then(d=>{throw {_loginFailed:true,...d};});
+    return r.json();
+  }).then(data=>{
+    closeAuth();
+    sessionStorage.removeItem('hari-mypage-withdrawal-state');
+    const username = data.user?.username || data.username || nickname;
+    showAuthToast('🎉', '가입 완료!', '잘 왔어, ' + username + '. 앞으로 잘 부탁해!');
+    setTimeout(() => window.location.reload(), 2000);
   }).catch(err=>{
-    btn.textContent='\uAC00\uC785\uD558\uAE30 \u2192'; btn.disabled=false;
+    btn.textContent='가입하기 →'; btn.disabled=false;
+    if(err._loginFailed){
+      closeAuth();
+      showAuthToast('✅', '가입 완료!', '로그인 탭에서 로그인하면 돼.');
+      setTimeout(() => window.location.reload(), 2000);
+      return;
+    }
     const msg=err.username?(Array.isArray(err.username)?err.username[0]:err.username)
       :err.email?(Array.isArray(err.email)?err.email[0]:err.email)
       :err.password?(Array.isArray(err.password)?err.password[0]:err.password)
       :err.non_field_errors?err.non_field_errors[0]
       :err.detail?err.detail
-      :'\uD68C\uC6D0\uAC00\uC785\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.';
+      :'회원가입에 실패했습니다.';
     alert(msg);
   });
 }
@@ -1653,6 +1563,7 @@ function doForgot(){
   },900);
 }
 function socialLogin(provider){
+  localStorage.setItem('pendingSocialLogin', provider);
   window.location.href='/accounts/'+provider+'/login/?process=login';
 }
 function toggleUserMenu(){
@@ -1665,11 +1576,15 @@ document.addEventListener('click',function(e){
     if(dd) dd.classList.remove('show');
   }
 });
-function doLogout(){
-  fetch('/api/auth/logout/',{
+async function doLogout(){
+  sessionStorage.removeItem('hari-mypage-withdrawal-state');
+  await fetch('/api/auth/logout/',{
     method:'POST',
-    headers:{'X-CSRFToken':getCookie('csrftoken'),'Content-Type':'application/json'}
-  }).finally(()=>{ window.location.href='/'; });
+    credentials:'include',
+    headers:{'X-CSRFToken':getCookie('csrftoken'),'Content-Type':'application/json'},
+    keepalive:true
+  }).catch(()=>{});
+  window.location.replace('/homepage/');
 }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAuth(); });
 
@@ -1801,6 +1716,20 @@ function closeTermsModal(e){
   document.body.style.overflow = '';
 }
 
+{% if user.is_authenticated %}
+(function(){
+  const provider = localStorage.getItem('pendingSocialLogin');
+  if(provider){
+    localStorage.removeItem('pendingSocialLogin');
+    const name = '{{ user.username }}';
+    const label = provider === 'google' ? '구글' : provider === 'naver' ? '네이버' : provider;
+    setTimeout(()=>{
+      showAuthToast('👋', '반가워, ' + name + '!', label + ' 계정으로 로그인했어.');
+    }, 300);
+  }
+})();
+{% endif %}
+
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
@@ -1836,6 +1765,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // §4 비디오 슬라이더 로직은 더 이상 사용하지 않음 (직접 iframe 임베드 방식으로 변경됨)
 });
 </script>
+
+<!-- ── AUTH TOAST ── -->
+<div id="auth-toast">
+  <div class="auth-toast-icon" id="auth-toast-icon">🎉</div>
+  <div class="auth-toast-body">
+    <div class="auth-toast-title" id="auth-toast-title">로그인 완료!</div>
+    <div class="auth-toast-msg" id="auth-toast-msg">하리와 함께해요 ✨</div>
+  </div>
+  <button class="auth-toast-close" onclick="hideAuthToast()">✕</button>
+</div>
 </body>
 </html>
 

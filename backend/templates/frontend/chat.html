@@ -66,11 +66,6 @@ html[data-theme="dark"] .sidebar-left::after {
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.4) 60%, rgba(55, 35, 50, 0.95) 100%) !important;
 }
 
-html[data-theme="dark"] .sidebar-right {
-  background: #3d2838 !important;
-  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3) !important;
-}
-
 html[data-theme="dark"] .chat-container {
   background: rgba(55, 35, 50, 0.75) !important;
 }
@@ -98,11 +93,11 @@ html[data-theme="dark"] .input-button {
 }
 
 html[data-theme="dark"] .search-input-wrapper {
-  background: #251d1a !important;
+  background: #ffffff !important;
 }
 
 html[data-theme="dark"] .search-input-wrapper:focus-within {
-  background: #3d3530 !important;
+  background: #ffffff !important;
   border-color: var(--hari-pink) !important;
 }
 
@@ -184,19 +179,6 @@ html, body {
   background: var(--bg-gradient);
   position: relative;
   overflow: hidden;
-}
-
-/* ═══════════════════════════════════════
-   SIDEBAR RIGHT (Search/Tools)
-   ═══════════════════════════════════════ */
-.sidebar-right {
-  width: 320px;
-  background: var(--bg-main);
-  border-left: none;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  z-index: 10;
 }
 
 /* ═══════════════════════════════════════
@@ -476,7 +458,7 @@ html, body {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--bg-main);
+  background: #ffffff;
   border: 0.5px solid var(--border);
   border-radius: 12px;
   padding: 10px 16px;
@@ -806,9 +788,18 @@ html[data-theme="dark"] .date-divider-text {
 .message-group {
   display: flex;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   align-items: flex-end;
   animation: msgFadeIn 0.3s ease-out;
+}
+
+/* 연속 말풍선: 같은 사람이 이어질 때 간격 좁힘 */
+.message-group.continued {
+  margin-bottom: 3px;
+}
+.message-group.continued + .message-group.continued,
+.message-group.continued + .message-group {
+  margin-top: 0;
 }
 
 @keyframes msgFadeIn {
@@ -850,7 +841,7 @@ html[data-theme="dark"] .date-divider-text {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-width: 65%;
+  max-width: 72%;
 }
 
 .message-group.me .msg-content {
@@ -876,6 +867,8 @@ html[data-theme="dark"] .date-divider-text {
   display: flex;
   align-items: flex-end;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .message-group.me .msg-bubble-row {
@@ -884,16 +877,21 @@ html[data-theme="dark"] .date-divider-text {
 
 /* 말풍선 공통 스타일 */
 .msg-bubble {
-  padding: 12px 18px;
+  padding: 10px 16px;
   border-radius: 20px;
-  font-size: 1rem;
+  font-size: 0.97rem;
   font-family: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-  line-height: 1.6;
+  line-height: 1.65;
   letter-spacing: -0.02em;
   position: relative;
   box-shadow: var(--bubble-shadow);
+  white-space: pre-wrap;
   word-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+  line-break: strict;
   max-width: 100%;
+  min-width: 0;
 }
 
 /* 하리 말풍선 */
@@ -910,6 +908,26 @@ html[data-theme="dark"] .date-divider-text {
   color: white;
   border: none;
   font-weight: 400;
+}
+
+/* 연속 말풍선 모서리 그룹 (카카오톡 스타일) */
+/* 하리(other) 연속 */
+.message-group.other.bubble-mid .msg-bubble,
+.message-group.other.bubble-last .msg-bubble {
+  border-top-left-radius: 6px;
+}
+.message-group.other.bubble-first .msg-bubble,
+.message-group.other.bubble-mid .msg-bubble {
+  border-bottom-left-radius: 6px;
+}
+/* 내(me) 연속 */
+.message-group.me.bubble-mid .msg-bubble,
+.message-group.me.bubble-last .msg-bubble {
+  border-top-right-radius: 6px;
+}
+.message-group.me.bubble-first .msg-bubble,
+.message-group.me.bubble-mid .msg-bubble {
+  border-bottom-right-radius: 6px;
 }
 
 
@@ -1156,48 +1174,6 @@ html[data-theme="dark"] .date-divider-text {
 }
 
 /* ═══════════════════════════════════════
-   EMOJI PICKER
-   ═══════════════════════════════════════ */
-.emoji-picker {
-  position: absolute;
-  bottom: 80px;
-  left: 24px;
-  background: white;
-  border: 0.5px solid var(--border);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 8px 24px rgba(255, 123, 138, 0.2);
-  display: none;
-  max-width: 340px;
-  z-index: 100;
-}
-
-.emoji-picker.show {
-  display: block;
-  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.emoji-grid {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 10px;
-  max-height: 220px;
-  overflow-y: auto;
-}
-
-
-/* ═══════════════════════════════════════
    CONTAINER QUERIES — chat-main 기준
    ═══════════════════════════════════════ */
 .chat-main { container-type: inline-size; container-name: chat-main; }
@@ -1216,10 +1192,6 @@ html[data-theme="dark"] .date-divider-text {
 /* ═══════════════════════════════════════
    MEDIA QUERIES
    ═══════════════════════════════════════ */
-/* 1280px: 우측 사이드바 숨김 */
-@media (max-width: 1280px) {
-  .sidebar-right { display: none; }
-}
 /* 1024px: 레이아웃 풀너비 */
 @media (max-width: 1024px) {
   .app-container { width: 100%; }
@@ -1570,7 +1542,8 @@ function sanitizeHari(text) {
 
 function splitMessage(text) {
   if (!text) return [];
-  return text.split(/\n+/).filter(s => s.trim().length > 0);
+  // 빈 줄(\n\n 이상)에서만 말풍선 분리, 단순 줄바꿈은 같은 말풍선 내 <br>로 처리
+  return text.split(/\n{2,}/).map(s => s.trim()).filter(s => s.length > 0);
 }
 
 function renderSingleHariBubble(text, options = {}) {
@@ -1579,14 +1552,29 @@ function renderSingleHariBubble(text, options = {}) {
   const now = timestamp ? new Date(timestamp) : new Date();
   const timeStr = formatTime(now);
   const dateKey = checkAndAddDateDivider(now);
-  
+
   const msgId = 'msg-' + (++messageCounter);
   chatHistory.push({ id: msgId, date: dateKey, time: timeStr, sender: 'hari', text: text });
 
+  // 연속 말풍선 클래스 결정
+  let groupClass = '';
+  if (!isFirst && !isLast) groupClass = 'bubble-mid continued';
+  else if (!isFirst && isLast) groupClass = 'bubble-last continued';
+  else if (isFirst && !isLast) groupClass = 'bubble-first continued';
+
+  // 직전 말풍선의 시간 숨기기 (연속일 때)
+  if (!isFirst) {
+    const prev = messages.querySelector('.message-group.other:last-child');
+    if (prev) {
+      const prevMeta = prev.querySelector('.msg-meta');
+      if (prevMeta) prevMeta.style.display = 'none';
+    }
+  }
+
   const html = `
-    <div class="message-group other ${animate ? '' : 'no-animate'}" id="${msgId}">
-      <div class="msg-profile" style="${isFirst ? '' : 'visibility: hidden; height: 0; margin-top: -8px;'}">
-        <img src="${window.hariCurrentProfile || '{% static 'images/hari_image19.webp' %}'}" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
+    <div class="message-group other ${groupClass} ${animate ? '' : 'no-animate'}" id="${msgId}">
+      <div class="msg-profile" onclick="openHariProfile()" title="하리 프로필 보기" style="${isFirst ? 'cursor:pointer;' : 'visibility:hidden;width:44px;flex-shrink:0;'}">
+        <img src="${window.hariCurrentProfile || '{% static 'images/hari_image19.webp' %}'}" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
       </div>
       <div class="msg-content">
         ${isFirst ? '<div class="msg-name">하리</div>' : ''}
@@ -1620,6 +1608,7 @@ function appendHariMessage(text, isHistory = false, timestamp = null) {
     renderSingleHariBubble(segments[0], { isFirst: true, isLast: segments.length === 1, animate: true });
 
     if (segments.length > 1) {
+      // slice(1) 이후 인덱스 기준: 마지막은 i === segments.length - 2
       bubbleQueue = segments.slice(1).map((seg, i) => ({ text: seg, isLast: i === segments.length - 2 }));
       scheduleNextBubble();
     } else {
@@ -1740,7 +1729,7 @@ function showTyping() {
   const messages = document.getElementById('messages');
   const typingHTML = `
     <div class="typing-indicator" id="typingIndicator">
-      <div class="msg-profile">
+      <div class="msg-profile" onclick="openHariProfile()" title="하리 프로필 보기" style="cursor:pointer;">
         <img src="${window.hariCurrentProfile || '{% static 'images/hari_image19.webp' %}'}" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
       </div>
       <div class="typing-bubble">
@@ -1773,13 +1762,25 @@ function closeSearch() {
   document.getElementById('searchModal').style.display = 'none';
 }
 
+let currentSearchTab = 'keyword';
+
 function switchSearchTab(event, tab) {
+  currentSearchTab = tab;
   document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
   event.currentTarget.classList.add('active');
   document.getElementById('dateFilter').style.display = (tab === 'date') ? 'flex' : 'none';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchResults').innerHTML = `
+    <div class="search-no-results" style="text-align: center; padding: 40px 10px; color: var(--text-dim);">
+      <div style="font-size: 32px; margin-bottom: 12px; opacity: 0.3;">💬</div>
+      <div style="font-size: 13px; line-height: 1.6;">
+        ${tab === 'date' ? '날짜를 선택하고 검색해줘!' : '검색어를 입력해줘!'}
+      </div>
+    </div>`;
 }
 
 function performSearch() {
+  if (currentSearchTab !== 'keyword') return;
   const query = document.getElementById('searchInput').value.trim().toLowerCase();
   const resultsContainer = document.getElementById('searchResults');
   if (!query) {
@@ -1793,7 +1794,17 @@ function performSearch() {
 function searchByDate() {
   const from = document.getElementById('dateFrom').value;
   const to = document.getElementById('dateTo').value;
-  if (!from || !to) { alert('날짜를 모두 선택해줘!'); return; }
+  if (!from || !to) {
+    document.getElementById('searchResults').innerHTML = `
+      <div style="margin-top:8px; padding:16px 18px; background:rgba(255,123,138,0.08); border:1px solid rgba(255,123,138,0.3); border-radius:14px; display:flex; align-items:center; gap:12px;">
+        <span style="font-size:22px; flex-shrink:0;">📅</span>
+        <div>
+          <div style="font-size:13px; font-weight:600; color:var(--hari-pink); margin-bottom:2px;">날짜를 모두 선택해줘!</div>
+          <div style="font-size:11px; color:var(--text-dim); line-height:1.5;">From · To 날짜를 모두 지정해야<br>검색할 수 있어요.</div>
+        </div>
+      </div>`;
+    return;
+  }
   const results = chatHistory.filter(msg => msg.date >= from && msg.date <= to);
   displaySearchResults(results);
 }

@@ -391,15 +391,15 @@ def admin_stats_api(request):
             monthly_labels.append(f'{m}월')
             monthly_counts.append(monthly_dict.get((y, m), 0))
 
-        # YEARLY — 최근 4년 (1쿼리)
-        year_start = date_type(today.year - 3, 1, 1)
+        # YEARLY — 최근 5년 (1쿼리)
+        year_start = date_type(today.year - 4, 1, 1)
         yearly_rows = safe_qs(
             base.filter(**{f'{date_field}__date__gte': year_start})
                 .annotate(period=TruncYear(date_field))
                 .values('period').annotate(count=count_expr).order_by('period')
         )
         yearly_dict = {row['period'].year: row['count'] for row in yearly_rows}
-        yearly_labels = [str(today.year - i) for i in range(3, -1, -1)]
+        yearly_labels = [str(today.year - i) for i in range(4, -1, -1)]
         yearly_counts = [yearly_dict.get(int(y), 0) for y in yearly_labels]
 
         return {
@@ -451,15 +451,16 @@ def youtube_stats_api(request):
             return json.loads(resp.read())
 
     try:
-        # 1단계: 채널 핸들 → uploads 플레이리스트 ID
+        # 1단계: 채널 핸들 → uploads 플레이리스트 ID + 구독자 수
         ch_data = yt_get('channels', {
-            'part': 'contentDetails',
+            'part': 'contentDetails,statistics',
             'forHandle': channel_handle,
         })
         items = ch_data.get('items', [])
         if not items:
             return JsonResponse({'error': f'Channel not found: {channel_handle}'}, status=404)
         uploads_playlist_id = items[0]['contentDetails']['relatedPlaylists']['uploads']
+        subscriber_count = int(items[0].get('statistics', {}).get('subscriberCount', 0))
 
         # 2단계: 플레이리스트 → 영상 ID 목록 (최대 50개)
         pl_data = yt_get('playlistItems', {
@@ -497,7 +498,7 @@ def youtube_stats_api(request):
         })
 
     result.sort(key=lambda x: x['viewCount'], reverse=True)
-    return JsonResponse({'videos': result})
+    return JsonResponse({'videos': result, 'subscriberCount': subscriber_count})
 
 
 @staff_member_required
@@ -602,72 +603,138 @@ def youtube_analytics_api(request):
     if not access_token:
         return JsonResponse({'error': 'not_authenticated'}, status=401)
 
-    period = request.GET.get('period', 'daily')
-    today  = timezone.now().date()
+    period  = request.GET.get('period', 'daily')
+    try:
+        range_n = int(request.GET.get('range', 0))
+    except (ValueError, TypeError):
+        range_n = 0
+    today   = timezone.now().date()
 
     if period == 'daily':
-        start_date = today - timedelta(days=6)
+        days       = range_n if range_n in (7, 14, 30) else 7
+        start_date = today - timedelta(days=days - 1)
         dimension  = 'day'
     elif period == 'weekly':
-        start_date = today - timedelta(weeks=8)
-        dimension  = 'day'
+        weeks       = range_n if range_n in (4, 8, 12) else 8
+        current_mon = today - timedelta(days=today.weekday())
+        start_date  = current_mon - timedelta(weeks=weeks - 1)
+        dimension   = 'day'
     elif period == 'monthly':
-        start_date = date_type(today.year - 1, today.month, 1)
+        months = range_n if range_n in (6, 12, 24) else 12
+        sm = today.month - months + 1
+        sy = today.year + sm // 12
+        sm = sm % 12
+        if sm == 0:
+            sm = 12
+            sy -= 1
+        start_date = date_type(sy, sm, 1)
         dimension  = 'month'
     else:  # yearly
-        start_date = date_type(today.year - 3, 1, 1)
+        years      = range_n if range_n in (2, 3, 5) else 3
+        start_date = date_type(today.year - years + 1, 1, 1)
         dimension  = 'month'
 
-    api_url = (
-        'https://youtubeanalytics.googleapis.com/v2/reports?'
-        + urlencode({
-            'ids':       'channel==MINE',
-            'startDate': str(start_date),
-            'endDate':   str(today),
-            'metrics':   'views,likes,comments',
-            'dimensions': dimension,
-            'sort':       dimension,
-        })
-    )
-    try:
-        req = urlreq.Request(api_url, headers={'Authorization': f'Bearer {access_token}'})
+    def _fetch(start, end, dim):
+        url = (
+            'https://youtubeanalytics.googleapis.com/v2/reports?'
+            + urlencode({
+                'ids':        'channel==MINE',
+                'startDate':  str(start),
+                'endDate':    str(end),
+                'metrics':    'views,likes,comments',
+                'dimensions': dim,
+                'sort':       dim,
+            })
+        )
+        req = urlreq.Request(url, headers={'Authorization': f'Bearer {access_token}'})
         with urlreq.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read())
-    except urllib.error.HTTPError as e:
-        return JsonResponse({'error': f'Analytics API error: {e.code}'}, status=502)
+            return json.loads(resp.read())
+
+    # dimension='month' 는 일부 채널에서 HTTP 에러 또는 빈 응답을 반환할 수 있음
+    # → 두 경우 모두 dimension='day' 로 폴백 후 월/연별 집계
+    use_day_fallback = False
+    try:
+        data = _fetch(start_date, today, dimension)
+        rows = data.get('rows') or []
+        if not rows and dimension == 'month':
+            raise ValueError('empty_month')   # 빈 응답도 폴백 트리거
+    except (urllib.error.HTTPError, ValueError) as e:
+        if dimension == 'month':
+            # dimension='month' 실패 → dimension='day' 로 재시도
+            try:
+                data = _fetch(start_date, today, 'day')
+                rows = data.get('rows') or []
+                use_day_fallback = True
+            except urllib.error.HTTPError as e2:
+                return JsonResponse({'error': f'Analytics API error: {e2.code}'}, status=502)
+            except Exception as e2:
+                return JsonResponse({'error': str(e2)}, status=502)
+        else:
+            code = e.code if hasattr(e, 'code') else 0
+            return JsonResponse({'error': f'Analytics API error: {code}'}, status=502)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=502)
 
-    rows = data.get('rows') or []
-
     if period == 'daily':
-        labels   = [r[0][5:].replace('-', '/') for r in rows]   # YYYY-MM-DD → M/D
-        views    = [r[1] for r in rows]
-        likes    = [r[2] for r in rows]
-        comments = [r[3] for r in rows]
+        # YouTube Analytics 지연으로 rows가 부족할 수 있어 7일 슬롯 전부 생성 후 0 채움
+        days_n   = range_n if range_n in (7, 14, 30) else 7
+        sd       = today - timedelta(days=days_n - 1)
+        all_dates = [sd + timedelta(days=i) for i in range(days_n)]
+        row_dict  = {r[0]: r for r in rows}
+        labels   = [f"{d.month}월 {d.day}일" for d in all_dates]
+        views    = [row_dict.get(str(d), [None, 0, 0, 0])[1] for d in all_dates]
+        likes    = [row_dict.get(str(d), [None, 0, 0, 0])[2] for d in all_dates]
+        comments = [row_dict.get(str(d), [None, 0, 0, 0])[3] for d in all_dates]
 
     elif period == 'weekly':
+        weeks       = range_n if range_n in (4, 8, 12) else 8
         current_mon = today - timedelta(days=today.weekday())
         week_data   = defaultdict(lambda: [0, 0, 0])
         for r in rows:
-            d = date_type(*[int(x) for x in r[0].split('-')])
-            wi = (current_mon - d).days // 7   # 0=이번주 … 7=8주전
-            if 0 <= wi <= 7:
+            d     = date_type(*[int(x) for x in r[0].split('-')])
+            d_mon = d - timedelta(days=d.weekday())
+            wi    = (current_mon - d_mon).days // 7             # 0=이번주
+            if 0 <= wi <= weeks - 1:
                 week_data[wi][0] += r[1]
                 week_data[wi][1] += r[2]
                 week_data[wi][2] += r[3]
-        labels   = [f'W{i + 1}' for i in range(8)]
-        views    = [week_data[7 - i][0] for i in range(8)]
-        likes    = [week_data[7 - i][1] for i in range(8)]
-        comments = [week_data[7 - i][2] for i in range(8)]
+        week_starts = [current_mon - timedelta(weeks=weeks - 1 - i) for i in range(weeks)]
+        # "4월 2주" 형식 (해당 월의 몇 번째 주인지)
+        labels   = [f'{ws.month}월 {(ws.day - 1) // 7 + 1}주' for ws in week_starts]
+        views    = [week_data[weeks - 1 - i][0] for i in range(weeks)]
+        likes    = [week_data[weeks - 1 - i][1] for i in range(weeks)]
+        comments = [week_data[weeks - 1 - i][2] for i in range(weeks)]
 
     elif period == 'monthly':
-        labels   = [r[0][5:].lstrip('0') + '월' for r in rows]  # YYYY-MM → M월
-        views    = [r[1] for r in rows]
-        likes    = [r[2] for r in rows]
-        comments = [r[3] for r in rows]
+        if use_day_fallback:
+            # 일별 데이터를 월별로 집계
+            month_data = defaultdict(lambda: [0, 0, 0])
+            for r in rows:
+                mk = r[0][:7]  # "YYYY-MM"
+                month_data[mk][0] += r[1]
+                month_data[mk][1] += r[2]
+                month_data[mk][2] += r[3]
+            months_sorted = sorted(month_data.keys())
+            row_years = {mk[:4] for mk in months_sorted}
+            if len(row_years) > 1:
+                labels = [f"'{mk[2:4]}년 {int(mk[5:7])}월" for mk in months_sorted]
+            else:
+                labels = [f"{int(mk[5:7])}월" for mk in months_sorted]
+            views    = [month_data[mk][0] for mk in months_sorted]
+            likes    = [month_data[mk][1] for mk in months_sorted]
+            comments = [month_data[mk][2] for mk in months_sorted]
+        else:
+            # 연도가 2개 이상 걸치면 "'25년 4월" 형식, 단일 연도면 "4월"
+            row_years = {r[0][:4] for r in rows}
+            if len(row_years) > 1:
+                labels = [f"'{r[0][2:4]}년 {int(r[0][5:7])}월" for r in rows]
+            else:
+                labels = [f"{int(r[0][5:7])}월" for r in rows]
+            views    = [r[1] for r in rows]
+            likes    = [r[2] for r in rows]
+            comments = [r[3] for r in rows]
 
-    else:  # yearly
+    else:  # yearly — r[0] 는 'YYYY-MM' (month dim) 또는 'YYYY-MM-DD' (day fallback) 모두 처리
         year_data = defaultdict(lambda: [0, 0, 0])
         for r in rows:
             y = r[0][:4]
@@ -695,17 +762,31 @@ def youtube_video_analytics_api(request):
     if not access_token:
         return JsonResponse({'error': 'not_authenticated'}, status=401)
 
-    period = request.GET.get('period', 'daily')
-    today  = timezone.now().date()
+    period  = request.GET.get('period', 'daily')
+    try:
+        range_n = int(request.GET.get('range', 0))
+    except (ValueError, TypeError):
+        range_n = 0
+    today   = timezone.now().date()
 
     if period == 'daily':
-        start_date = today - timedelta(days=6)
+        days       = range_n if range_n in (7, 14, 30) else 7
+        start_date = today - timedelta(days=days - 1)
     elif period == 'weekly':
-        start_date = today - timedelta(weeks=8)
+        weeks      = range_n if range_n in (4, 8, 12) else 8
+        start_date = today - timedelta(days=today.weekday()) - timedelta(weeks=weeks - 1)
     elif period == 'monthly':
-        start_date = date_type(today.year - 1, today.month, 1)
+        months = range_n if range_n in (6, 12, 24) else 12
+        sm = today.month - months + 1
+        sy = today.year + sm // 12
+        sm = sm % 12
+        if sm == 0:
+            sm = 12
+            sy -= 1
+        start_date = date_type(sy, sm, 1)
     else:
-        start_date = date_type(today.year - 3, 1, 1)
+        years      = range_n if range_n in (2, 3, 5) else 3
+        start_date = date_type(today.year - years + 1, 1, 1)
 
     api_url = (
         'https://youtubeanalytics.googleapis.com/v2/reports?'
@@ -733,6 +814,97 @@ def youtube_video_analytics_api(request):
     return JsonResponse({'videos': result})
 
 
+# ──────────────────────────────────────────────
+# Instagram 공통: 토큰 관리
+# ──────────────────────────────────────────────
+
+def _instagram_token():
+    """캐시에서 Instagram 장기 토큰을 가져오고, 만료 7일 이내면 자동 갱신."""
+    import json, time
+    import urllib.request as urlreq
+    from django.core.cache import cache
+
+    env_token = getattr(settings, 'INSTAGRAM_ACCESS_TOKEN', '')
+    cached = cache.get('ig_token_data')
+
+    if cached:
+        token = cached.get('token') or env_token
+        exp = cached.get('expires_at', 0)
+        if (exp - time.time()) > 7 * 86400:
+            return token
+    else:
+        token = env_token
+
+    if not token:
+        return ''
+
+    # 갱신 시도
+    try:
+        refresh_url = (
+            'https://graph.instagram.com/refresh_access_token'
+            f'?grant_type=ig_refresh_token&access_token={token}'
+        )
+        with urlreq.urlopen(refresh_url, timeout=10) as resp:
+            d = json.loads(resp.read())
+        new_token = d.get('access_token', token)
+        expires_in = d.get('expires_in', 5184000)  # 기본 60일
+        cache.set('ig_token_data', {
+            'token': new_token,
+            'expires_at': time.time() + expires_in,
+        }, timeout=expires_in + 86400)
+        return new_token
+    except Exception:
+        return token  # 갱신 실패해도 기존 토큰 사용
+
+
+@staff_member_required
+def instagram_token_api(request):
+    """Instagram 토큰 상태 조회(GET) / 수동 갱신(POST)."""
+    import json, time
+    import urllib.request as urlreq
+    import urllib.error
+    from django.core.cache import cache
+
+    env_token = getattr(settings, 'INSTAGRAM_ACCESS_TOKEN', '')
+    cached = cache.get('ig_token_data')
+    token = (cached.get('token') if cached else None) or env_token
+    exp = (cached.get('expires_at', 0) if cached else 0)
+    days_left = int((exp - time.time()) / 86400) if exp else None
+
+    if request.method == 'POST':
+        if not token:
+            return JsonResponse({'error': '토큰이 설정되지 않았습니다.', 'refreshed': False}, status=400)
+        try:
+            refresh_url = (
+                'https://graph.instagram.com/refresh_access_token'
+                f'?grant_type=ig_refresh_token&access_token={token}'
+            )
+            with urlreq.urlopen(refresh_url, timeout=10) as resp:
+                d = json.loads(resp.read())
+            new_token = d.get('access_token', token)
+            expires_in = d.get('expires_in', 5184000)
+            new_exp = time.time() + expires_in
+            cache.set('ig_token_data', {
+                'token': new_token,
+                'expires_at': new_exp,
+            }, timeout=expires_in + 86400)
+            return JsonResponse({
+                'refreshed': True,
+                'days_left': int(expires_in / 86400),
+            })
+        except urllib.error.HTTPError as e:
+            body = e.read().decode('utf-8', errors='replace')
+            return JsonResponse({'error': f'HTTP {e.code}: {body}', 'refreshed': False}, status=502)
+        except Exception as e:
+            return JsonResponse({'error': str(e), 'refreshed': False}, status=502)
+
+    return JsonResponse({
+        'has_token': bool(token),
+        'days_left': days_left,
+        'source': 'cache' if (cached and cached.get('token')) else 'env',
+    })
+
+
 @staff_member_required
 def instagram_stats_api(request):
     """Instagram Graph API — 팔로워 수, 게시물 수 반환 (staff only)."""
@@ -740,7 +912,7 @@ def instagram_stats_api(request):
     import urllib.request as urlreq
     import urllib.error
 
-    access_token = getattr(settings, 'INSTAGRAM_ACCESS_TOKEN', '')
+    access_token = _instagram_token()
     if not access_token:
         return JsonResponse({'error': 'INSTAGRAM_ACCESS_TOKEN not configured'}, status=500)
 
@@ -771,45 +943,70 @@ def instagram_media_api(request):
     import urllib.error
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
-    access_token = getattr(settings, 'INSTAGRAM_ACCESS_TOKEN', '')
+    access_token = _instagram_token()
     if not access_token:
         return JsonResponse({'error': 'INSTAGRAM_ACCESS_TOKEN not configured'}, status=500)
 
     try:
         url = (
             'https://graph.instagram.com/v22.0/me/media'
-            '?fields=id,caption,media_type,timestamp,like_count,comments_count'
+            '?fields=id,caption,media_type,timestamp,like_count,comments_count,video_views'
             '&limit=20'
             f'&access_token={access_token}'
         )
         with urlreq.urlopen(url, timeout=10) as resp:
             data = json.loads(resp.read())
     except urllib.error.HTTPError as e:
-        return JsonResponse({'error': f'Instagram API error: {e.code}'}, status=502)
+        body = e.read().decode('utf-8', errors='replace')
+        return JsonResponse({'error': f'Instagram API {e.code}: {body}'}, status=502)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=502)
 
     items = data.get('data', [])
 
-    def fetch_views(media_id):
-        insights_url = (
-            f'https://graph.instagram.com/v22.0/{media_id}/insights'
-            f'?metric=views&access_token={access_token}'
-        )
-        try:
-            with urlreq.urlopen(insights_url, timeout=5) as resp:
-                d = json.loads(resp.read())
-                return media_id, d.get('data', [{}])[0].get('values', [{}])[0].get('value', 0)
-        except Exception:
-            return media_id, 0
+    def fetch_insights(media_id, media_type):
+        """Insights API로 노출수 조회. 타입별 메트릭 우선순위를 두고 순서대로 시도."""
+        metrics = ['views', 'impressions', 'reach'] if media_type in ('VIDEO', 'REEL') \
+                  else ['impressions', 'reach']
+        for metric in metrics:
+            insights_url = (
+                f'https://graph.instagram.com/v22.0/{media_id}/insights'
+                f'?metric={metric}&period=lifetime&access_token={access_token}'
+            )
+            try:
+                with urlreq.urlopen(insights_url, timeout=5) as resp:
+                    d = json.loads(resp.read())
+                vals = d.get('data', [{}])[0].get('values', [])
+                if isinstance(vals, list) and vals:
+                    return media_id, int(vals[0].get('value', 0) or 0)
+                if isinstance(vals, (int, float)):
+                    return media_id, int(vals)
+            except urllib.error.HTTPError:
+                continue  # 메트릭 미지원 → 다음 메트릭 시도
+            except Exception:
+                break     # 네트워크 등 다른 오류 → 포기
+        return media_id, 0
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {executor.submit(fetch_views, item['id']): item['id'] for item in items}
-        views_map = {media_id: views for future in as_completed(futures) for media_id, views in [future.result()]}
+    # VIDEO/REEL은 video_views 필드를 우선 사용. 없으면 Insights로 보완.
+    needs_insights = [item for item in items
+                      if item.get('video_views') is None]
+
+    views_map = {}
+    if needs_insights:
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = {
+                executor.submit(fetch_insights, item['id'], item.get('media_type', 'IMAGE')): item['id']
+                for item in needs_insights
+            }
+            for future in as_completed(futures):
+                mid, v = future.result()
+                views_map[mid] = v
 
     media_list = []
     for item in items:
         caption = (item.get('caption') or '').strip().split('\n')[0][:30]
+        vid_views = item.get('video_views')
+        views_val = int(vid_views) if vid_views is not None else views_map.get(item.get('id'), 0)
         media_list.append({
             'id':             item.get('id'),
             'caption':        caption or f"게시물 {str(item.get('id', ''))[-6:]}",
@@ -817,7 +1014,7 @@ def instagram_media_api(request):
             'timestamp':      item.get('timestamp', ''),
             'like_count':     item.get('like_count', 0),
             'comments_count': item.get('comments_count', 0),
-            'views':          views_map.get(item.get('id'), 0),
+            'views':          views_val,
         })
 
     return JsonResponse({'media': media_list})

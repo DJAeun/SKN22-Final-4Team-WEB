@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 from django.views.generic import RedirectView
 from django.views.static import serve
 from django.http import HttpResponse
-from chat.views import health_check, homepage, mypage, frontend_chat, abouthari_page, gallery_page, news_page, video_page, membership_page, contact_form, frontend_signup_view, admin_stats_api, youtube_stats_api, youtube_oauth_start, youtube_oauth_callback, youtube_analytics_api, youtube_video_analytics_api, instagram_stats_api, instagram_media_api, tiktok_oauth_start, tiktok_oauth_callback, tiktok_stats_api
+from chat.views import health_check, homepage, mypage, frontend_chat, abouthari_page, gallery_page, news_page, video_page, membership_page, contact_form, frontend_signup_view, admin_stats_api, youtube_stats_api, youtube_oauth_start, youtube_oauth_callback, youtube_analytics_api, youtube_video_analytics_api, instagram_stats_api, instagram_media_api, instagram_token_api, tiktok_oauth_start, tiktok_oauth_callback, tiktok_stats_api
 
 
 def robots_txt(_request):
@@ -55,6 +55,7 @@ urlpatterns = [
     path('admin/youtube-video-analytics/', youtube_video_analytics_api, name='youtube_video_analytics_api'),
     path('admin/instagram-stats/', instagram_stats_api, name='instagram_stats_api'),
     path('admin/instagram-media/', instagram_media_api, name='instagram_media_api'),
+    path('admin/instagram-token/', instagram_token_api, name='instagram_token_api'),
     path('admin/tiktok-oauth-start/', tiktok_oauth_start, name='tiktok_oauth_start'),
     path('admin/tiktok-oauth-callback/', tiktok_oauth_callback, name='tiktok_oauth_callback'),
     path('admin/tiktok-stats/', tiktok_stats_api, name='tiktok_stats_api'),

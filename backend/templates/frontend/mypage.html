@@ -70,10 +70,6 @@ button{cursor:pointer;font-family:inherit;}
 .tb-left{display:flex;align-items:center;gap:1.2rem;}
 .tb-center{flex:1;}
 .tb-right{display:flex;align-items:center;gap:.9rem;}
-.tb-pts-box{display:flex;align-items:center;gap:.45rem;padding:5px 14px;border:0.5px solid var(--bdr2);background:var(--bg2);border-radius:20px;}
-.tb-pts-ico{font-size:.75rem;}
-.tb-pts-num{font-family:'NeoDunggeunmo',sans-serif;font-size:1rem;letter-spacing:.05em;color:var(--acc);}
-.tb-pts-lbl{font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);}
 .tb-icon-btn{width:32px;height:32px;background:transparent;border:0.5px solid var(--bdr2);display:flex;align-items:center;justify-content:center;transition:border-color .2s;}
 .tb-icon-btn:hover{border-color:var(--acc);}
 .tb-icon-btn svg{width:14px;height:14px;stroke:var(--dim);fill:none;stroke-width:1.5;}
@@ -109,16 +105,6 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 .sb-link:hover{color:var(--acc);background:rgba(255,123,138,0.06);}
 .sb-link.on{color:var(--acc);background:rgba(255,123,138,0.08);border-left-color:var(--acc);font-weight:400;}
 .sb-link svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.4;flex-shrink:0;}
-.sb-badge{margin-left:auto;font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;background:var(--acc);color:#fff;padding:2px 8px;border-radius:20px;}
-.sb-badge.g{background:var(--gold);}
-.sb-hr{height:0.5px;background:var(--bdr);margin:.7rem 1.4rem;}
-.sb-tier{margin:.2rem 1rem 1rem;padding:.9rem 1rem;border:0.5px solid var(--bdr2);background:var(--bg);border-radius:12px;box-shadow:0 2px 12px rgba(255,123,138,0.08);}
-.sb-tier-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;}
-.sb-tier-name{font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);}
-.sb-tier-tag{font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border:0.5px solid var(--gold);color:var(--acc);}
-.sb-xp-bg{background:rgba(255,123,138,0.15);height:4px;margin-bottom:.35rem;border-radius:2px;overflow:hidden;}
-.sb-xp-fill{height:100%;background:linear-gradient(90deg,var(--acc),#ffb3be);transition:width .9s ease;border-radius:2px;}
-.sb-xp-txt{font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.65rem;letter-spacing:.07em;color:var(--dim);}
 
 /* MAIN */
 #main{flex:1;overflow-y:auto;background:#fdfaf8;}
@@ -132,26 +118,9 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 .c-title{font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);margin-bottom:1.1rem;display:flex;align-items:center;gap:.6rem;}
 .c-title::after{content:'';flex:1;height:.5px;background:var(--bdr);}
 
-/* STAT GRID */
-.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;background:transparent;margin-bottom:1.2rem;}
-.sbox{background:var(--bg);padding:1.1rem 1.3rem;border-radius:14px;box-shadow:0 2px 12px rgba(255,123,138,0.06);border:0.5px solid var(--bdr);}
-.sn{font-family:'NeoDunggeunmo',sans-serif;font-size:1.9rem;letter-spacing:.04em;color:var(--ink);display:block;line-height:1;font-feature-settings:'tnum';}
-.sn.g{color:var(--acc);} .sn.gr{color:var(--grn);}
-.sl{font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-top:.2rem;}
-
 /* GRID LAYOUTS */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
-
-/* ACTIVITY LIST */
-.act-list{list-style:none;}
-.act-item{display:flex;align-items:center;gap:.85rem;padding:.72rem 0;border-bottom:0.5px solid var(--bdr);font-size:1rem;}
-.act-ico{width:32px;height:32px;background:rgba(255,123,138,0.08);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.act-ico svg{width:13px;height:13px;stroke:var(--acc);fill:none;stroke-width:1.4;}
-.act-txt{flex:1;color:var(--ink);line-height:1.4;}
-.act-txt small{display:block;font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.68rem;letter-spacing:.07em;color:var(--dim);margin-top:1px;}
-.act-pt{font-family:'NeoDunggeunmo',sans-serif;font-size:.95rem;letter-spacing:.04em;color:var(--acc);flex-shrink:0;}
-.act-pt.m{color:#c84a3a;}
 
 /* FIELD */
 .field{display:flex;flex-direction:column;gap:.28rem;margin-bottom:.85rem;}
@@ -204,11 +173,6 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 .nt-desc{font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.68rem;letter-spacing:.07em;color:var(--dim);}
 .nt-toggle input{accent-color:var(--acc);width:16px;height:16px;cursor:pointer;}
 
-/* REWARD CARD */
-.reward-card{padding:1rem;border:0.5px solid var(--bdr);text-align:center;border-radius:14px;background:var(--bg);}
-.reward-n{font-family:'NeoDunggeunmo',sans-serif;font-size:1.35rem;color:var(--acc);margin-bottom:.25rem;}
-.reward-d{font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);line-height:1.5;}
-
 /* TOAST */
 #toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.68rem 1.5rem;opacity:0;transition:all .3s;z-index:600;pointer-events:none;white-space:nowrap;border-radius:25px;box-shadow:0 4px 20px rgba(42,36,32,0.25);}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
@@ -220,11 +184,10 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 @container fp-main (max-width: 700px) {
   .g2,.info-grid,.frow{ grid-template-columns:1fr; }
   .g3{ grid-template-columns:1fr 1fr; }
-  .stat-grid{ grid-template-columns:repeat(2,1fr); }
 }
 /* main 너비 420px 이하: 1컬럼 */
 @container fp-main (max-width: 420px) {
-  .g3,.stat-grid{ grid-template-columns:1fr; }
+  .g3{ grid-template-columns:1fr; }
   .pg{ padding:1.2rem 1rem; }
 }
 
@@ -262,6 +225,7 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 </style>
 </head>
 <body>
+<form id="logout-csrf-form" style="display:none;">{% csrf_token %}</form>
 
 
 {% include "frontend/includes/mypage/_topbar.html" %}
@@ -277,8 +241,93 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
   </main>
 </div>
 
+<div id="subscription-cancel-modal"
+     style="display:none; position:fixed; inset:0; background:rgba(42,36,32,0.45); z-index:500; align-items:center; justify-content:center;">
+  <div style="background:var(--bg); border:0.5px solid var(--bdr2); border-radius:22px; padding:2rem 2.1rem 1.8rem; max-width:390px; width:90%; box-shadow:0 14px 50px rgba(255,123,138,0.2);">
+    <div style="display:flex; align-items:center; gap:.9rem; margin-bottom:.9rem;">
+      <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#ff7b8a,#ff9aa2); color:#fff; font-size:1.2rem; flex-shrink:0;">✓</div>
+      <div style="text-align:left;">
+        <div style="font-family:'NeoDunggeunmo',sans-serif; font-size:1rem; letter-spacing:.04em; color:var(--ink); margin-bottom:.15rem;">구독 해지</div>
+        <div style="font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.55rem; letter-spacing:.16em; text-transform:uppercase; color:var(--acc);">cancel subscription</div>
+      </div>
+    </div>
+    <p style="font-size:.92rem; color:var(--ink); line-height:1.7; margin-bottom:1rem;">
+      구독을 해지하면 <strong>다음 결제일부터 자동 결제</strong>가 중단돼요.<br>
+      지금은 남은 기간까지는 그대로 이용할 수 있어요.
+    </p>
+    <div style="display:grid; gap:.55rem; margin-bottom:1.1rem;">
+      <div style="display:flex; justify-content:space-between; gap:1rem; padding:.85rem 1rem; border:0.5px solid var(--bdr); border-radius:14px; background:var(--bg2);">
+        <span style="color:var(--dim); font-size:.72rem; letter-spacing:.08em;">현재 상태</span>
+        <span style="color:var(--acc); font-weight:700; font-size:.82rem;" id="subscriptionCancelCurrent">FAN+ · 활성</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; gap:1rem; padding:.85rem 1rem; border:0.5px solid var(--bdr); border-radius:14px; background:var(--bg2);">
+        <span style="color:var(--dim); font-size:.72rem; letter-spacing:.08em;">해지 후</span>
+        <span style="color:var(--ink); font-weight:700; font-size:.82rem;" id="subscriptionCancelAfter">다음 결제 없음</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:.55rem;">
+      <button onclick="closeSubscriptionCancelModal()"
+              style="background:transparent; border:0.5px solid var(--bdr2); color:var(--dim); font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; padding:.82rem 1rem; border-radius:16px; cursor:pointer; flex:1;">
+        돌아가기
+      </button>
+      <button onclick="confirmSubscriptionCancel()"
+              style="background:linear-gradient(135deg,#e50914,#ff5f6d); border:none; color:#fff; font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; padding:.82rem 1rem; border-radius:16px; cursor:pointer; box-shadow:0 8px 18px rgba(229,9,20,0.24); flex:1;">
+        해지 확정
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="withdrawal-modal"
+     style="display:none; position:fixed; inset:0; background:rgba(42,36,32,0.45); z-index:550; align-items:center; justify-content:center;">
+  <div style="background:var(--bg); border:0.5px solid var(--bdr2); border-radius:22px; padding:2rem 2.1rem 1.8rem; max-width:390px; width:90%; box-shadow:0 14px 50px rgba(255,123,138,0.2);">
+    <div style="display:flex; align-items:center; gap:.9rem; margin-bottom:1rem;">
+      <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#2a2420,#5b4a43); color:#fff; font-size:1.2rem; flex-shrink:0;">!</div>
+      <div style="text-align:left;">
+        <div style="font-family:'NeoDunggeunmo',sans-serif; font-size:1.04rem; letter-spacing:.04em; color:var(--ink); margin-bottom:.15rem;">회원 탈퇴</div>
+        <div style="font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.55rem; letter-spacing:.16em; text-transform:uppercase; color:var(--dim);">account removal</div>
+      </div>
+    </div>
+    <p style="font-size:.92rem; color:var(--ink); line-height:1.7; margin-bottom:1rem;">
+      탈퇴를 진행하면 현재 계정의 로그인 상태가 해제되고, 메인 화면으로 이동합니다.<br>
+      마이페이지에 보이던 계정 정보도 함께 정리됩니다.
+    </p>
+    <div style="display:grid; gap:.55rem; margin-bottom:1.1rem;">
+      <div style="display:flex; justify-content:space-between; gap:1rem; padding:.95rem 1rem; border:0.5px solid var(--bdr); border-radius:16px; background:var(--bg2);">
+        <span style="color:var(--dim); font-size:.72rem; letter-spacing:.08em;">처리 상태</span>
+        <span style="color:var(--ink); font-weight:700; font-size:.82rem;">탈퇴 요청 확인</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; gap:1rem; padding:.95rem 1rem; border:0.5px solid var(--bdr); border-radius:16px; background:var(--bg2);">
+        <span style="color:var(--dim); font-size:.72rem; letter-spacing:.08em;">결과</span>
+        <span style="color:var(--ink); font-weight:700; font-size:.82rem;">메인 화면으로 이동</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:.55rem;">
+      <button type="button" onclick="closeWithdrawalModal()"
+              style="background:transparent; border:0.5px solid var(--bdr2); color:var(--dim); font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; padding:.82rem 1rem; border-radius:16px; cursor:pointer; flex:1;">
+        취소
+      </button>
+      <button type="button" onclick="confirmWithdrawal()"
+              style="background:linear-gradient(135deg,#2a2420,#4d4038); border:none; color:#fff; font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; padding:.82rem 1rem; border-radius:16px; cursor:pointer; box-shadow:0 8px 18px rgba(42,36,32,0.22); flex:1;">
+        탈퇴 진행
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
 <script>
-let pts = 3250, checkedIn = false;
+let accountExitRunning = false;
+const SUBSCRIPTION_STATE_KEY = 'hari-mypage-subscription-state';
+const SUBSCRIPTION_PLAN_KEY = 'hari-mypage-subscription-plan';
+const SUBSCRIPTION_PAID_AT_KEY = 'hari-mypage-subscription-paid-at';
+const WITHDRAWAL_STATE_KEY = 'hari-mypage-withdrawal-state';
+const PLAN_INFO = {
+  fan:     { label: 'FAN',   display: 'FAN · 활성',   badge: 'FAN' },
+  fanplus: { label: 'FAN+',  display: 'FAN+ · 활성',  badge: 'FAN+' },
+  bori:    { label: 'BORI',  display: 'BORI · 활성',  badge: 'BORI' },
+};
 
 function navTo(p) {
   document.querySelectorAll('.pg').forEach(x => x.classList.remove('on'));
@@ -288,21 +337,171 @@ function navTo(p) {
   if (lk) lk.classList.add('on');
   document.getElementById('main').scrollTop = 0;
 }
-function updPts(d) {
-  pts += d;
-  const f = pts.toLocaleString();
-  ['tb-pts','prof-pts'].forEach(id => { const e = document.getElementById(id); if(e) e.textContent = f; });
+function getSubscriptionState() {
+  return localStorage.getItem(SUBSCRIPTION_STATE_KEY) || 'active';
 }
-function checkIn() {
-  if (checkedIn) { toast('오늘은 이미 출석했어요! 내일 다시 오세요 🌸'); return; }
-  checkedIn = true; updPts(50); toast('출석 체크 완료! +50 pts 적립 ✦');
+
+function getSubscriptionPlan() {
+  return localStorage.getItem(SUBSCRIPTION_PLAN_KEY) || 'fanplus';
 }
+
+function getPaidAtDate() {
+  const raw = localStorage.getItem(SUBSCRIPTION_PAID_AT_KEY);
+  if (!raw) return null;
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatDateKorean(date) {
+  return date.getFullYear() + '.' +
+    String(date.getMonth() + 1).padStart(2, '0') + '.' +
+    String(date.getDate()).padStart(2, '0');
+}
+
+function addOneMonth(date) {
+  const next = new Date(date.getTime());
+  next.setMonth(next.getMonth() + 1);
+  return next;
+}
+
+function setSubscriptionState(state) {
+  localStorage.setItem(SUBSCRIPTION_STATE_KEY, state);
+  applySubscriptionState(state);
+}
+
+function applySubscriptionState(state) {
+  const isCanceled = state === 'canceled';
+  const planKey = getSubscriptionPlan();
+  const planInfo = PLAN_INFO[planKey] || PLAN_INFO.fanplus;
+  const paidAt = getPaidAtDate();
+  const nextBilling = paidAt ? addOneMonth(paidAt) : null;
+  document.querySelectorAll('[data-subscription-state]').forEach(el => {
+    el.textContent = isCanceled ? '● 구독 해지됨' : '● ' + planInfo.display;
+    el.style.color = isCanceled ? 'var(--dim)' : 'var(--acc)';
+  });
+  document.querySelectorAll('[data-subscription-next-billing]').forEach(el => {
+    el.textContent = isCanceled
+      ? '다음 결제 없음'
+      : (nextBilling ? formatDateKorean(nextBilling) : '미정');
+    el.style.color = isCanceled ? 'var(--dim)' : 'var(--ink)';
+  });
+  document.querySelectorAll('[data-subscription-plan-label]').forEach(el => {
+    el.textContent = isCanceled ? '구독 해지됨' : planInfo.display;
+  });
+  document.querySelectorAll('[data-subscription-plan-badge]').forEach(el => {
+    el.textContent = planInfo.badge;
+  });
+  document.querySelectorAll('[data-subscription-manage]').forEach(el => {
+    el.textContent = isCanceled ? '다시 구독하기' : '구독 관리';
+  });
+  document.querySelectorAll('[data-subscription-cancel]').forEach(el => {
+    el.style.display = isCanceled ? 'none' : '';
+  });
+
+  // 카드 라벨을 조금 더 크게 보여주기
+  document.querySelectorAll('#pg-myinfo .card span[style*="display:block"][style*="text-transform:uppercase"]').forEach(el => {
+    if (el.textContent === '이용 중' || el.textContent === '다음 결제' || el.textContent === '결제일') {
+      el.style.fontSize = '0.62rem';
+      el.style.marginBottom = '0.35rem';
+    }
+  });
+}
+
+function openSubscriptionCancelModal() {
+  if (getSubscriptionState() === 'canceled') {
+    toast('이미 구독이 취소된 상태예요');
+    return;
+  }
+  const planKey = getSubscriptionPlan();
+  const planInfo = PLAN_INFO[planKey] || PLAN_INFO.fanplus;
+  const currentEl = document.getElementById('subscriptionCancelCurrent');
+  const afterEl = document.getElementById('subscriptionCancelAfter');
+  if (currentEl) currentEl.textContent = planInfo.display;
+  if (afterEl) afterEl.textContent = '다음 결제 없음';
+  const modal = document.getElementById('subscription-cancel-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeSubscriptionCancelModal() {
+  const modal = document.getElementById('subscription-cancel-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function confirmSubscriptionCancel() {
+  setSubscriptionState('canceled');
+  closeSubscriptionCancelModal();
+  toast('구독 취소가 완료되었습니다.');
+}
+
+function openWithdrawalModal() {
+  const modal = document.getElementById('withdrawal-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeWithdrawalModal() {
+  const modal = document.getElementById('withdrawal-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function getCookie(name) {
+  const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  if (v) return v.pop();
+  const fallback = document.querySelector('#logout-csrf-form input[name="csrfmiddlewaretoken"]');
+  return fallback ? fallback.value : '';
+}
+
+async function doLogout() {
+  if (accountExitRunning) return;
+  accountExitRunning = true;
+  sessionStorage.removeItem(WITHDRAWAL_STATE_KEY);
+  const logoutRequest = fetch('/api/auth/logout/', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'Content-Type': 'application/json',
+    },
+    body: '{}',
+  });
+  const timeout = new Promise(resolve => setTimeout(resolve, 900));
+  await Promise.race([logoutRequest.catch(() => {}), timeout]);
+  window.location.replace('/homepage/');
+}
+
+function confirmWithdrawal() {
+  if (accountExitRunning) return;
+  localStorage.removeItem(SUBSCRIPTION_STATE_KEY);
+  localStorage.removeItem(SUBSCRIPTION_PLAN_KEY);
+  localStorage.removeItem(SUBSCRIPTION_PAID_AT_KEY);
+  localStorage.removeItem('hari-mypage-subscription-label');
+  localStorage.removeItem('hari-mypage-subscription-price');
+  localStorage.removeItem('hari-subscription-plan');
+  sessionStorage.setItem(WITHDRAWAL_STATE_KEY, 'withdrawn');
+  closeWithdrawalModal();
+  doLogout();
+}
+
 let toastT;
 function toast(msg) {
-  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('on');
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg; t.classList.add('on');
   clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2800);
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBuy(); });
+applySubscriptionState(getSubscriptionState());
+const IS_AUTHENTICATED = {% if user.is_authenticated %}true{% else %}false{% endif %};
+  if (sessionStorage.getItem(WITHDRAWAL_STATE_KEY) === 'withdrawn') {
+  if (IS_AUTHENTICATED) {
+    sessionStorage.removeItem(WITHDRAWAL_STATE_KEY);
+  } else {
+    window.location.href = '/homepage/';
+  }
+}
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  closeSubscriptionCancelModal();
+  closeWithdrawalModal();
+});
 </script>
 </body>
 </html>

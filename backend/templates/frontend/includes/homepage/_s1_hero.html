@@ -1,13 +1,39 @@
 {% load static %}
-<section id="s1" class="hero-section" style="position:relative;height:100vh;overflow:hidden;background-size:cover;background-position:center;background-repeat:no-repeat;">
+<section id="s1" class="hero-section" style="position:relative;overflow:hidden;">
+
+  <!-- 레이어 1: 블러 배경 (극단적 비율에서 가장자리 보정용) -->
+  <img id="hero-blur-img"
+       src="{% static 'images/hari_hero_image4.png' %}"
+       alt=""
+       style="position:absolute;inset:-5%;width:110%;height:110%;object-fit:cover;object-position:center 20%;z-index:0;pointer-events:none;filter:blur(32px) brightness(0.55) saturate(1.2);">
+
+  <!-- 레이어 2: 실제 이미지 (화면 꽉 채움) -->
+  <img id="hero-bg-img"
+       src="{% static 'images/hari_hero_image4.png' %}"
+       alt=""
+       style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 15%;z-index:1;pointer-events:none;">
+
+  <!-- 레이어 3: 가장자리 비네트 (이미지-배경 자연스러운 블렌딩) -->
+  <div style="position:absolute;inset:0;z-index:2;pointer-events:none;
+    background: radial-gradient(ellipse 85% 90% at 50% 45%, transparent 50%, rgba(0,0,0,0.25) 75%, rgba(0,0,0,0.55) 100%);"></div>
+
+  <!-- 레이어 4: 하단 그라데이션 (스크롤 힌트 가독성) -->
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom, transparent 55%, rgba(0,0,0,0.4) 100%);z-index:3;pointer-events:none;"></div>
 
   <!-- 로고 -->
-  <div class="hero-logo-wrap" style="position:absolute;top:60px;left:60px;z-index:10;pointer-events:none;">
+  <div class="hero-logo-wrap" style="position:absolute;top:60px;left:60px;z-index:15;pointer-events:none;">
     <img class="hero-logo-img" src="{% static 'images/hari_logo_none.png' %}?v=3" alt="HARI" style="height:140px;width:auto;filter:brightness(0);">
   </div>
 
+  <!-- 히어로 이미지 슬라이드 화살표 -->
+  <button id="hero-prev" onclick="heroSlide(-1)" aria-label="이전 이미지">&#8249;</button>
+  <button id="hero-next" onclick="heroSlide(1)" aria-label="다음 이미지">&#8250;</button>
+
+  <!-- 슬라이드 인디케이터 -->
+  <div id="hero-dots"></div>
+
   <!-- 하단 -->
-  <div class="hero-bottom" style="font-family:var(--f-pixel);z-index:10;">
+  <div class="hero-bottom" style="font-family:var(--f-pixel);z-index:15;">
     <div class="hero-scroll-hint">
       <div class="scroll-mouse"></div>
       <div class="scroll-line"></div>
@@ -19,12 +45,62 @@
 </section>
 
 <style>
-/* 히어로 이미지 — 라이트/다크 모드 분기 */
+/* 히어로 섹션 높이 — 네비게이션 높이(64px) 포함 전체 화면 */
 #s1.hero-section {
-  background-image: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.3)), url("{% static 'images/hari_hero_image4.png' %}");
+  height: 100dvh;
+  min-height: 600px;
+  padding-top: 0 !important;
+  background: none;
 }
-html[data-theme="dark"] #s1.hero-section {
-  background-image: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.3)), url("{% static 'images/hari_hero_image1.png' %}");
+
+/* 히어로 슬라이드 화살표 */
+#hero-prev, #hero-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 25;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  font-size: 2rem;
+  line-height: 1;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  transition: background 0.2s, opacity 0.2s;
+  opacity: 0.55;
+}
+#hero-prev { left: 20px; }
+#hero-next { right: 20px; }
+#hero-prev:hover, #hero-next:hover { background: rgba(255,255,255,0.3); opacity: 1; }
+
+/* 인디케이터 점 */
+#hero-dots {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  display: flex;
+  gap: 8px;
+}
+#hero-dots .hero-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.45);
+  border: 1px solid rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+#hero-dots .hero-dot.active {
+  background: #fff;
+  transform: scale(1.25);
 }
 
 /* 메인 히어로 하단 스크롤 영역 오버레이 디자인 수정 */
@@ -33,7 +109,7 @@ html[data-theme="dark"] #s1.hero-section {
   bottom: 0;
   left: 0;
   width: 100%;
-  border-top: none; /* 기존 border 제거 */
+  border-top: none;
   background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
   padding: 5rem 4rem 2.5rem 4rem;
 }
@@ -51,14 +127,110 @@ html[data-theme="dark"] #s1.hero-section {
   .hero-logo-wrap { top: 20px !important; left: 20px !important; }
   .hero-logo-img { height: 80px !important; }
   #s1 .hero-bottom { padding: 4rem 1.5rem 1.5rem 1.5rem; }
-
-  /* 모바일 히어로 이미지 — 라이트 모드 */
-  #s1.hero-section {
-    background-image: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.3)), url("{% static 'images/hari_mobile_image_light.png' %}");
-  }
-  /* 모바일 히어로 이미지 — 다크 모드 */
-  html[data-theme="dark"] #s1.hero-section {
-    background-image: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.3)), url("{% static 'images/hari_mobile_image_dark.png' %}");
-  }
+  #hero-prev, #hero-next, #hero-dots { display: none; }
 }
 </style>
+
+<script>
+(function () {
+  var LIGHT_IMGS = [
+    "{% static 'images/hari_hero_image4.png' %}",
+    "{% static 'images/hari_hero_image3.png' %}",
+    "{% static 'images/hari_hero_image8.webp' %}",
+    "{% static 'images/hari_hero_image10.webp' %}",
+    "{% static 'images/hari_hero_image11.webp' %}"
+  ];
+  var DARK_IMGS = [
+    "{% static 'images/hari_hero_image1.png' %}",
+    "{% static 'images/hari_hero_image2.png' %}",
+    "{% static 'images/hari_hero_image5.webp' %}",
+    "{% static 'images/hari_hero_image7.webp' %}",
+    "{% static 'images/hari_hero_image9.webp' %}"
+  ];
+
+  function isMobile() { return window.innerWidth <= 480; }
+
+  function getTheme() {
+    return document.documentElement.getAttribute('data-theme') || 'light';
+  }
+
+  function getSavedIdx(mode) {
+    var val = parseInt(localStorage.getItem('hero-idx-' + mode), 10);
+    return isNaN(val) ? 0 : val;
+  }
+
+  var MOBILE_LIGHT = "{% static 'images/hari_mobile_image_light.png' %}";
+  var MOBILE_DARK  = "{% static 'images/hari_mobile_image_dark.png' %}";
+
+  function applyHeroImage(idx) {
+    var imgEl    = document.getElementById('hero-bg-img');
+    var blurEl   = document.getElementById('hero-blur-img');
+    if (!imgEl) return;
+
+    if (isMobile()) {
+      var mobileSrc = getTheme() === 'dark' ? MOBILE_DARK : MOBILE_LIGHT;
+      imgEl.src = mobileSrc;
+      if (blurEl) blurEl.src = mobileSrc;
+      return;
+    }
+
+    var mode = getTheme();
+    var imgs = mode === 'dark' ? DARK_IMGS : LIGHT_IMGS;
+    imgEl.src = imgs[idx];
+    if (blurEl) blurEl.src = imgs[idx];
+    renderDots(imgs.length, idx);
+  }
+
+  function renderDots(total, activeIdx) {
+    var container = document.getElementById('hero-dots');
+    if (!container) return;
+    var html = '';
+    for (var i = 0; i < total; i++) {
+      html += '<div class="hero-dot' + (i === activeIdx ? ' active' : '') +
+              '" onclick="heroSlideToIdx(' + i + ')"></div>';
+    }
+    container.innerHTML = html;
+  }
+
+  function heroSlide(dir) {
+    if (isMobile()) return;
+    var mode = getTheme();
+    var imgs = mode === 'dark' ? DARK_IMGS : LIGHT_IMGS;
+    var cur = getSavedIdx(mode);
+    var next = (cur + dir + imgs.length) % imgs.length;
+    localStorage.setItem('hero-idx-' + mode, next);
+    applyHeroImage(next);
+  }
+
+  function heroSlideToIdx(idx) {
+    if (isMobile()) return;
+    var mode = getTheme();
+    localStorage.setItem('hero-idx-' + mode, idx);
+    applyHeroImage(idx);
+  }
+
+  /* 테마 변경 감지 → 해당 모드 저장 이미지 적용 */
+  var observer = new MutationObserver(function () {
+    var mode = getTheme();
+    applyHeroImage(isMobile() ? 0 : getSavedIdx(mode));
+  });
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  /* 초기 적용 */
+  function init() {
+    if (isMobile()) return;
+    var mode = getTheme();
+    applyHeroImage(getSavedIdx(mode));
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  /* 전역 노출 */
+  window.heroSlide = heroSlide;
+  window.heroSlideToIdx = heroSlideToIdx;
+})();
+</script>
