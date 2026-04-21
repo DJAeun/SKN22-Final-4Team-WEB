@@ -649,7 +649,7 @@ var REAL                = null;
 var YT_VIDEO_COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#a855f7','#ec4899','#f43f5e','#14b8a6'];
 
 /* ── 기간별 고정 데이터 포인트 수 ── */
-var PERIOD_COUNTS = { daily: 7, weekly: 4, monthly: 6, yearly: 5 };
+var PERIOD_COUNTS = { daily: 7, weekly: 8, monthly: 6, yearly: 5 };
 
 /* ── KST 현재 기간 실제 날짜/주/월/년 반환 ── */
 function getCurrentPeriodInfo(period) {
@@ -679,7 +679,7 @@ function getCurrentPeriodInfo(period) {
     return {
       badge: monStr + '~' + sunStr,
       stat:  '이번 주 (' + monStr + '~' + sunStr + ') 기준',
-      hint:  '이번 주 ' + monStr + '~' + sunStr + ' · 최근 4주 추이',
+      hint:  '이번 주 ' + monStr + '~' + sunStr + ' · 최근 8주 추이',
     };
   }
   if (period === 'monthly') {
@@ -702,7 +702,7 @@ function getCurrentPeriodInfo(period) {
 /* ── 차트 설명 텍스트 ── */
 var CHART_DESC = {
   daily:   { pv: '최근 7일 일별 방문자 수 변화',      chat: '최근 7일 채팅 메시지 추이',   rpg: '최근 7일 롤플레잉 플레이 횟수' },
-  weekly:  { pv: '최근 4주 주별 방문자 수 변화',      chat: '최근 4주 채팅 메시지 추이',   rpg: '최근 4주 롤플레잉 플레이 횟수' },
+  weekly:  { pv: '최근 8주 주별 방문자 수 변화',      chat: '최근 8주 채팅 메시지 추이',   rpg: '최근 8주 롤플레잉 플레이 횟수' },
   monthly: { pv: '최근 6개월 월별 방문자 수 변화',    chat: '최근 6개월 채팅 메시지 추이', rpg: '최근 6개월 롤플레잉 플레이 횟수' },
   yearly:  { pv: '최근 5년 연별 방문자 수 변화',      chat: '최근 5년 채팅 메시지 추이',   rpg: '최근 5년 롤플레잉 플레이 횟수' },
 };
@@ -710,7 +710,7 @@ var CHART_DESC = {
 /* ── YouTube API 기간 설정 ── */
 var YT_PERIOD_CFG = {
   daily:   { apiPeriod: 'daily',   range: 7,  label: '최근 7일' },
-  weekly:  { apiPeriod: 'weekly',  range: 4,  label: '최근 4주' },
+  weekly:  { apiPeriod: 'weekly',  range: 8,  label: '최근 8주' },
   monthly: { apiPeriod: 'monthly', range: 6,  label: '최근 6개월' },
   yearly:  { apiPeriod: 'yearly',  range: 5,  label: '최근 5년' },
 };
@@ -760,8 +760,8 @@ function makeDemoLabels(period) {
       labels.push((d.getUTCMonth()+1) + '/' + d.getUTCDate());
     }
   } else if (period === 'weekly') {
-    /* 최근 4주 */
-    labels = makeWeeklyLabels(4);
+    /* 최근 8주 */
+    labels = makeWeeklyLabels(8);
   } else if (period === 'monthly') {
     /* 최근 6개월 */
     for (i = 5; i >= 0; i--) {
@@ -809,9 +809,9 @@ var DEMO = {
     roleplayCounts: [12, 18, 9, 24, 31, 15, 28],
   },
   weekly: {
-    pageVisits:     [8500, 6200, 3100, 2700],
-    chatCounts:     [312, 445, 289, 501],
-    roleplayCounts: [85, 124, 68, 178],
+    pageVisits:     [9200, 8500, 7800, 6200, 5100, 4300, 3100, 2700],
+    chatCounts:     [198, 312, 445, 389, 289, 421, 501, 456],
+    roleplayCounts: [52, 85, 124, 97, 68, 113, 178, 145],
   },
   monthly: {
     pageVisits:     [5500, 2300, 9800, 14500, 18200, 15600],
@@ -1156,7 +1156,7 @@ function buildYTMetricChart() {
 }
 
 /* ════════════════════════════════════════════════
-   IG 주차 버튼 생성 (최근 4주)
+   IG 주차 버튼 생성 (최근 8주)
    ════════════════════════════════════════════════ */
 function buildIGWeekButtons() {
   var bar = document.getElementById('igWeekBar');
@@ -1174,9 +1174,9 @@ function buildIGWeekButtons() {
   var mondayOffset = dow === 0 ? -6 : 1 - dow;
   var thisMonday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + mondayOffset));
 
-  /* 최근 4주 생성 (오래된 순) */
+  /* 최근 8주 생성 (오래된 순) */
   var weeks = [];
-  for (var i = 3; i >= 0; i--) {
+  for (var i = 7; i >= 0; i--) {
     var mon = new Date(thisMonday.getTime() - i * 7 * 86400000);
     var sun = new Date(mon.getTime() + 6 * 86400000);
     var weekNum = Math.ceil(mon.getUTCDate() / 7);
