@@ -184,16 +184,17 @@ SKN22-Final-4Team-WEB/
 │   │
 │   ├── templates/                 # Django 템플릿 루트
 │   │   ├── frontend/              # 사용자용 페이지 템플릿
-│   │   │   ├── homepage.html      # 랜딩 페이지
+│   │   │   ├── homepage.html      # 랜딩 페이지 (Nav/Auth 모달 CSS 포함)
 │   │   │   ├── chat.html          # 실시간 채팅 페이지
-│   │   │   ├── mypage.html        # 마이페이지
-│   │   │   ├── gallery.html       # 갤러리 페이지
-│   │   │   ├── video.html         # 영상 페이지
-│   │   │   ├── membership.html    # 멤버십 페이지
-│   │   │   └── includes/          # 재사용 컴포넌트 템플릿
-│   │   │       ├── homepage/      # Hero, About, Gallery, Video, Footer(Contact 포함) 등
-│   │   │       ├── mypage/        # Topbar, Sidebar, MyInfo, BuyModal 등
-│   │   │       └── chat/          # Header, Messages, Input, Status, Search 등
+│   │   │   ├── mypage.html        # 마이페이지 (구독·계정 관리)
+│   │   │   ├── abouthari.html     # 하리 소개 페이지 (프로필·SNS·갤러리 미리보기)
+│   │   │   ├── gallery.html       # 갤러리 페이지 (카테고리 필터·라이트박스)
+│   │   │   ├── video.html         # 영상 콘텐츠 페이지
+│   │   │   ├── membership.html    # 멤버십 플랜 소개 페이지
+│   │   │   └── includes/          # 각 페이지 안에 삽입되는 섹션 단위 파일 모음
+│   │   │       ├── homepage/      # 네비게이션, 로그인/회원가입 모달, 히어로, 하리 소개, 갤러리, 영상, 푸터
+│   │   │       ├── mypage/        # 상단바, 사이드바, 내 정보·구독·계정 섹션
+│   │   │       └── chat/          # 채팅 헤더, 메시지 목록, 입력창, 검색
 │   │   └── admin/                 # Django Admin 커스텀 템플릿
 │   │
 │   ├── static/                    # 정적 파일 소스
