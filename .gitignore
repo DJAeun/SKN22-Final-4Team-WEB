@@ -116,6 +116,17 @@ zzAnMJe/
 problem-solving.md
 COLLABORATION_GUIDE.md
 
+# Local-only plugin/skill installs (not part of project source)
+/langchain-skills/
+/langsmith-skills/
+
+# Local scratch / experimental folders
+/klein_img/
+/notebooklm/
+
+# node_modules at repo root (Django project — no JS deps here)
+/node_modules/
+
 # Audio files
 *.wav
 *.mp3
