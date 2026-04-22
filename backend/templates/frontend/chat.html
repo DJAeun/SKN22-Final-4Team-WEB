@@ -1542,8 +1542,7 @@ function sanitizeHari(text) {
 
 function splitMessage(text) {
   if (!text) return [];
-  // 빈 줄(\n\n 이상)에서만 말풍선 분리, 단순 줄바꿈은 같은 말풍선 내 <br>로 처리
-  return text.split(/\n{2,}/).map(s => s.trim()).filter(s => s.length > 0);
+  return text.split(/\n+/).map(s => s.trim()).filter(s => s.length > 0);
 }
 
 function renderSingleHariBubble(text, options = {}) {

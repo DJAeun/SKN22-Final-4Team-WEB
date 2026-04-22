@@ -10,7 +10,7 @@ On each session end it:
   4. Embeds each fact and does a contradiction check via cosine similarity.
   5. Routes to the correct table:
        • user facts  (importance >= IMPORTANCE_MIN_USER) → user_persona
-       • hari facts  (importance >= IMPORTANCE_MIN_HARI, update_hari=True) → hari_knowledge
+       • hari facts  (importance >= IMPORTANCE_MIN_HARI) → hari_knowledge
 
 Invoked via asyncio.create_task() — NEVER awaited from the hot path.
 """
@@ -420,7 +420,6 @@ _async_save_hari   = sync_to_async(_upsert_hari_knowledge_sync, thread_sensitive
 async def run_extraction_pipeline(
     user_id: int,
     session_messages: list[dict],
-    update_hari: bool = False,
 ) -> None:
     """
     Full extraction pipeline. Designed to run as a fire-and-forget asyncio.Task.
@@ -428,8 +427,6 @@ async def run_extraction_pipeline(
     Args:
         user_id:          Authenticated user's ID.
         session_messages: Snapshot of the session (list of {"sender", "content"}).
-        update_hari:      Whether high-importance Hari facts should update hari_knowledge.
-                          Typically True only at persona-update milestones.
     """
     if not session_messages:
         return
@@ -455,11 +452,8 @@ async def run_extraction_pipeline(
                 i + 1, len(facts), user_id, fact.subject, fact.trait_key, fact.importance,
             )
 
-            # Route hari facts to hari_knowledge (only at update milestones)
+            # Route hari facts to hari_knowledge
             if fact.subject == "hari":
-                if not update_hari:
-                    logger.info("Skipping hari fact (not an update milestone): %s", fact.trait_key)
-                    continue
                 if fact.importance < IMPORTANCE_MIN_HARI:
                     logger.info("Skipping low-importance hari fact (score=%d < %d): %s", fact.importance, IMPORTANCE_MIN_HARI, fact.trait_key)
                     continue

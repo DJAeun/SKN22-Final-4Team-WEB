@@ -50,7 +50,10 @@
       "Bash(python heygen_pipeline/generate_video.py \"c:\\\\Workspaces\\\\SKN22-Final-4Team-WEB\\\\heygen_pipeline\\\\input_audio\\\\voice21_clone3 \\(4\\).wav\" --skip-subtitles)",
       "Bash(PYTHONIOENCODING=utf-8 python heygen_pipeline/generate_video.py \"c:\\\\Workspaces\\\\SKN22-Final-4Team-WEB\\\\heygen_pipeline\\\\input_audio\\\\voice21_clone3 \\(4\\).wav\" --skip-subtitles)",
       "Bash(grep -E \"\\\\.\\(py|js|ts|tsx\\)$\")",
-      "Bash(find *)"
+      "Bash(find *)",
+      "Bash(git -C /c/Workspaces/SKN22-Final-4Team-WEB log --all --diff-filter=D --name-only --pretty=format:)",
+      "Bash(powershell.exe -NoProfile -Command 'Get-ChildItem '\\\\''C:\\\\$Recycle.Bin'\\\\'' -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '\\\\''generated|hari_news|hari_homepage'\\\\'' -or $_.FullName -match '\\\\''generated_images|generated_videos'\\\\'' } | Select-Object FullName,Length,LastWriteTime | Format-Table -AutoSize')",
+      "Bash(python *)"
     ]
   }
 }
