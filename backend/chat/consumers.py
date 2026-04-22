@@ -9,10 +9,6 @@ from .models import Message, ChatMemory
 
 logger = logging.getLogger(__name__)
 
-# Trigger Hari persona enrichment every N completed conversations per user
-PERSONA_UPDATE_INTERVAL = 20
-
-
 
 class ChatConsumer(AsyncWebsocketConsumer):
 
@@ -96,14 +92,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         try:
             if getattr(self, 'session_messages', None):
-                conversation_count = await self.save_chat_memory()
+                await self.save_chat_memory()
 
                 if self.user_id:
-                    # Determine whether this session hits the Hari-update milestone
-                    update_hari = bool(
-                        conversation_count and
-                        conversation_count % PERSONA_UPDATE_INTERVAL == 0
-                    )
                     # Await the extraction pipeline directly — fire-and-forget
                     # via create_task can get GC'd before completion on Daphne
                     from .memory_extractor import run_extraction_pipeline
@@ -111,7 +102,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         await run_extraction_pipeline(
                             user_id=self.user_id,
                             session_messages=list(self.session_messages),
-                            update_hari=update_hari,
                         )
                     except Exception as e:
                         logger.error(f"Extraction pipeline failed: {e}", exc_info=True)
@@ -301,5 +291,3 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         return ChatMemory.objects.filter(user_id=self.user_id).count()
 
-    # trigger_persona_update is now handled inside disconnect() via
-    # run_extraction_pipeline(update_hari=True) at the PERSONA_UPDATE_INTERVAL milestone.
