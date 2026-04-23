@@ -408,11 +408,13 @@
 <div class="wrap">
 
   <!-- ① SARI 정책 요약 -->
-  <div class="policy-banner">
+    <div class="policy-banner">
     <h2>SARI 안내</h2>
     <p class="policy-desc">
       하리와 대화하거나 롤플레잉을 즐길 때 SARI가 사용돼요.<br>
       채팅은 1턴에 10 sari, 롤플레잉은 1턴에 20 sari가 필요합니다.
+      구독 할인은 가격에만 적용되고, 지급 SARI와 이용 가능 턴 수는 동일해요.
+      월간 구독의 미사용 SARI는 다음 달로 이월돼요.
     </p>
     <div class="policy-stats">
       <div class="p-stat">
@@ -444,7 +446,7 @@
     <div class="sub-grid">
 
       <!-- FAN -->
-      <div class="sub-card" id="card-fan" onclick="cardClick(event,'fan-monthly','fan 월간','구독','9,900원 (첫 달 4,950원)','500 sari (첫 달 250 sari)','50턴','25턴')" style="cursor:pointer;">
+      <div class="sub-card" id="card-fan" onclick="cardClick(event,'fan-monthly','fan 월간','구독','9,900원 (첫 달 4,950원)','500 sari','50턴','25턴')" style="cursor:pointer;">
         <div class="sc-head hd-fan">
           <div class="sc-tier">fan</div>
           <div class="sc-tier-sub">베이직</div>
@@ -456,9 +458,9 @@
             <div class="price-disc">첫 달 50% 할인 → 4,950원</div>
             <div class="sari-row">
               <span class="sari-val">매월 500 sari</span>
-              <span class="sari-note">첫 달 250 sari</span>
             </div>
-            <div class="turns-info">채팅 <b>50턴</b> · 롤플레잉 <b>25턴</b> · 첫 달 각 절반</div>
+            <div class="turns-info">미사용 SARI는 다음 달로 이월돼요</div>
+            <div class="turns-info">채팅 <b>50턴</b> · 롤플레잉 <b>25턴</b></div>
           </div>
           <div class="sc-divider"></div>
           <div class="price-sec">
@@ -468,7 +470,7 @@
             <div class="price-renew">갱신가 10% 할인 89,100원</div>
             <div class="sari-row">
               <span class="sari-val">총 6,500 sari</span>
-              <span class="sari-note">매월 약 541 sari</span>
+              <span class="sari-note">결제 시 일괄 지급</span>
             </div>
             <div class="turns-info">채팅 총 <b>650턴</b> · 롤플레잉 총 <b>325턴</b></div>
           </div>
@@ -479,14 +481,14 @@
             <div class="benefit">SNS 콘텐츠 시청 가능</div>
           </div>
           <div class="sc-btns">
-            <button class="btn-monthly" onclick="selectProd('fan-monthly','fan 월간','구독','9,900원 (첫 달 4,950원)','500 sari (첫 달 250 sari)','50턴','25턴')">fan 월간 구독하기</button>
-            <button class="btn-yearly" onclick="selectProd('fan-yearly','fan 연간','구독','99,000원 (첫해 69,300원)','6,500 sari (매월 541 sari)','650턴','325턴')">fan 연간 구독하기</button>
+            <button class="btn-monthly" onclick="selectProd('fan-monthly','fan 월간','구독','9,900원 (첫 달 4,950원)','500 sari','50턴','25턴')">fan 월간 구독하기</button>
+            <button class="btn-yearly" onclick="selectProd('fan-yearly','fan 연간','구독','99,000원 (첫해 69,300원)','6,500 sari (결제 시 일괄 지급)','650턴','325턴')">fan 연간 구독하기</button>
           </div>
         </div>
       </div>
 
       <!-- FAN+ -->
-      <div class="sub-card" id="card-fanplus" onclick="cardClick(event,'fanplus-monthly','fan+ 월간','구독','19,900원 (첫 달 9,950원)','1,200 sari (첫 달 600 sari)','120턴','60턴')" style="cursor:pointer;">
+      <div class="sub-card" id="card-fanplus" onclick="cardClick(event,'fanplus-monthly','fan+ 월간','구독','19,900원 (첫 달 9,950원)','1,200 sari','120턴','60턴')" style="cursor:pointer;">
         <div class="sc-head hd-fanplus">
           <div class="sc-tier">fan+</div>
           <div class="sc-tier-sub">스탠다드</div>
@@ -499,9 +501,9 @@
             <div class="price-disc">첫 달 50% 할인 → 9,950원</div>
             <div class="sari-row">
               <span class="sari-val">매월 1,200 sari</span>
-              <span class="sari-note">첫 달 600 sari</span>
             </div>
-            <div class="turns-info">채팅 <b>120턴</b> · 롤플레잉 <b>60턴</b> · 첫 달 각 절반</div>
+            <div class="turns-info">미사용 SARI는 다음 달로 이월돼요</div>
+            <div class="turns-info">채팅 <b>120턴</b> · 롤플레잉 <b>60턴</b></div>
           </div>
           <div class="sc-divider"></div>
           <div class="price-sec">
@@ -511,7 +513,7 @@
             <div class="price-renew">갱신가 20% 할인 159,200원</div>
             <div class="sari-row">
               <span class="sari-val">총 16,000 sari</span>
-              <span class="sari-note">매월 약 1,333 sari</span>
+              <span class="sari-note">결제 시 일괄 지급</span>
             </div>
             <div class="turns-info">채팅 총 <b>1,600턴</b> · 롤플레잉 총 <b>800턴</b></div>
           </div>
@@ -522,14 +524,14 @@
             <div class="benefit">SNS 콘텐츠 시청 가능</div>
           </div>
           <div class="sc-btns">
-            <button class="btn-monthly" onclick="selectProd('fanplus-monthly','fan+ 월간','구독','19,900원 (첫 달 9,950원)','1,200 sari (첫 달 600 sari)','120턴','60턴')">fan+ 월간 구독하기</button>
-            <button class="btn-yearly" onclick="selectProd('fanplus-yearly','fan+ 연간','구독','199,000원 (첫해 139,300원)','16,000 sari (매월 1,333 sari)','1,600턴','800턴')">fan+ 연간 구독하기</button>
+            <button class="btn-monthly" onclick="selectProd('fanplus-monthly','fan+ 월간','구독','19,900원 (첫 달 9,950원)','1,200 sari','120턴','60턴')">fan+ 월간 구독하기</button>
+            <button class="btn-yearly" onclick="selectProd('fanplus-yearly','fan+ 연간','구독','199,000원 (첫해 139,300원)','16,000 sari (결제 시 일괄 지급)','1,600턴','800턴')">fan+ 연간 구독하기</button>
           </div>
         </div>
       </div>
 
       <!-- BORI -->
-      <div class="sub-card" id="card-bori" onclick="cardClick(event,'bori-monthly','bori 월간','구독','39,900원 (첫 달 19,950원)','2,800 sari (첫 달 1,400 sari)','280턴','140턴')" style="cursor:pointer;">
+      <div class="sub-card" id="card-bori" onclick="cardClick(event,'bori-monthly','bori 월간','구독','39,900원 (첫 달 19,950원)','2,800 sari','280턴','140턴')" style="cursor:pointer;">
         <div class="sc-head hd-bori">
           <div class="sc-tier">bori</div>
           <div class="sc-tier-sub">프리미엄</div>
@@ -542,9 +544,9 @@
             <div class="price-disc">첫 달 50% 할인 → 19,950원</div>
             <div class="sari-row">
               <span class="sari-val">매월 2,800 sari</span>
-              <span class="sari-note">첫 달 1,400 sari</span>
             </div>
-            <div class="turns-info">채팅 <b>280턴</b> · 롤플레잉 <b>140턴</b> · 첫 달 각 절반</div>
+            <div class="turns-info">미사용 SARI는 다음 달로 이월돼요</div>
+            <div class="turns-info">채팅 <b>280턴</b> · 롤플레잉 <b>140턴</b></div>
           </div>
           <div class="sc-divider"></div>
           <div class="price-sec">
@@ -554,7 +556,7 @@
             <div class="price-renew">갱신가 30% 할인 279,300원</div>
             <div class="sari-row">
               <span class="sari-val">총 36,000 sari</span>
-              <span class="sari-note">매월 3,000 sari</span>
+              <span class="sari-note">결제 시 일괄 지급</span>
             </div>
             <div class="turns-info">채팅 총 <b>3,600턴</b> · 롤플레잉 총 <b>1,800턴</b></div>
           </div>
@@ -565,8 +567,8 @@
             <div class="benefit">SNS 콘텐츠 시청 가능</div>
           </div>
           <div class="sc-btns">
-            <button class="btn-monthly" onclick="selectProd('bori-monthly','bori 월간','구독','39,900원 (첫 달 19,950원)','2,800 sari (첫 달 1,400 sari)','280턴','140턴')">bori 월간 구독하기</button>
-            <button class="btn-yearly" onclick="selectProd('bori-yearly','bori 연간','구독','399,000원 (첫해 279,300원)','36,000 sari (매월 3,000 sari)','3,600턴','1,800턴')">bori 연간 구독하기</button>
+            <button class="btn-monthly" onclick="selectProd('bori-monthly','bori 월간','구독','39,900원 (첫 달 19,950원)','2,800 sari','280턴','140턴')">bori 월간 구독하기</button>
+            <button class="btn-yearly" onclick="selectProd('bori-yearly','bori 연간','구독','399,000원 (첫해 279,300원)','36,000 sari (결제 시 일괄 지급)','3,600턴','1,800턴')">bori 연간 구독하기</button>
           </div>
         </div>
       </div>
@@ -583,115 +585,117 @@
 
     <div class="disc-note">
       <b>할인 정책</b><br>
-      300~5,000 sari: 첫 충전 50% 할인 · 이후 10% 할인<br>
-      7,000 sari 이상: 첫 충전 30% 할인 · 이후 10% 할인
+      300~1,000 sari: 첫 충전 할인 거의 없음 · 이후 10% 할인<br>
+      3,000 sari: 첫 충전 15% 할인 · 이후 10% 할인<br>
+      5,000~20,000 sari: 첫 충전 12~15% 할인 · 이후 10% 할인<br>
+      50,000 sari: 첫 충전 20% 할인 · 이후 10% 할인
     </div>
 
     <div class="charge-grid">
 
       <!-- 300 sari -->
-      <div class="charge-card" id="card-c300" onclick="cardClick(event,'c300','300 sari 충전','충전','3,000원 (첫 충전 1,500원)','300 sari','30턴','15턴')">
+      <div class="charge-card" id="card-c300" onclick="cardClick(event,'c300','300 sari 충전','충전','6,900원 (첫 충전 6,900원)','300 sari','30턴','15턴')">
         <div class="cc-amount">300<span class="cc-amount-unit"> sari</span></div>
-        <div class="cc-normal">정상가 3,000원</div>
-        <div class="cc-first">첫 충전 1,500원</div>
-        <div class="cc-repeat">이후 <b>2,700원</b></div>
+        <div class="cc-normal">정상가 6,900원</div>
+        <div class="cc-first">첫 충전 6,900원</div>
+        <div class="cc-repeat">이후 <b>6,210원</b></div>
         <div class="cc-turns">
           <div>채팅 <b>30턴</b></div>
           <div>롤플레잉 <b>15턴</b></div>
         </div>
-        <button class="btn-charge" onclick="selectProd('c300','300 sari 충전','충전','3,000원 (첫 충전 1,500원)','300 sari','30턴','15턴')">300 sari 충전하기</button>
+        <button class="btn-charge" onclick="selectProd('c300','300 sari 충전','충전','6,900원 (첫 충전 6,900원)','300 sari','30턴','15턴')">300 sari 충전하기</button>
       </div>
 
       <!-- 1000 sari -->
-      <div class="charge-card" id="card-c1000" onclick="cardClick(event,'c1000','1,000 sari 충전','충전','9,900원 (첫 충전 4,950원)','1,000 sari','100턴','50턴')">
+      <div class="charge-card" id="card-c1000" onclick="cardClick(event,'c1000','1,000 sari 충전','충전','21,900원 (첫 충전 21,900원)','1,000 sari','100턴','50턴')">
         <div class="cc-amount">1,000<span class="cc-amount-unit"> sari</span></div>
-        <div class="cc-normal">정상가 9,900원</div>
-        <div class="cc-first">첫 충전 4,950원</div>
-        <div class="cc-repeat">이후 <b>8,910원</b></div>
+        <div class="cc-normal">정상가 21,900원</div>
+        <div class="cc-first">첫 충전 21,900원</div>
+        <div class="cc-repeat">이후 <b>19,710원</b></div>
         <div class="cc-turns">
           <div>채팅 <b>100턴</b></div>
           <div>롤플레잉 <b>50턴</b></div>
         </div>
-        <button class="btn-charge" onclick="selectProd('c1000','1,000 sari 충전','충전','9,900원 (첫 충전 4,950원)','1,000 sari','100턴','50턴')">1000 sari 충전하기</button>
+        <button class="btn-charge" onclick="selectProd('c1000','1,000 sari 충전','충전','21,900원 (첫 충전 21,900원)','1,000 sari','100턴','50턴')">1000 sari 충전하기</button>
       </div>
 
       <!-- 3000 sari (추천) -->
-      <div class="charge-card recommended" id="card-c3000" onclick="cardClick(event,'c3000','3,000 sari 충전','충전','27,900원 (첫 충전 13,950원)','3,000 sari','300턴','150턴')">
+      <div class="charge-card recommended" id="card-c3000" onclick="cardClick(event,'c3000','3,000 sari 충전','충전','59,900원 (첫 충전 50,915원)','3,000 sari','300턴','150턴')">
         <div class="cc-badge">추천</div>
         <div class="cc-amount">3,000<span class="cc-amount-unit"> sari</span></div>
-        <div class="cc-normal">정상가 27,900원</div>
-        <div class="cc-first">첫 충전 13,950원</div>
-        <div class="cc-repeat">이후 <b>25,110원</b></div>
+        <div class="cc-normal">정상가 59,900원</div>
+        <div class="cc-first">첫 충전 50,915원</div>
+        <div class="cc-repeat">이후 <b>53,910원</b></div>
         <div class="cc-turns">
           <div>채팅 <b>300턴</b></div>
           <div>롤플레잉 <b>150턴</b></div>
         </div>
-        <button class="btn-charge" onclick="selectProd('c3000','3,000 sari 충전','충전','27,900원 (첫 충전 13,950원)','3,000 sari','300턴','150턴')">3000 sari 충전하기</button>
+        <button class="btn-charge" onclick="selectProd('c3000','3,000 sari 충전','충전','59,900원 (첫 충전 50,915원)','3,000 sari','300턴','150턴')">3000 sari 충전하기</button>
       </div>
 
       <!-- 5000 sari -->
-      <div class="charge-card" id="card-c5000" onclick="cardClick(event,'c5000','5,000 sari 충전','충전','44,900원 (첫 충전 22,450원)','5,000 sari','500턴','250턴')">
+      <div class="charge-card" id="card-c5000" onclick="cardClick(event,'c5000','5,000 sari 충전','충전','99,900원 (첫 충전 88,712원)','5,000 sari','500턴','250턴')">
         <div class="cc-amount">5,000<span class="cc-amount-unit"> sari</span></div>
-        <div class="cc-normal">정상가 44,900원</div>
-        <div class="cc-first">첫 충전 22,450원</div>
-        <div class="cc-repeat">이후 <b>40,410원</b></div>
+        <div class="cc-normal">정상가 99,900원</div>
+        <div class="cc-first">첫 충전 88,712원</div>
+        <div class="cc-repeat">이후 <b>89,910원</b></div>
         <div class="cc-turns">
           <div>채팅 <b>500턴</b></div>
           <div>롤플레잉 <b>250턴</b></div>
         </div>
-        <button class="btn-charge" onclick="selectProd('c5000','5,000 sari 충전','충전','44,900원 (첫 충전 22,450원)','5,000 sari','500턴','250턴')">5000 sari 충전하기</button>
+        <button class="btn-charge" onclick="selectProd('c5000','5,000 sari 충전','충전','99,900원 (첫 충전 88,712원)','5,000 sari','500턴','250턴')">5000 sari 충전하기</button>
       </div>
 
       <!-- 7000 sari -->
-      <div class="charge-card" id="card-c7000" onclick="cardClick(event,'c7000','7,000 sari 충전','충전','59,900원 (첫 충전 41,930원)','7,000 sari','700턴','350턴')">
+      <div class="charge-card" id="card-c7000" onclick="cardClick(event,'c7000','7,000 sari 충전','충전','129,900원 (첫 충전 110,415원)','7,000 sari','700턴','350턴')">
         <div class="cc-amount">7,000<span class="cc-amount-unit"> sari</span></div>
-        <div class="cc-normal">정상가 59,900원</div>
-        <div class="cc-first">첫 충전 41,930원</div>
-        <div class="cc-repeat">이후 <b>53,910원</b></div>
+        <div class="cc-normal">정상가 129,900원</div>
+        <div class="cc-first">첫 충전 110,415원</div>
+        <div class="cc-repeat">이후 <b>116,910원</b></div>
         <div class="cc-turns">
           <div>채팅 <b>700턴</b></div>
           <div>롤플레잉 <b>350턴</b></div>
         </div>
-        <button class="btn-charge" onclick="selectProd('c7000','7,000 sari 충전','충전','59,900원 (첫 충전 41,930원)','7,000 sari','700턴','350턴')">7000 sari 충전하기</button>
+        <button class="btn-charge" onclick="selectProd('c7000','7,000 sari 충전','충전','129,900원 (첫 충전 110,415원)','7,000 sari','700턴','350턴')">7000 sari 충전하기</button>
       </div>
 
       <!-- 10000 sari -->
-      <div class="charge-card" id="card-c10000" onclick="cardClick(event,'c10000','10,000 sari 충전','충전','79,900원 (첫 충전 55,930원)','10,000 sari','1,000턴','500턴')">
+      <div class="charge-card" id="card-c10000" onclick="cardClick(event,'c10000','10,000 sari 충전','충전','179,900원 (첫 충전 152,915원)','10,000 sari','1,000턴','500턴')">
         <div class="cc-amount">10,000<span class="cc-amount-unit"> sari</span></div>
-        <div class="cc-normal">정상가 79,900원</div>
-        <div class="cc-first">첫 충전 55,930원</div>
-        <div class="cc-repeat">이후 <b>71,910원</b></div>
+        <div class="cc-normal">정상가 179,900원</div>
+        <div class="cc-first">첫 충전 152,915원</div>
+        <div class="cc-repeat">이후 <b>161,910원</b></div>
         <div class="cc-turns">
           <div>채팅 <b>1,000턴</b></div>
           <div>롤플레잉 <b>500턴</b></div>
         </div>
-        <button class="btn-charge" onclick="selectProd('c10000','10,000 sari 충전','충전','79,900원 (첫 충전 55,930원)','10,000 sari','1,000턴','500턴')">10000 sari 충전하기</button>
+        <button class="btn-charge" onclick="selectProd('c10000','10,000 sari 충전','충전','179,900원 (첫 충전 152,915원)','10,000 sari','1,000턴','500턴')">10000 sari 충전하기</button>
       </div>
 
       <!-- 20000 sari -->
-      <div class="charge-card" id="card-c20000" onclick="cardClick(event,'c20000','20,000 sari 충전','충전','149,000원 (첫 충전 104,300원)','20,000 sari','2,000턴','1,000턴')">
+      <div class="charge-card" id="card-c20000" onclick="cardClick(event,'c20000','20,000 sari 충전','충전','279,000원 (첫 충전 237,150원)','20,000 sari','2,000턴','1,000턴')">
         <div class="cc-amount">20,000<span class="cc-amount-unit"> sari</span></div>
-        <div class="cc-normal">정상가 149,000원</div>
-        <div class="cc-first">첫 충전 104,300원</div>
-        <div class="cc-repeat">이후 <b>134,100원</b></div>
+        <div class="cc-normal">정상가 279,000원</div>
+        <div class="cc-first">첫 충전 237,150원</div>
+        <div class="cc-repeat">이후 <b>251,100원</b></div>
         <div class="cc-turns">
           <div>채팅 <b>2,000턴</b></div>
           <div>롤플레잉 <b>1,000턴</b></div>
         </div>
-        <button class="btn-charge" onclick="selectProd('c20000','20,000 sari 충전','충전','149,000원 (첫 충전 104,300원)','20,000 sari','2,000턴','1,000턴')">20000 sari 충전하기</button>
+        <button class="btn-charge" onclick="selectProd('c20000','20,000 sari 충전','충전','279,000원 (첫 충전 237,150원)','20,000 sari','2,000턴','1,000턴')">20000 sari 충전하기</button>
       </div>
 
       <!-- 50000 sari -->
-      <div class="charge-card" id="card-c50000" onclick="cardClick(event,'c50000','50,000 sari 충전','충전','349,000원 (첫 충전 244,300원)','50,000 sari','5,000턴','2,500턴')">
+      <div class="charge-card" id="card-c50000" onclick="cardClick(event,'c50000','50,000 sari 충전','충전','499,000원 (첫 충전 399,200원)','50,000 sari','5,000턴','2,500턴')">
         <div class="cc-amount">50,000<span class="cc-amount-unit"> sari</span></div>
-        <div class="cc-normal">정상가 349,000원</div>
-        <div class="cc-first">첫 충전 244,300원</div>
-        <div class="cc-repeat">이후 <b>314,100원</b></div>
+        <div class="cc-normal">정상가 499,000원</div>
+        <div class="cc-first">첫 충전 399,200원</div>
+        <div class="cc-repeat">이후 <b>449,100원</b></div>
         <div class="cc-turns">
           <div>채팅 <b>5,000턴</b></div>
           <div>롤플레잉 <b>2,500턴</b></div>
         </div>
-        <button class="btn-charge" onclick="selectProd('c50000','50,000 sari 충전','충전','349,000원 (첫 충전 244,300원)','50,000 sari','5,000턴','2,500턴')">50000 sari 충전하기</button>
+        <button class="btn-charge" onclick="selectProd('c50000','50,000 sari 충전','충전','499,000원 (첫 충전 399,200원)','50,000 sari','5,000턴','2,500턴')">50000 sari 충전하기</button>
       </div>
 
     </div><!-- /charge-grid -->
