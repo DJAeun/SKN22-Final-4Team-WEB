@@ -317,6 +317,7 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 
 <div id="toast"></div>
 
+<script src="{% static 'js/sari_wallet.js' %}"></script>
 <script>
 let accountExitRunning = false;
 const SUBSCRIPTION_STATE_KEY = 'hari-mypage-subscription-state';
@@ -324,6 +325,7 @@ const SUBSCRIPTION_PLAN_KEY = 'hari-mypage-subscription-plan';
 const SUBSCRIPTION_PAID_AT_KEY = 'hari-mypage-subscription-paid-at';
 const WITHDRAWAL_STATE_KEY = 'hari-mypage-withdrawal-state';
 const PLAN_INFO = {
+  none:    { label: '미구독', display: '미구독',        badge: '미구독' },
   fan:     { label: 'FAN',   display: 'FAN · 활성',   badge: 'FAN' },
   fanplus: { label: 'FAN+',  display: 'FAN+ · 활성',  badge: 'FAN+' },
   bori:    { label: 'BORI',  display: 'BORI · 활성',  badge: 'BORI' },
@@ -338,11 +340,11 @@ function navTo(p) {
   document.getElementById('main').scrollTop = 0;
 }
 function getSubscriptionState() {
-  return localStorage.getItem(SUBSCRIPTION_STATE_KEY) || 'active';
+  return localStorage.getItem(SUBSCRIPTION_STATE_KEY) || 'none';
 }
 
 function getSubscriptionPlan() {
-  return localStorage.getItem(SUBSCRIPTION_PLAN_KEY) || 'fanplus';
+  return localStorage.getItem(SUBSCRIPTION_PLAN_KEY) || 'none';
 }
 
 function getPaidAtDate() {
@@ -370,32 +372,34 @@ function setSubscriptionState(state) {
 }
 
 function applySubscriptionState(state) {
+  const isNone     = state === 'none' || !state;
   const isCanceled = state === 'canceled';
-  const planKey = getSubscriptionPlan();
-  const planInfo = PLAN_INFO[planKey] || PLAN_INFO.fanplus;
-  const paidAt = getPaidAtDate();
+  const isInactive = isNone || isCanceled;
+  const planKey  = getSubscriptionPlan();
+  const planInfo = PLAN_INFO[planKey] || PLAN_INFO.none;
+  const paidAt   = getPaidAtDate();
   const nextBilling = paidAt ? addOneMonth(paidAt) : null;
+
   document.querySelectorAll('[data-subscription-state]').forEach(el => {
-    el.textContent = isCanceled ? '● 구독 해지됨' : '● ' + planInfo.display;
-    el.style.color = isCanceled ? 'var(--dim)' : 'var(--acc)';
+    if (isNone)     { el.textContent = '미구독'; el.style.color = 'var(--dim)'; }
+    else if (isCanceled) { el.textContent = '● 구독 해지됨'; el.style.color = 'var(--dim)'; }
+    else            { el.textContent = '● ' + planInfo.display; el.style.color = 'var(--acc)'; }
   });
   document.querySelectorAll('[data-subscription-next-billing]').forEach(el => {
-    el.textContent = isCanceled
-      ? '다음 결제 없음'
-      : (nextBilling ? formatDateKorean(nextBilling) : '미정');
-    el.style.color = isCanceled ? 'var(--dim)' : 'var(--ink)';
+    el.textContent = isInactive ? '없음' : (nextBilling ? formatDateKorean(nextBilling) : '미정');
+    el.style.color = isInactive ? 'var(--dim)' : 'var(--ink)';
   });
   document.querySelectorAll('[data-subscription-plan-label]').forEach(el => {
-    el.textContent = isCanceled ? '구독 해지됨' : planInfo.display;
+    el.textContent = isNone ? '미구독' : isCanceled ? '구독 해지됨' : planInfo.display;
   });
   document.querySelectorAll('[data-subscription-plan-badge]').forEach(el => {
-    el.textContent = planInfo.badge;
+    el.textContent = isInactive ? '미구독' : planInfo.badge;
   });
   document.querySelectorAll('[data-subscription-manage]').forEach(el => {
-    el.textContent = isCanceled ? '다시 구독하기' : '구독 관리';
+    el.textContent = isInactive ? '멤버십 구독하기' : '구독 관리';
   });
   document.querySelectorAll('[data-subscription-cancel]').forEach(el => {
-    el.style.display = isCanceled ? 'none' : '';
+    el.style.display = isInactive ? 'none' : '';
   });
 
   // 카드 라벨을 조금 더 크게 보여주기

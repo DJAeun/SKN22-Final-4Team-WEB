@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSSaemmul.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
 <script src="{% static 'js/theme.js' %}"></script>
+<script src="{% static 'js/sari_wallet.js' %}"></script>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
@@ -73,6 +74,35 @@ html[data-theme="dark"] .chat-container {
 html[data-theme="dark"] .header {
   background: rgba(55, 35, 50, 0.75) !important;
   backdrop-filter: blur(8px);
+}
+
+html[data-theme="dark"] .chat-wallet-bar {
+  background: rgba(55, 35, 50, 0.82);
+  border-bottom-color: rgba(255, 138, 155, 0.22);
+}
+
+html[data-theme="dark"] #sari-badge {
+  background: rgba(55, 35, 50, 0.88) !important;
+  border-color: rgba(255, 138, 155, 0.3) !important;
+}
+
+html[data-theme="dark"] #sari-tooltip {
+  background: #251d1a !important;
+  border-color: rgba(255, 138, 155, 0.25) !important;
+  color: #f5f1ed !important;
+}
+
+html[data-theme="dark"] #sari-tooltip div[style*="#fff5f7"] {
+  background: #2a2420 !important;
+}
+
+html[data-theme="dark"] .chat-wallet-stat {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 138, 155, 0.2);
+}
+
+html[data-theme="dark"] .chat-wallet-label {
+  color: #e0c8d0;
 }
 
 html[data-theme="dark"] .input-area {
@@ -318,6 +348,73 @@ html, body {
   border-color: var(--hari-pink);
   color: var(--hari-pink);
   background: rgba(255, 123, 138, 0.05);
+}
+
+.chat-wallet-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 24px;
+  background: rgba(255, 255, 255, 0.82);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(18px);
+  flex-shrink: 0;
+}
+
+.chat-wallet-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chat-wallet-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 7px 10px;
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 245, 247, 0.86);
+  white-space: nowrap;
+}
+
+.chat-wallet-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+}
+
+.chat-wallet-value {
+  font-family: 'NeoDunggeunmo', 'DOSSaemmul', sans-serif;
+  font-size: 0.88rem;
+  color: var(--hari-pink);
+  letter-spacing: 0;
+}
+
+.chat-wallet-charge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 0.5px solid var(--hari-pink);
+  background: var(--hari-pink);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.15s, background 0.2s, border-color 0.2s;
+}
+
+.chat-wallet-charge:hover {
+  background: #ff6477;
+  border-color: #ff6477;
+  transform: translateY(-1px);
 }
 
 /* ── THEME TOGGLE (iOS 스위치 스타일) ── */
@@ -1202,12 +1299,18 @@ html[data-theme="dark"] .date-divider-text {
   .sidebar-left { display: none; }
   .chat-main { width: 100%; }
   .header { padding: 12px 16px; }
+  .chat-wallet-bar { padding: 9px 16px; }
   .quick-replies { padding: 8px 12px; }
 }
 /* 480px: 모바일 */
 @media (max-width: 480px) {
   .header { padding: 10px 14px; }
   .header-profile .profile-name { font-size: 0.9rem; }
+  .chat-wallet-bar { align-items: stretch; flex-direction: column; gap: 8px; padding: 9px 14px; }
+  .chat-wallet-left { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .chat-wallet-stat { justify-content: space-between; min-width: 0; }
+  .chat-wallet-label, .chat-wallet-value { font-size: 0.74rem; }
+  .chat-wallet-charge { width: 100%; }
   .input-area { padding: 6px 10px; }
   .quick-reply-btn { font-size: 0.72rem; padding: 6px 12px; }
   .messages-container { padding: 12px 10px; }
@@ -1245,17 +1348,59 @@ html[data-theme="dark"] .date-divider-text {
       </div>
     </div>
     
-    <div style="margin-top: auto; padding: 24px; position: relative; z-index: 2;">
+    <div style="margin-top: auto; padding: 24px; position: relative; z-index: 2; display: flex; flex-direction: column; gap: 10px;">
+      <!-- SARI 뱃지 -->
+      <div id="sari-badge"
+           onmouseenter="showSariTooltip()"
+           onmouseleave="hideSariTooltipDelay()"
+           style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,123,138,0.25); background: rgba(255,255,255,0.88); backdrop-filter: blur(10px); cursor: default; box-shadow: 0 2px 10px rgba(255,123,138,0.1);">
+        <span style="font-size: 14px;">💎</span>
+        <div style="display: flex; flex-direction: column; gap: 1px;">
+          <span style="font-size: 11px; color: var(--hari-pink); font-weight: 700; letter-spacing: 0.02em;">SARI</span>
+          <span style="font-size: 10px; color: var(--text-dim);">잔여 SARI 확인</span>
+        </div>
+      </div>
+
       <button onclick="goBack()" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); cursor: pointer; font-weight: 500; color: var(--text-dim); transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
         ← Back to Home
       </button>
     </div>
   </aside>
 
+  <!-- SARI 호버 툴팁 (fixed, 사이드바 overflow:hidden 우회) -->
+  <div id="sari-tooltip"
+       onmouseenter="cancelHideSariTooltip()"
+       onmouseleave="hideSariTooltipDelay()"
+       style="
+         display: none;
+         position: fixed;
+         z-index: 1000;
+         width: 220px;
+         background: white;
+         border: 1px solid rgba(255,123,138,0.22);
+         border-radius: 16px;
+         padding: 16px;
+         box-shadow: 0 8px 32px rgba(255,123,138,0.18);
+         font-family: 'Pretendard Variable', Pretendard, sans-serif;
+       ">
+    <div style="font-size: 11px; font-weight: 700; color: var(--hari-pink); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px;">SARI 안내</div>
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #fff5f7; border-radius: 8px;">
+        <span style="font-size: 12px; color: #9e9490;">채팅 1턴</span>
+        <span style="font-size: 13px; font-weight: 700; color: var(--hari-pink);">10 sari</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #fff5f7; border-radius: 8px;">
+        <span style="font-size: 12px; color: #9e9490;">보유 SARI</span>
+        <span style="font-size: 13px; font-weight: 700; color: #2a2420;" data-sari-balance>—</span>
+      </div>
+    </div>
+    <a href="/membership/" style="display: block; text-align: center; background: var(--hari-pink); color: white; text-decoration: none; border-radius: 9px; padding: 9px; font-size: 12px; font-weight: 700;">멤버십 구독하기</a>
+  </div>
+
   <!-- CENTER: CHAT AREA -->
   <main class="chat-main" id="chatMain">
     {% include "frontend/includes/chat/_header.html" %}
-    
+
     {% include "frontend/includes/chat/_messages.html" %}
     
     <div style="position: sticky; bottom: 0; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding: 16px 24px;">
@@ -1913,6 +2058,40 @@ async function loadHistory() {
 
 function goBack() {
   window.location.href = '/';
+}
+
+/* ── SARI 툴팁 ── */
+let sariHideTimer = null;
+
+function showSariTooltip() {
+  clearTimeout(sariHideTimer);
+  const badge   = document.getElementById('sari-badge');
+  const tooltip = document.getElementById('sari-tooltip');
+  if (!badge || !tooltip) return;
+
+  const rect = badge.getBoundingClientRect();
+  tooltip.style.left   = rect.left + 'px';
+  tooltip.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+  tooltip.style.top    = 'auto';
+  tooltip.style.display = 'block';
+
+  /* 뷰포트 상단 넘칠 때 아래로 */
+  const tRect = tooltip.getBoundingClientRect();
+  if (tRect.top < 8) {
+    tooltip.style.top    = (rect.bottom + 8) + 'px';
+    tooltip.style.bottom = 'auto';
+  }
+}
+
+function hideSariTooltipDelay() {
+  sariHideTimer = setTimeout(() => {
+    const tooltip = document.getElementById('sari-tooltip');
+    if (tooltip) tooltip.style.display = 'none';
+  }, 150);
+}
+
+function cancelHideSariTooltip() {
+  clearTimeout(sariHideTimer);
 }
 
 function handleFileUpload(event) {

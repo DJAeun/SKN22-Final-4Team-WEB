@@ -3,6 +3,35 @@
       <div class="pg-title">설정</div>
       <p class="pg-sub">구독, 알림, 계정을 관리하세요.</p>
 
+      <!-- SARI 정책 카드 -->
+      <div class="card" style="margin-bottom:1rem; background:linear-gradient(135deg,#fff0f2 0%,#fff8f9 100%); border:1px solid rgba(255,123,138,0.22);">
+        <div class="c-title" style="color:var(--acc);">SARI 사용 기준</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bdr);margin-bottom:.9rem;">
+          <div style="background:var(--bg);padding:.9rem 1rem;">
+            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.3rem;">채팅 1턴</span>
+            <span style="font-size:.95rem;font-weight:700;color:var(--acc);">10 sari</span>
+            <span style="font-size:.65rem;color:var(--dim);display:block;">약 100원</span>
+          </div>
+          <div style="background:var(--bg);padding:.9rem 1rem;">
+            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.3rem;">롤플레잉 1턴</span>
+            <span style="font-size:.95rem;font-weight:700;color:var(--acc);">20 sari</span>
+            <span style="font-size:.65rem;color:var(--dim);display:block;">약 200원</span>
+          </div>
+          <div style="background:var(--bg);padding:.9rem 1rem;">
+            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.3rem;">초기 제공</span>
+            <span style="font-size:.95rem;font-weight:700;color:var(--ink);">200 sari</span>
+          </div>
+        </div>
+        <p style="font-size:.88rem;color:var(--dim);line-height:1.7;margin-bottom:.9rem;">
+          구독 상품: fan · fan+ · bori<br>
+          멤버십 페이지에서 상품 구성과 가격을 확인할 수 있습니다.
+        </p>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+          <button class="save-btn" onclick="window.location.href='/membership/'" style="font-size:.6rem;">멤버십 구독하기</button>
+          <button class="save-btn" onclick="window.location.href='/membership/#chg-sec'" style="background:transparent;border:0.5px solid var(--bdr2);color:var(--acc);font-size:.78rem;box-shadow:none;">SARI 충전하기</button>
+        </div>
+      </div>
+
       <!-- 구독 상세 카드 -->
       <div class="card" style="margin-bottom:1rem;">
         <div class="c-title">이용 중인 구독 서비스</div>
@@ -10,22 +39,22 @@
           <!-- Basic -->
           <div style="background:var(--bg);padding:1.4rem;opacity:.45;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;">
-              <span style="font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);">Tier 01</span>
-              <span style="font-family:'DM Mono',monospace;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border:0.5px solid var(--bdr2);color:var(--dim);">미이용</span>
+              <span style="font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);">Tier 01</span>
+              <span style="font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;padding:3px 9px;border:0.5px solid var(--bdr2);color:var(--dim);">미이용</span>
             </div>
             <div style="font-family:'NeoDunggeunmo',sans-serif;font-size:1.8rem;letter-spacing:.04em;color:var(--dim);margin-bottom:.3rem;">Basic</div>
-            <div style="font-family:'NeoDunggeunmo',monospace;font-size:.58rem;letter-spacing:.06em;color:var(--dim);">₩9,900/월 · 하루 100회 대화</div>
+            <div style="font-family:'NeoDunggeunmo',monospace;font-size:.82rem;letter-spacing:.03em;color:var(--dim);">₩9,900/월 · 하루 100회 대화</div>
           </div>
           <!-- Fan+ (현재 이용 중) -->
           <div style="background:var(--bg);padding:1.4rem;border:1.5px solid var(--acc);position:relative;">
-            <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);font-family:'NeoDunggeunmo',monospace;font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;background:var(--acc);color:#fff;padding:3px 14px;white-space:nowrap;">이용 중</div>
+            <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);font-family:'NeoDunggeunmo',monospace;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;background:var(--acc);color:#fff;padding:3px 14px;white-space:nowrap;">이용 중</div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;margin-top:.6rem;">
-              <span style="font-family:'NeoDunggeunmo',monospace;font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:var(--acc);">Tier 02</span>
-              <span style="font-family:'NeoDunggeunmo',monospace;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border:0.5px solid rgba(122,106,82,.4);color:var(--acc);background:rgba(122,106,82,.07);">활성</span>
+              <span style="font-family:'NeoDunggeunmo',monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);">Tier 02</span>
+              <span style="font-family:'NeoDunggeunmo',monospace;font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;padding:3px 9px;border:0.5px solid rgba(122,106,82,.4);color:var(--acc);background:rgba(122,106,82,.07);">활성</span>
             </div>
             <div style="font-family:'NeoDunggeunmo',sans-serif;font-size:1.8rem;letter-spacing:.04em;color:var(--ink);margin-bottom:.3rem;">Fan+</div>
-            <div style="font-family:'NeoDunggeunmo',monospace;font-size:.58rem;letter-spacing:.06em;color:var(--dim);margin-bottom:.7rem;">₩19,900 / 월</div>
-            <div style="font-family:'NeoDunggeunmo',monospace;font-size:.54rem;letter-spacing:.08em;color:var(--dim);display:flex;flex-direction:column;gap:.3rem;">
+            <div style="font-family:'NeoDunggeunmo',monospace;font-size:.82rem;letter-spacing:.03em;color:var(--dim);margin-bottom:.7rem;">₩19,900 / 월</div>
+            <div style="font-family:'NeoDunggeunmo',monospace;font-size:.78rem;letter-spacing:.03em;color:var(--dim);display:flex;flex-direction:column;gap:.3rem;">
               <span>✓ 독점 비하인드 콘텐츠</span>
               <span>✓ 하리의 비공개 편지 (월 1회)</span>
               <span>✓ 굿즈 사전 구매 (5% 할인)</span>
@@ -34,41 +63,41 @@
           <!-- VIP -->
           <div style="background:var(--bg2);padding:1.4rem;border:0.5px solid var(--bdr);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;">
-              <span style="font-family:'NeoDunggeunmo',monospace;font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);">Tier 03</span>
+              <span style="font-family:'NeoDunggeunmo',monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);">Tier 03</span>
               <span style="font-family:'NeoDunggeunmo',monospace;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border:0.5px solid rgba(201,151,26,.4);color:var(--acc);">업그레이드</span>
             </div>
             <div style="font-family:'NeoDunggeunmo',sans-serif;font-size:1.8rem;letter-spacing:.04em;color:var(--dim);margin-bottom:.3rem;">VIP</div>
-            <div style="font-family:'NeoDunggeunmo',monospace;font-size:.58rem;letter-spacing:.06em;color:var(--dim);margin-bottom:.7rem;">₩29,900 / 월</div>
-            <div style="font-family:'NeoDunggeunmo',monospace;font-size:.54rem;letter-spacing:.08em;color:var(--dim);display:flex;flex-direction:column;gap:.3rem;margin-bottom:.9rem;">
+            <div style="font-family:'NeoDunggeunmo',monospace;font-size:.82rem;letter-spacing:.03em;color:var(--dim);margin-bottom:.7rem;">₩29,900 / 월</div>
+            <div style="font-family:'NeoDunggeunmo',monospace;font-size:.78rem;letter-spacing:.03em;color:var(--dim);display:flex;flex-direction:column;gap:.3rem;margin-bottom:.9rem;">
               <span>+ 팬 전용 라이브 초대</span>
               <span>+ 1:1 채팅 우선권</span>
               <span>+ 굿즈 15% 할인</span>
             </div>
-            <a href="/#s-sub" style="display:block;text-align:center;background:var(--gold);color:var(--ink);font-family:'NeoDunggeunmo',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;padding:.55rem;transition:background .2s;border-radius:8px;">VIP 업그레이드 →</a>
+            <a href="/#s-sub" style="display:block;text-align:center;background:var(--gold);color:var(--ink);font-family:'NeoDunggeunmo',monospace;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;padding:.6rem;transition:background .2s;border-radius:8px;">VIP 업그레이드 →</a>
           </div>
         </div>
         <!-- 구독 상세 정보 -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--bdr);margin-bottom:.9rem;">
           <div style="background:var(--bg);padding:.9rem 1rem;">
-            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.25rem;">결제일</span>
-            <span style="font-size:.85rem;color:var(--ink);">매월 1일</span>
+            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.3rem;">결제일</span>
+            <span style="font-size:1rem;color:var(--ink);">매월 1일</span>
           </div>
           <div style="background:var(--bg);padding:.9rem 1rem;">
-            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.25rem;">다음 결제</span>
-            <span class="subscription-next-billing" data-subscription-next-billing style="font-size:.85rem;color:var(--ink);">2025.05.01</span>
+            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.3rem;">다음 결제</span>
+            <span class="subscription-next-billing" data-subscription-next-billing style="font-size:1rem;color:var(--ink);">2025.05.01</span>
           </div>
           <div style="background:var(--bg);padding:.9rem 1rem;">
-            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.25rem;">결제 수단</span>
-            <span style="font-size:.85rem;color:var(--ink);">Google Pay</span>
+            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.3rem;">결제 수단</span>
+            <span style="font-size:1rem;color:var(--ink);">Google Pay</span>
           </div>
           <div style="background:var(--bg);padding:.9rem 1rem;">
-            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.25rem;">구독 상태</span>
-            <span class="subscription-state" data-subscription-state style="font-size:.85rem;color:var(--grn);">● 활성</span>
+            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.3rem;">구독 상태</span>
+            <span class="subscription-state" data-subscription-state style="font-size:1rem;color:var(--grn);">● 활성</span>
           </div>
         </div>
         <div style="display:flex;gap:.5rem;">
-          <button class="save-btn" data-subscription-manage style="background:transparent;border:0.5px solid var(--bdr2);color:var(--dim);font-size:.6rem;box-shadow:none;" onclick="window.location.href='/membership/'">구독 관리</button>
-          <button class="save-btn" data-subscription-cancel style="background:transparent;border:0.5px solid rgba(200,74,58,.35);color:#c84a3a;font-size:.6rem;box-shadow:none;" onclick="openSubscriptionCancelModal()">구독 취소</button>
+          <button class="save-btn" data-subscription-manage style="background:transparent;border:0.5px solid var(--bdr2);color:var(--dim);font-size:.78rem;box-shadow:none;" onclick="window.location.href='/membership/'">구독 관리</button>
+          <button class="save-btn" data-subscription-cancel style="background:transparent;border:0.5px solid rgba(200,74,58,.35);color:#c84a3a;font-size:.78rem;box-shadow:none;" onclick="openSubscriptionCancelModal()">구독 취소</button>
         </div>
       </div>
 

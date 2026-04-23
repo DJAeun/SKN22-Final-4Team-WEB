@@ -47,22 +47,49 @@
         </div>
       </div>
 
+      <!-- SARI 안내 카드 -->
+      <div class="card" style="margin-bottom:1rem; background:linear-gradient(135deg,#fff0f2 0%,#fff8f9 100%); border:1px solid rgba(255,123,138,0.22);">
+        <div class="c-title" style="color:var(--acc);">SARI 사용 안내</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bdr);margin-bottom:.9rem;">
+          <div style="background:var(--bg);padding:.9rem 1rem;">
+            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.3rem;">채팅 1턴</span>
+            <span style="font-size:.95rem;font-weight:700;color:var(--acc);">10 sari</span>
+          </div>
+          <div style="background:var(--bg);padding:.9rem 1rem;">
+            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.3rem;">롤플레잉 1턴</span>
+            <span style="font-size:.95rem;font-weight:700;color:var(--acc);">20 sari</span>
+          </div>
+          <div style="background:var(--bg);padding:.9rem 1rem;">
+            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.3rem;">보유 SARI</span>
+            <span data-sari-balance style="font-size:.95rem;font-weight:700;color:var(--acc);">— SARI</span>
+          </div>
+        </div>
+        <p style="font-size:.88rem;color:var(--dim);line-height:1.7;margin-bottom:.9rem;">
+          채팅은 1턴에 10 sari, 롤플레잉은 1턴에 20 sari가 필요해요.<br>
+          더 이용하려면 멤버십 구독 또는 SARI 충전을 이용하세요.
+        </p>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+          <button class="save-btn" onclick="window.location.href='/membership/'" style="font-size:.6rem;">멤버십 구독하기</button>
+          <button class="save-btn" onclick="window.location.href='/membership/#chg-sec'" style="background:transparent;border:0.5px solid var(--bdr2);color:var(--acc);font-size:.78rem;box-shadow:none;">SARI 충전하기</button>
+        </div>
+      </div>
+
       <!-- 구독 정보 카드 -->
       <div class="card" style="margin-bottom:1rem;">
         <div class="c-title">구독 정보</div>
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--bdr);margin-bottom:.9rem;">
           <div style="background:var(--bg);padding:.9rem 1rem;">
-            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.25rem;">이용 중</span>
-            <span class="subscription-state" data-subscription-state style="font-size:.85rem;color:var(--acc);">● Fan+ · 활성</span>
+            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.3rem;">이용 중</span>
+            <span class="subscription-state" data-subscription-state style="font-size:1rem;color:var(--acc);">● Fan+ · 활성</span>
           </div>
           <div style="background:var(--bg);padding:.9rem 1rem;">
-            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.25rem;">다음 결제</span>
-            <span class="subscription-next-billing" data-subscription-next-billing style="font-size:.85rem;color:var(--ink);">2025.05.01</span>
+            <span style="font-family:'NeoDunggeunmo',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:.3rem;">다음 결제</span>
+            <span class="subscription-next-billing" data-subscription-next-billing style="font-size:1rem;color:var(--ink);">2025.05.01</span>
           </div>
         </div>
         <div style="display:flex;gap:.5rem;">
-          <button class="save-btn" data-subscription-manage style="background:transparent;border:0.5px solid var(--bdr2);color:var(--dim);font-size:.6rem;box-shadow:none;" onclick="window.location.href='/membership/'">구독 관리</button>
-          <button class="save-btn" data-subscription-cancel style="background:transparent;border:0.5px solid rgba(200,74,58,.35);color:#c84a3a;font-size:.6rem;box-shadow:none;" onclick="openSubscriptionCancelModal()">구독 취소</button>
+          <button class="save-btn" data-subscription-manage style="background:transparent;border:0.5px solid var(--bdr2);color:var(--dim);font-size:.78rem;box-shadow:none;" onclick="window.location.href='/membership/'">구독 관리</button>
+          <button class="save-btn" data-subscription-cancel style="background:transparent;border:0.5px solid rgba(200,74,58,.35);color:#c84a3a;font-size:.78rem;box-shadow:none;" onclick="openSubscriptionCancelModal()">구독 취소</button>
         </div>
       </div>
 

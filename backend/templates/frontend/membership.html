@@ -4,705 +4,818 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hari — 멤버십 선택</title>
+  <title>Hari — 멤버십 & SARI</title>
   <link rel="icon" type="image/png" href="{% static 'images/hari_favicon.png' %}">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
   <script src="{% static 'js/theme.js' %}"></script>
   <style>
     :root {
-      --netflix-red: #e50914;
-      --bg-white: #ffffff;
-      --text-main: #333333;
-      --text-dim: #737373;
-      --border-gray: #e6e6e6;
-      --accent-blue: #0071eb;
-      --card-bg: #ffffff;
+      --acc:  #ff7b8a;
+      --acc2: #ff5569;
+      --bg:   #ffffff;
+      --bg2:  #fff5f7;
+      --ink:  #2a2420;
+      --dim:  #9e9490;
+      --bdr:  rgba(255,123,138,0.14);
+      --bdr2: rgba(255,123,138,0.28);
+      --card: #ffffff;
+      --grn:  #06d6a0;
     }
-
-    /* 다크 모드 */
     html[data-theme="dark"] {
-      --netflix-red: #ff6b6b;
-      --bg-white: #1a1612;
-      --text-main: #f5f1ed;
-      --text-dim: #9a8f87;
-      --border-gray: #2a2420;
-      --accent-blue: #4fa3ff;
-      --card-bg: #251d1a;
+      --bg:   #1a1612;
+      --bg2:  #251d1a;
+      --ink:  #f5f1ed;
+      --dim:  #9a8f87;
+      --bdr:  rgba(255,123,138,0.15);
+      --bdr2: rgba(255,123,138,0.28);
+      --card: #251d1a;
+      --acc:  #ff8a9b;
+      --grn:  #1ee0a6;
     }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { overflow-x: hidden; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { overflow-x: hidden; scroll-behavior: smooth; }
     body {
-      background-color: var(--bg-white);
-      color: var(--text-main);
+      background: var(--bg);
+      color: var(--ink);
       font-family: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-      line-height: 1.4;
       letter-spacing: -0.02em;
       -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      overflow-x: hidden;
-      max-width: 100vw;
+      line-height: 1.5;
     }
 
-    /* HEADER */
+    /* ── HEADER ── */
     header {
-      height: 90px;
+      height: 68px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 3%;
-      border-bottom: 1px solid var(--border-gray);
+      padding: 0 24px;
+      border-bottom: 1px solid var(--bdr);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
-    .header-left { display: flex; align-items: center; text-decoration: none; }
-    .header-logo { height: 45px; width: auto; margin-right: 10px; }
-    .header-right { display: flex; gap: 20px; align-items: center; }
-    .header-right a {
-      font-size: 19px;
-      font-weight: 700;
-      color: var(--text-main);
-      text-decoration: none;
-    }
-    .header-right a:hover { text-decoration: underline; }
-
-    /* CONTAINER */
-    .container {
-      max-width: 1024px;
-      margin: 0 auto;
-      padding: 40px 3% 100px;
-    }
-
-    .step-indicator {
-      font-size: 13px;
-      text-transform: uppercase;
-      margin-bottom: 5px;
-      color: var(--text-main);
-    }
-    .main-title {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 25px;
-    }
-
-    /* PLAN CARDS */
-    .plans-wrapper {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-
-    .plan-card {
-      border: 2px solid var(--border-gray);
-      border-radius: 12px;
-      padding: 1px; /* for gradient border effect if needed */
-      cursor: pointer;
-      position: relative;
-      transition: transform 0.2s, border-color 0.2s;
-      overflow: hidden;
-      background: var(--card-bg);
-    }
-    .plan-card.selected {
-      border-color: var(--netflix-red);
-      box-shadow: 0 0 0 1px var(--netflix-red);
-    }
-    .plan-card:hover:not(.selected) {
-      border-color: #b3b3b3;
-    }
-
-    .plan-header {
-      padding: 15px;
-      border-radius: 10px 10px 0 0;
-      color: white;
-      font-weight: 700;
-      font-size: 18px;
-      min-height: 80px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      position: relative;
-    }
-    .plan-header::after {
-      content: '✓';
-      position: absolute;
-      top: 10px; right: 10px;
-      background: white;
-      color: var(--netflix-red);
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    .plan-card.selected .plan-header::after { opacity: 1; }
-
-    /* Tier Colors */
-    .header-fan    { background: linear-gradient(135deg, #1e3c72, #2a5298); }
-    .header-fanplus { background: linear-gradient(135deg, #6a11cb, #2575fc); }
-    .header-bori   { background: linear-gradient(135deg, #e50914, #ff5f6d); }
-
-    .plan-body {
-      padding: 20px 15px;
-      background: var(--card-bg);
-    }
-    .plan-price-label { font-size: 14px; color: var(--text-dim); margin-bottom: 4px; }
-    .plan-price-val { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
-    .plan-divider { height: 1px; background: var(--border-gray); margin: 15px 0; }
-    
-    .feature-item { margin-bottom: 20px; }
-    .feature-label { font-size: 13px; color: var(--text-dim); margin-bottom: 2px; }
-    .feature-val { font-size: 14px; font-weight: 500; color: var(--text-main); }
-
-    /* FOOTER INFO */
-    .footer-disclaimer {
-      font-size: 13px;
-      color: var(--text-dim);
-      line-height: 1.6;
-      border-top: 1px solid var(--border-gray);
-      padding-top: 25px;
-    }
-    .footer-disclaimer a { color: var(--accent-blue); text-decoration: none; }
-
-    /* FIXED CTA */
-    .cta-fixed {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--bg-white);
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-      z-index: 100;
-      border-top: 1px solid var(--border-gray);
-    }
-    .cta-inner {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      max-width: 440px;
-      margin: 0 auto;
-    }
-    .next-btn {
-      background-color: var(--netflix-red);
-      color: white;
-      border: none;
-      flex: 2;
-      height: 64px;
-      font-size: 24px;
-      font-weight: 700;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .next-btn:hover { background-color: #f6121d; }
-
-    .back-btn {
-      background-color: #f1f1f1;
-      color: #333;
-      border: none;
-      flex: 1;
-      height: 64px;
-      font-size: 18px;
-      font-weight: 600;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .back-btn:hover { background-color: #e2e2e2; }
-
-    html[data-theme="dark"] .next-btn {
-      background-color: #ff6b6b;
-    }
-    html[data-theme="dark"] .next-btn:hover { background-color: #ff5555; }
-
-    html[data-theme="dark"] .back-btn {
-      background-color: #2a2420;
-      color: var(--text-main);
-      border: 1px solid var(--border-gray);
-    }
-    html[data-theme="dark"] .back-btn:hover { background-color: #3a3430; }
-
-    .cancel-btn {
-      background-color: #f1f1f1;
-      color: var(--text-main);
-      border: 1px solid var(--border-gray);
-      flex: 1;
-      height: 64px;
-      font-size: 18px;
-      font-weight: 600;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .cancel-btn:hover { background-color: #e2e2e2; border-color: #999; }
-    .cancel-btn.hidden { display: none; }
-
-    .payment-log-overlay {
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,0.45);
-      z-index: 200;
-      padding: 20px;
-    }
-    .payment-log-card {
-      width: min(100%, 440px);
-      background: var(--bg-white);
-      border: 1px solid var(--border-gray);
-      border-radius: 22px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.24);
-      padding: 28px 26px 24px;
-    }
-    .payment-log-title {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    .payment-log-check {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #e50914, #ff5f6d);
-      color: #fff;
-      font-size: 22px;
-      box-shadow: 0 8px 18px rgba(229,9,20,0.26);
-      flex-shrink: 0;
-    }
-    .payment-log-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: rgba(16,185,129,0.12);
-      color: #059669;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      margin-bottom: 18px;
-    }
-    .payment-log-desc {
-      font-size: 14px;
-      color: var(--text-dim);
-      margin-bottom: 18px;
-      line-height: 1.6;
-    }
-    .payment-log-list {
-      display: grid;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .payment-log-item {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      color: var(--text-main);
-      padding: 13px 14px;
-      border: 1px solid var(--border-gray);
-      border-radius: 14px;
-      background: linear-gradient(180deg, #fff 0%, #fcfcfc 100%);
-      font-size: 14px;
-    }
-    html[data-theme="dark"] .payment-log-item {
-      background: #2a2420;
-    }
-    .payment-log-key {
-      color: var(--text-dim);
-      flex-shrink: 0;
-    }
-    .payment-log-val {
-      font-weight: 600;
-      text-align: right;
-      color: var(--text-main);
-    }
-    .payment-log-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 6px;
-    }
-    .payment-log-actions button {
-      height: 50px;
-      border-radius: 14px;
-      font-size: 16px;
-      font-weight: 700;
-    }
-    .payment-log-confirm {
-      background: var(--netflix-red);
-      color: #fff;
-      border: none;
-      flex: 1;
-    }
-    .payment-log-close {
-      background: transparent;
-      color: var(--text-main);
-      border: 1px solid var(--border-gray);
-      flex: 1;
-    }
-
-    html[data-theme="dark"] .cancel-btn {
-      background-color: #2a2420;
-      border-color: var(--border-gray);
-    }
-    html[data-theme="dark"] .cancel-btn:hover { background-color: #3a3430; }
-
-    /* CONTAINER QUERY — 플랜 카드 래퍼 기준 */
-    .plans-wrapper { container-type: inline-size; container-name: plans; }
-    @container plans (max-width: 700px) {
-      /* plans-wrapper 자체가 container라 내부 grid 재정의 불가 — 아래 미디어로 처리 */
-    }
-
-    @media (max-width: 1024px) {
-      .plans-wrapper { gap: 16px; }
-      .plan-card { padding: 18px 16px; }
-    }
-    @media (max-width: 768px) {
-      .container { padding-bottom: 180px; } /* 쌓인 모바일 버튼 높이 대비 여백 증가 */
-      .plans-wrapper { grid-template-columns: 1fr; }
-      .main-title { font-size: 26px; }
-      header { height: 75px; }
-      .header-logo { height: 35px; }
-      .cta-inner { flex-direction: column; }
-      .next-btn { order: 1; height: 60px; font-size: 20px; }
-      .cancel-btn { order: 2; height: 50px; font-size: 16px; }
-      .back-btn { order: 3; height: 50px; font-size: 16px; }
-    }
-    @media (max-width: 480px) {
-      .main-title { font-size: 22px; }
-      .plan-price-val { font-size: 20px; }
-      .plan-card { padding: 14px 12px; }
-      header { height: 60px; padding: 0 1rem; }
-      .header-logo { height: 28px; }
-      .header-right a { font-size: 15px; }
-      .header-right { gap: 12px; }
-    }
-    @media (max-width: 360px) {
-      .main-title { font-size: 18px; }
-      .plan-price-val { font-size: 18px; }
-      .plan-card { padding: 12px 10px; }
-      header { height: 54px; }
-      .header-right a { font-size: 13px; }
-    }
-
-    /* THEME TOGGLE */
-    .theme-toggle-wrap {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0 0.8rem;
-      flex-shrink: 0;
-    }
-    .theme-icon {
-      font-size: 0.85rem;
-      opacity: 0.65;
-      transition: opacity 0.2s;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
+    .hdr-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); }
+    .hdr-logo img { height: 36px; }
+    .hdr-logo-name { font-size: 19px; font-weight: 700; }
+    .hdr-right { display: flex; align-items: center; gap: 14px; }
+    .hdr-link { font-size: 14px; font-weight: 600; color: var(--ink); text-decoration: none; transition: color 0.2s; }
+    .hdr-link:hover { color: var(--acc); }
+    .theme-wrap { display: flex; align-items: center; gap: 6px; }
+    .theme-icon { font-size: 12px; opacity: 0.55; }
     #theme-toggle {
-      position: relative;
-      width: 44px;
-      height: 26px;
-      background: #ddd;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: background 0.3s ease, box-shadow 0.2s ease;
-      display: flex;
-      align-items: center;
-      padding: 0 2px;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-      flex-shrink: 0;
+      position: relative; width: 40px; height: 24px;
+      background: #ddd; border: none; border-radius: 20px;
+      cursor: pointer; transition: background 0.3s;
+      display: flex; align-items: center; padding: 0 2px;
     }
     #theme-toggle::after {
-      content: '';
-      position: absolute;
-      width: 22px;
-      height: 22px;
-      background: #fff;
-      border-radius: 50%;
-      left: 2px;
-      transition: left 0.3s cubic-bezier(0.45, 0, 0.15, 1), background 0.3s ease;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      content: ''; position: absolute;
+      width: 20px; height: 20px;
+      background: #fff; border-radius: 50%; left: 2px;
+      transition: left 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
-    #theme-toggle.off {
-      background: #e8e8e8;
+    #theme-toggle.on { background: #2a2420; }
+    #theme-toggle.on::after { left: 18px; }
+
+    /* ── LAYOUT ── */
+    .wrap {
+      max-width: 1020px;
+      margin: 0 auto;
+      padding: 36px 20px 130px;
     }
-    #theme-toggle.off::after {
-      left: 2px;
-      background: #fff;
+
+    /* ── SARI POLICY BANNER ── */
+    .policy-banner {
+      background: linear-gradient(135deg, #fff0f2 0%, #fff8f9 100%);
+      border: 1px solid var(--bdr2);
+      border-radius: 18px;
+      padding: 28px 30px;
+      margin-bottom: 52px;
     }
-    #theme-toggle.on {
-      background: #2a2420;
+    html[data-theme="dark"] .policy-banner {
+      background: linear-gradient(135deg, #2a1e1f 0%, #261a1c 100%);
     }
-    #theme-toggle.on::after {
-      left: 20px;
-      background: #fff;
+    .policy-banner h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--acc);
+      margin-bottom: 6px;
     }
-    #theme-toggle:hover {
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.15), 0 0 8px rgba(255,123,138,0.2);
+    .policy-desc {
+      font-size: 13px;
+      color: var(--dim);
+      line-height: 1.75;
+      margin-bottom: 16px;
     }
-    #theme-toggle.on:hover {
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.2), 0 0 8px rgba(255,123,138,0.3);
+    .policy-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .p-stat {
+      background: var(--bg);
+      border: 1px solid var(--bdr);
+      border-radius: 10px;
+      padding: 10px 16px;
+      min-width: 110px;
+    }
+    html[data-theme="dark"] .p-stat { background: #2a2420; }
+    .p-stat-lbl { font-size: 11px; color: var(--dim); margin-bottom: 4px; }
+    .p-stat-val { font-size: 15px; font-weight: 700; color: var(--ink); }
+    .p-stat-val.hl { color: var(--acc); }
+    .p-stat-sub { font-size: 11px; color: var(--dim); font-weight: 400; }
+    .policy-ctas { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn-p-sub {
+      background: var(--acc); color: #fff; border: none;
+      border-radius: 8px; padding: 10px 20px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center;
+      transition: background 0.2s;
+    }
+    .btn-p-sub:hover { background: var(--acc2); }
+    .btn-p-chg {
+      background: transparent; color: var(--acc);
+      border: 1px solid var(--bdr2); border-radius: 8px;
+      padding: 10px 20px; font-size: 13px; font-weight: 700;
+      cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center;
+      transition: all 0.2s;
+    }
+    .btn-p-chg:hover { background: var(--bg2); }
+
+    /* ── SECTION HEADER ── */
+    .sec-hd { margin-bottom: 20px; }
+    .sec-hd h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .sec-hd p { font-size: 13px; color: var(--dim); line-height: 1.7; }
+
+    /* ── SUBSCRIPTION CARDS ── */
+    .sub-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 60px;
+    }
+    .sub-card {
+      border: 2px solid var(--bdr);
+      border-radius: 18px;
+      overflow: hidden;
+      background: var(--card);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .sub-card:hover { border-color: rgba(255,123,138,0.5); }
+    .sub-card.selected { border-color: var(--acc); box-shadow: 0 0 0 1px var(--acc); }
+
+    .sc-head {
+      padding: 20px 22px 16px;
+      color: #fff;
+      position: relative;
+    }
+    .sc-tier { font-size: 24px; font-weight: 700; letter-spacing: 0.02em; }
+    .sc-tier-sub { font-size: 12px; font-weight: 400; opacity: 0.82; margin-top: 3px; }
+    .sc-badge {
+      position: absolute; top: 14px; right: 14px;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 4px 11px; border-radius: 20px;
+      background: rgba(255,255,255,0.28);
+      color: #fff; border: 1px solid rgba(255,255,255,0.42);
+    }
+    .hd-fan    { background: linear-gradient(135deg, #1e3c72, #2a5298); }
+    .hd-fanplus { background: linear-gradient(135deg, #6a11cb, #2575fc); }
+    .hd-bori   { background: linear-gradient(135deg, #c0392b, #ff5f6d); }
+
+    .sc-body { padding: 18px 20px 20px; }
+
+    .price-sec { margin-bottom: 10px; }
+    .price-lbl {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--dim); margin-bottom: 5px;
+    }
+    .price-main {
+      font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 2px;
+    }
+    .price-main .price-unit { font-size: 12px; font-weight: 400; color: var(--dim); }
+    .price-disc { font-size: 12px; color: var(--acc); font-weight: 600; margin-bottom: 2px; }
+    .price-renew { font-size: 11px; color: var(--dim); margin-bottom: 4px; }
+    .sari-row { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; }
+    .sari-val { font-size: 13px; font-weight: 700; color: var(--acc); }
+    .sari-note { font-size: 11px; color: var(--dim); }
+    .turns-info { font-size: 11px; color: var(--dim); margin-top: 3px; }
+    .turns-info b { color: var(--ink); font-weight: 600; }
+
+    .sc-divider { height: 1px; background: var(--bdr); margin: 12px 0; }
+
+    .benefits { display: flex; flex-direction: column; gap: 4px; margin: 10px 0 16px; }
+    .benefit {
+      font-size: 12px; color: var(--dim);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .benefit::before { content: '✓'; color: var(--grn); font-weight: 700; font-size: 11px; }
+
+    .sc-btns { display: flex; flex-direction: column; gap: 6px; }
+    .btn-monthly {
+      width: 100%; background: var(--acc); color: #fff;
+      border: none; border-radius: 9px; padding: 11px;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-monthly:hover { background: var(--acc2); }
+    .btn-yearly {
+      width: 100%; background: transparent; color: var(--ink);
+      border: 1px solid var(--bdr2); border-radius: 9px; padding: 11px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-yearly:hover { border-color: var(--acc); color: var(--acc); }
+
+    /* ── CHARGING CARDS ── */
+    .charge-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 60px;
+    }
+    .charge-card {
+      border: 2px solid var(--bdr);
+      border-radius: 14px;
+      padding: 16px 14px;
+      background: var(--card);
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .charge-card:hover { border-color: rgba(255,123,138,0.45); }
+    .charge-card.selected { border-color: var(--acc); box-shadow: 0 0 0 1px var(--acc); }
+    .charge-card.recommended { border-color: rgba(255,123,138,0.38); background: var(--bg2); }
+    html[data-theme="dark"] .charge-card.recommended { background: #2a1e1f; }
+
+    .cc-badge {
+      display: inline-block;
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 20px;
+      background: var(--acc); color: #fff;
+      margin-bottom: 8px;
+    }
+    .cc-amount {
+      font-size: 19px; font-weight: 700; color: var(--ink); margin-bottom: 8px;
+    }
+    .cc-amount-unit { font-size: 12px; color: var(--dim); font-weight: 400; }
+    .cc-normal { font-size: 11px; color: var(--dim); text-decoration: line-through; margin-bottom: 2px; }
+    .cc-first { font-size: 15px; font-weight: 700; color: var(--acc); margin-bottom: 2px; }
+    .cc-repeat { font-size: 11px; color: var(--dim); margin-bottom: 10px; }
+    .cc-repeat b { color: var(--ink); font-weight: 600; }
+    .cc-turns { font-size: 11px; color: var(--dim); display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+    .cc-turns b { color: var(--ink); font-weight: 600; }
+    .btn-charge {
+      width: 100%; background: transparent; color: var(--acc);
+      border: 1px solid var(--bdr2); border-radius: 8px; padding: 9px;
+      font-size: 11px; font-weight: 700; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-charge:hover,
+    .charge-card.selected .btn-charge {
+      background: var(--acc); color: #fff; border-color: var(--acc);
+    }
+
+    /* Discount note */
+    .disc-note {
+      background: var(--bg2);
+      border: 1px solid var(--bdr);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+      font-size: 12px; color: var(--dim); line-height: 1.8;
+    }
+    html[data-theme="dark"] .disc-note { background: #251a1c; }
+    .disc-note b { color: var(--ink); }
+
+    /* ── FIXED CTA ── */
+    .cta-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--bg);
+      border-top: 1px solid var(--bdr);
+      padding: 14px 20px;
+      z-index: 100;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.06);
+    }
+    .cta-inner {
+      max-width: 640px; margin: 0 auto;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .cta-info { flex: 1; min-width: 0; }
+    .cta-lbl { font-size: 11px; color: var(--dim); margin-bottom: 2px; }
+    .cta-product { font-size: 14px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cta-price { font-size: 13px; color: var(--acc); font-weight: 600; }
+    .btn-cta {
+      flex-shrink: 0;
+      background: var(--acc); color: #fff;
+      border: none; border-radius: 10px;
+      padding: 14px 22px; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s, opacity 0.2s;
+      opacity: 0.45; pointer-events: none;
+    }
+    .btn-cta.active { opacity: 1; pointer-events: auto; }
+    .btn-cta:hover { background: var(--acc2); }
+
+    /* ── MODAL ── */
+    .modal-bg {
+      position: fixed; inset: 0;
+      background: rgba(42,36,32,0.52);
+      backdrop-filter: blur(6px);
+      z-index: 200;
+      display: none; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .modal-bg.open { display: flex; }
+    .modal-box {
+      background: var(--bg);
+      border: 1px solid var(--bdr2);
+      border-radius: 22px;
+      width: min(100%, 430px);
+      padding: 28px 26px 24px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.22);
+    }
+    .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .modal-desc { font-size: 13px; color: var(--dim); line-height: 1.75; margin-bottom: 20px; }
+    .modal-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .modal-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 14px;
+      background: var(--bg2); border-radius: 10px;
+      font-size: 13px;
+    }
+    html[data-theme="dark"] .modal-row { background: #2a2420; }
+    .modal-key { color: var(--dim); flex-shrink: 0; margin-right: 12px; }
+    .modal-val { font-weight: 600; text-align: right; }
+    .modal-actions { display: flex; gap: 10px; }
+    .btn-m-close {
+      flex: 1; background: transparent; border: 1px solid var(--bdr2);
+      border-radius: 10px; height: 48px;
+      font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer;
+    }
+    .btn-m-mypage {
+      flex: 1; background: var(--acc); border: none;
+      border-radius: 10px; height: 48px;
+      font-size: 14px; font-weight: 700; color: #fff;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-m-mypage:hover { background: var(--acc2); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      .sub-grid { grid-template-columns: 1fr; }
+      .charge-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .wrap { padding: 24px 14px 130px; }
+      .policy-banner { padding: 20px 18px; }
+      .charge-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .charge-card { padding: 12px 10px; }
+      .cta-inner { flex-direction: column; gap: 10px; }
+      .btn-cta { width: 100%; }
+    }
+    @media (max-width: 360px) {
+      .charge-grid { grid-template-columns: 1fr; }
+      .sec-hd h2 { font-size: 18px; }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <a href="/" class="header-left">
-      <img src="{% static 'images/hari_favicon.png' %}" alt="Hari Logo" class="header-logo">
-      <span style="font-weight: 700; font-size: 22px; color: var(--text-main);">Hari</span>
-    </a>
-    <div class="header-right">
-      <div class="theme-toggle-wrap">
-        <span class="theme-icon" title="라이트 모드">☀️</span>
-        <button id="theme-toggle" class="off" onclick="toggleTheme()" aria-label="다크 모드 전환" title="다크/라이트 모드 전환"></button>
-        <span class="theme-icon" title="다크 모드">🌙</span>
-      </div>
-      <a href="/">홈으로</a>
-      <a href="{% url 'logout' %}">로그아웃</a>
+<header>
+  <a href="/" class="hdr-logo">
+    <img src="{% static 'images/hari_favicon.png' %}" alt="Hari">
+    <span class="hdr-logo-name">Hari</span>
+  </a>
+  <div class="hdr-right">
+    <div class="theme-wrap">
+      <span class="theme-icon">☀️</span>
+      <button id="theme-toggle" class="off" onclick="toggleTheme()" aria-label="테마 전환"></button>
+      <span class="theme-icon">🌙</span>
     </div>
-  </header>
+    <a href="/" class="hdr-link">홈으로</a>
+    <a href="{% url 'logout' %}" class="hdr-link">로그아웃</a>
+  </div>
+</header>
 
-  <div class="container">
-    <div class="step-indicator">2 / 3단계</div>
-    <h1 class="main-title">원하는 멤버십을 선택하세요</h1>
+<div class="wrap">
 
-    <div class="plans-wrapper">
+  <!-- ① SARI 정책 요약 -->
+  <div class="policy-banner">
+    <h2>SARI 안내</h2>
+    <p class="policy-desc">
+      하리와 대화하거나 롤플레잉을 즐길 때 SARI가 사용돼요.<br>
+      채팅은 1턴에 10 sari, 롤플레잉은 1턴에 20 sari가 필요합니다.
+    </p>
+    <div class="policy-stats">
+      <div class="p-stat">
+        <div class="p-stat-lbl">초기 제공</div>
+        <div class="p-stat-val hl">200 sari</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-lbl">채팅 1턴</div>
+        <div class="p-stat-val">10 sari</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-lbl">롤플레잉 1턴</div>
+        <div class="p-stat-val">20 sari</div>
+      </div>
+    </div>
+    <div class="policy-ctas">
+      <a href="#sub-sec" class="btn-p-sub">멤버십 구독하기</a>
+      <a href="#chg-sec" class="btn-p-chg">SARI 충전하기</a>
+    </div>
+  </div>
+
+  <!-- ② 구독 상품 -->
+  <div id="sub-sec">
+    <div class="sec-hd">
+      <h2>멤버십 구독</h2>
+      <p>구독은 콘텐츠 이용 혜택과 기본 SARI를 함께 제공해요.<br>더 많이 대화하고 싶을 때는 SARI를 추가로 충전할 수 있어요.</p>
+    </div>
+
+    <div class="sub-grid">
 
       <!-- FAN -->
-      <div class="plan-card" onclick="selectPlan(this, 'fan')">
-        <div class="plan-header header-fan">
-          FAN
-          <div style="font-size: 13px; font-weight: 400; margin-top: 4px;">베이직 플랜</div>
+      <div class="sub-card" id="card-fan" onclick="cardClick(event,'fan-monthly','fan 월간','구독','9,900원 (첫 달 4,950원)','500 sari (첫 달 250 sari)','50턴','25턴')" style="cursor:pointer;">
+        <div class="sc-head hd-fan">
+          <div class="sc-tier">fan</div>
+          <div class="sc-tier-sub">베이직</div>
         </div>
-        <div class="plan-body">
-          <div class="feature-item">
-            <div class="feature-label">월 요금</div>
-            <div class="feature-val">₩19,900</div>
+        <div class="sc-body">
+          <div class="price-sec">
+            <div class="price-lbl">월간</div>
+            <div class="price-main">9,900원<span class="price-unit">/월</span></div>
+            <div class="price-disc">첫 달 50% 할인 → 4,950원</div>
+            <div class="sari-row">
+              <span class="sari-val">매월 500 sari</span>
+              <span class="sari-note">첫 달 250 sari</span>
+            </div>
+            <div class="turns-info">채팅 <b>50턴</b> · 롤플레잉 <b>25턴</b> · 첫 달 각 절반</div>
           </div>
-          <div class="feature-item">
-            <div class="feature-label">연간 요금</div>
-            <div class="feature-val">₩239,000 <span style="font-size:11px;color:var(--text-dim);">(1개월 무료)</span></div>
+          <div class="sc-divider"></div>
+          <div class="price-sec">
+            <div class="price-lbl">연간</div>
+            <div class="price-main">99,000원<span class="price-unit">/년</span></div>
+            <div class="price-disc">첫해 30% 할인 → 69,300원</div>
+            <div class="price-renew">갱신가 10% 할인 89,100원</div>
+            <div class="sari-row">
+              <span class="sari-val">총 6,500 sari</span>
+              <span class="sari-note">매월 약 541 sari</span>
+            </div>
+            <div class="turns-info">채팅 총 <b>650턴</b> · 롤플레잉 총 <b>325턴</b></div>
           </div>
-          <div class="plan-divider"></div>
-          <div class="feature-item">
-            <div class="feature-label">하리와 대화</div>
-            <div class="feature-val">월 200회</div>
+          <div class="sc-divider"></div>
+          <div class="benefits">
+            <div class="benefit">갤러리 시청 가능</div>
+            <div class="benefit">비디오 시청 가능</div>
+            <div class="benefit">SNS 콘텐츠 시청 가능</div>
           </div>
-          <div class="feature-item">
-            <div class="feature-label">갤러리 · 동영상</div>
-            <div class="feature-val">시청 가능</div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-label">SNS 보기</div>
-            <div class="feature-val">가능</div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-label">롤플레잉</div>
-            <div class="feature-val" style="color:var(--text-dim);">—</div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-label">연간 구독 혜택</div>
-            <div class="feature-val">마지막 1개월 무료</div>
+          <div class="sc-btns">
+            <button class="btn-monthly" onclick="selectProd('fan-monthly','fan 월간','구독','9,900원 (첫 달 4,950원)','500 sari (첫 달 250 sari)','50턴','25턴')">fan 월간 구독하기</button>
+            <button class="btn-yearly" onclick="selectProd('fan-yearly','fan 연간','구독','99,000원 (첫해 69,300원)','6,500 sari (매월 541 sari)','650턴','325턴')">fan 연간 구독하기</button>
           </div>
         </div>
       </div>
 
       <!-- FAN+ -->
-      <div class="plan-card selected" onclick="selectPlan(this, 'fanplus')">
-        <div class="plan-header header-fanplus">
-          FAN+
-          <div style="font-size: 13px; font-weight: 400; margin-top: 4px;">스탠다드 플랜</div>
+      <div class="sub-card" id="card-fanplus" onclick="cardClick(event,'fanplus-monthly','fan+ 월간','구독','19,900원 (첫 달 9,950원)','1,200 sari (첫 달 600 sari)','120턴','60턴')" style="cursor:pointer;">
+        <div class="sc-head hd-fanplus">
+          <div class="sc-tier">fan+</div>
+          <div class="sc-tier-sub">스탠다드</div>
+          <span class="sc-badge">추천</span>
         </div>
-        <div class="plan-body">
-          <div class="feature-item">
-            <div class="feature-label">월 요금</div>
-            <div class="feature-val">₩39,900</div>
+        <div class="sc-body">
+          <div class="price-sec">
+            <div class="price-lbl">월간</div>
+            <div class="price-main">19,900원<span class="price-unit">/월</span></div>
+            <div class="price-disc">첫 달 50% 할인 → 9,950원</div>
+            <div class="sari-row">
+              <span class="sari-val">매월 1,200 sari</span>
+              <span class="sari-note">첫 달 600 sari</span>
+            </div>
+            <div class="turns-info">채팅 <b>120턴</b> · 롤플레잉 <b>60턴</b> · 첫 달 각 절반</div>
           </div>
-          <div class="feature-item">
-            <div class="feature-label">연간 요금</div>
-            <div class="feature-val">₩479,000 <span style="font-size:11px;color:var(--text-dim);">(2개월 무료)</span></div>
+          <div class="sc-divider"></div>
+          <div class="price-sec">
+            <div class="price-lbl">연간</div>
+            <div class="price-main">199,000원<span class="price-unit">/년</span></div>
+            <div class="price-disc">첫해 30% 할인 → 139,300원</div>
+            <div class="price-renew">갱신가 20% 할인 159,200원</div>
+            <div class="sari-row">
+              <span class="sari-val">총 16,000 sari</span>
+              <span class="sari-note">매월 약 1,333 sari</span>
+            </div>
+            <div class="turns-info">채팅 총 <b>1,600턴</b> · 롤플레잉 총 <b>800턴</b></div>
           </div>
-          <div class="plan-divider"></div>
-          <div class="feature-item">
-            <div class="feature-label">하리와 대화</div>
-            <div class="feature-val">월 500회</div>
+          <div class="sc-divider"></div>
+          <div class="benefits">
+            <div class="benefit">갤러리 시청 가능</div>
+            <div class="benefit">비디오 시청 가능</div>
+            <div class="benefit">SNS 콘텐츠 시청 가능</div>
           </div>
-          <div class="feature-item">
-            <div class="feature-label">갤러리 · 동영상</div>
-            <div class="feature-val">시청 가능</div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-label">SNS 보기</div>
-            <div class="feature-val">가능</div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-label">롤플레잉</div>
-            <div class="feature-val" style="color:var(--text-dim);">—</div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-label">연간 구독 혜택</div>
-            <div class="feature-val">마지막 2개월 무료</div>
+          <div class="sc-btns">
+            <button class="btn-monthly" onclick="selectProd('fanplus-monthly','fan+ 월간','구독','19,900원 (첫 달 9,950원)','1,200 sari (첫 달 600 sari)','120턴','60턴')">fan+ 월간 구독하기</button>
+            <button class="btn-yearly" onclick="selectProd('fanplus-yearly','fan+ 연간','구독','199,000원 (첫해 139,300원)','16,000 sari (매월 1,333 sari)','1,600턴','800턴')">fan+ 연간 구독하기</button>
           </div>
         </div>
       </div>
 
       <!-- BORI -->
-      <div class="plan-card" onclick="selectPlan(this, 'bori')">
-        <div class="plan-header header-bori">
-          BORI
-          <div style="font-size: 13px; font-weight: 400; margin-top: 4px;">프리미엄 플랜</div>
+      <div class="sub-card" id="card-bori" onclick="cardClick(event,'bori-monthly','bori 월간','구독','39,900원 (첫 달 19,950원)','2,800 sari (첫 달 1,400 sari)','280턴','140턴')" style="cursor:pointer;">
+        <div class="sc-head hd-bori">
+          <div class="sc-tier">bori</div>
+          <div class="sc-tier-sub">프리미엄</div>
+          <span class="sc-badge">premium</span>
         </div>
-        <div class="plan-body">
-          <div class="feature-item">
-            <div class="feature-label">월 요금</div>
-            <div class="feature-val">₩59,900</div>
+        <div class="sc-body">
+          <div class="price-sec">
+            <div class="price-lbl">월간</div>
+            <div class="price-main">39,900원<span class="price-unit">/월</span></div>
+            <div class="price-disc">첫 달 50% 할인 → 19,950원</div>
+            <div class="sari-row">
+              <span class="sari-val">매월 2,800 sari</span>
+              <span class="sari-note">첫 달 1,400 sari</span>
+            </div>
+            <div class="turns-info">채팅 <b>280턴</b> · 롤플레잉 <b>140턴</b> · 첫 달 각 절반</div>
           </div>
-          <div class="feature-item">
-            <div class="feature-label">연간 요금</div>
-            <div class="feature-val">₩718,800 <span style="font-size:11px;color:var(--text-dim);">(3개월 무료)</span></div>
+          <div class="sc-divider"></div>
+          <div class="price-sec">
+            <div class="price-lbl">연간</div>
+            <div class="price-main">399,000원<span class="price-unit">/년</span></div>
+            <div class="price-disc">첫해 30% 할인 → 279,300원</div>
+            <div class="price-renew">갱신가 30% 할인 279,300원</div>
+            <div class="sari-row">
+              <span class="sari-val">총 36,000 sari</span>
+              <span class="sari-note">매월 3,000 sari</span>
+            </div>
+            <div class="turns-info">채팅 총 <b>3,600턴</b> · 롤플레잉 총 <b>1,800턴</b></div>
           </div>
-          <div class="plan-divider"></div>
-          <div class="feature-item">
-            <div class="feature-label">하리와 대화</div>
-            <div class="feature-val">월 1000회</div>
+          <div class="sc-divider"></div>
+          <div class="benefits">
+            <div class="benefit">갤러리 시청 가능</div>
+            <div class="benefit">비디오 시청 가능</div>
+            <div class="benefit">SNS 콘텐츠 시청 가능</div>
           </div>
-          <div class="feature-item">
-            <div class="feature-label">갤러리 · 동영상</div>
-            <div class="feature-val">시청 가능</div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-label">롤플레잉</div>
-            <div class="feature-val">가능 ✦</div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-label">SNS 맞팔</div>
-            <div class="feature-val">가능 ✦</div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-label">연간 구독 혜택</div>
-            <div class="feature-val">마지막 3개월 무료</div>
+          <div class="sc-btns">
+            <button class="btn-monthly" onclick="selectProd('bori-monthly','bori 월간','구독','39,900원 (첫 달 19,950원)','2,800 sari (첫 달 1,400 sari)','280턴','140턴')">bori 월간 구독하기</button>
+            <button class="btn-yearly" onclick="selectProd('bori-yearly','bori 연간','구독','399,000원 (첫해 279,300원)','36,000 sari (매월 3,000 sari)','3,600턴','1,800턴')">bori 연간 구독하기</button>
           </div>
         </div>
       </div>
 
-    </div><!-- /.plans-wrapper -->
+    </div><!-- /sub-grid -->
+  </div><!-- /#sub-sec -->
 
-    <div class="footer-disclaimer">
-      <p style="margin-bottom: 12px;">모든 멤버십은 유료 구독 서비스입니다. 연간 구독 시 명시된 무료 기간 혜택이 자동 적용됩니다.</p>
-      <p>멤버십 관련 문의는 홈페이지 하단 연락처 정보로 접수해 주세요.</p>
+  <!-- ③ SARI 충전 -->
+  <div id="chg-sec">
+    <div class="sec-hd">
+      <h2>SARI 충전</h2>
+      <p>구독으로 받은 SARI가 부족할 때 필요한 만큼 추가로 충전할 수 있어요.</p>
     </div>
 
-  </div><!-- /.container -->
+    <div class="disc-note">
+      <b>할인 정책</b><br>
+      300~5,000 sari: 첫 충전 50% 할인 · 이후 10% 할인<br>
+      7,000 sari 이상: 첫 충전 30% 할인 · 이후 10% 할인
+    </div>
 
-  <div class="cta-fixed">
-    <div class="cta-inner">
-      <button class="back-btn" onclick="location.href='/'">홈으로</button>
-      <button class="cancel-btn {% if not is_subscribed %}hidden{% endif %}" id="cancelBtn" onclick="cancelSubscription()">구독 취소</button>
-      <button class="next-btn" onclick="nextStep()">다음</button>
+    <div class="charge-grid">
+
+      <!-- 300 sari -->
+      <div class="charge-card" id="card-c300" onclick="cardClick(event,'c300','300 sari 충전','충전','3,000원 (첫 충전 1,500원)','300 sari','30턴','15턴')">
+        <div class="cc-amount">300<span class="cc-amount-unit"> sari</span></div>
+        <div class="cc-normal">정상가 3,000원</div>
+        <div class="cc-first">첫 충전 1,500원</div>
+        <div class="cc-repeat">이후 <b>2,700원</b></div>
+        <div class="cc-turns">
+          <div>채팅 <b>30턴</b></div>
+          <div>롤플레잉 <b>15턴</b></div>
+        </div>
+        <button class="btn-charge" onclick="selectProd('c300','300 sari 충전','충전','3,000원 (첫 충전 1,500원)','300 sari','30턴','15턴')">300 sari 충전하기</button>
+      </div>
+
+      <!-- 1000 sari -->
+      <div class="charge-card" id="card-c1000" onclick="cardClick(event,'c1000','1,000 sari 충전','충전','9,900원 (첫 충전 4,950원)','1,000 sari','100턴','50턴')">
+        <div class="cc-amount">1,000<span class="cc-amount-unit"> sari</span></div>
+        <div class="cc-normal">정상가 9,900원</div>
+        <div class="cc-first">첫 충전 4,950원</div>
+        <div class="cc-repeat">이후 <b>8,910원</b></div>
+        <div class="cc-turns">
+          <div>채팅 <b>100턴</b></div>
+          <div>롤플레잉 <b>50턴</b></div>
+        </div>
+        <button class="btn-charge" onclick="selectProd('c1000','1,000 sari 충전','충전','9,900원 (첫 충전 4,950원)','1,000 sari','100턴','50턴')">1000 sari 충전하기</button>
+      </div>
+
+      <!-- 3000 sari (추천) -->
+      <div class="charge-card recommended" id="card-c3000" onclick="cardClick(event,'c3000','3,000 sari 충전','충전','27,900원 (첫 충전 13,950원)','3,000 sari','300턴','150턴')">
+        <div class="cc-badge">추천</div>
+        <div class="cc-amount">3,000<span class="cc-amount-unit"> sari</span></div>
+        <div class="cc-normal">정상가 27,900원</div>
+        <div class="cc-first">첫 충전 13,950원</div>
+        <div class="cc-repeat">이후 <b>25,110원</b></div>
+        <div class="cc-turns">
+          <div>채팅 <b>300턴</b></div>
+          <div>롤플레잉 <b>150턴</b></div>
+        </div>
+        <button class="btn-charge" onclick="selectProd('c3000','3,000 sari 충전','충전','27,900원 (첫 충전 13,950원)','3,000 sari','300턴','150턴')">3000 sari 충전하기</button>
+      </div>
+
+      <!-- 5000 sari -->
+      <div class="charge-card" id="card-c5000" onclick="cardClick(event,'c5000','5,000 sari 충전','충전','44,900원 (첫 충전 22,450원)','5,000 sari','500턴','250턴')">
+        <div class="cc-amount">5,000<span class="cc-amount-unit"> sari</span></div>
+        <div class="cc-normal">정상가 44,900원</div>
+        <div class="cc-first">첫 충전 22,450원</div>
+        <div class="cc-repeat">이후 <b>40,410원</b></div>
+        <div class="cc-turns">
+          <div>채팅 <b>500턴</b></div>
+          <div>롤플레잉 <b>250턴</b></div>
+        </div>
+        <button class="btn-charge" onclick="selectProd('c5000','5,000 sari 충전','충전','44,900원 (첫 충전 22,450원)','5,000 sari','500턴','250턴')">5000 sari 충전하기</button>
+      </div>
+
+      <!-- 7000 sari -->
+      <div class="charge-card" id="card-c7000" onclick="cardClick(event,'c7000','7,000 sari 충전','충전','59,900원 (첫 충전 41,930원)','7,000 sari','700턴','350턴')">
+        <div class="cc-amount">7,000<span class="cc-amount-unit"> sari</span></div>
+        <div class="cc-normal">정상가 59,900원</div>
+        <div class="cc-first">첫 충전 41,930원</div>
+        <div class="cc-repeat">이후 <b>53,910원</b></div>
+        <div class="cc-turns">
+          <div>채팅 <b>700턴</b></div>
+          <div>롤플레잉 <b>350턴</b></div>
+        </div>
+        <button class="btn-charge" onclick="selectProd('c7000','7,000 sari 충전','충전','59,900원 (첫 충전 41,930원)','7,000 sari','700턴','350턴')">7000 sari 충전하기</button>
+      </div>
+
+      <!-- 10000 sari -->
+      <div class="charge-card" id="card-c10000" onclick="cardClick(event,'c10000','10,000 sari 충전','충전','79,900원 (첫 충전 55,930원)','10,000 sari','1,000턴','500턴')">
+        <div class="cc-amount">10,000<span class="cc-amount-unit"> sari</span></div>
+        <div class="cc-normal">정상가 79,900원</div>
+        <div class="cc-first">첫 충전 55,930원</div>
+        <div class="cc-repeat">이후 <b>71,910원</b></div>
+        <div class="cc-turns">
+          <div>채팅 <b>1,000턴</b></div>
+          <div>롤플레잉 <b>500턴</b></div>
+        </div>
+        <button class="btn-charge" onclick="selectProd('c10000','10,000 sari 충전','충전','79,900원 (첫 충전 55,930원)','10,000 sari','1,000턴','500턴')">10000 sari 충전하기</button>
+      </div>
+
+      <!-- 20000 sari -->
+      <div class="charge-card" id="card-c20000" onclick="cardClick(event,'c20000','20,000 sari 충전','충전','149,000원 (첫 충전 104,300원)','20,000 sari','2,000턴','1,000턴')">
+        <div class="cc-amount">20,000<span class="cc-amount-unit"> sari</span></div>
+        <div class="cc-normal">정상가 149,000원</div>
+        <div class="cc-first">첫 충전 104,300원</div>
+        <div class="cc-repeat">이후 <b>134,100원</b></div>
+        <div class="cc-turns">
+          <div>채팅 <b>2,000턴</b></div>
+          <div>롤플레잉 <b>1,000턴</b></div>
+        </div>
+        <button class="btn-charge" onclick="selectProd('c20000','20,000 sari 충전','충전','149,000원 (첫 충전 104,300원)','20,000 sari','2,000턴','1,000턴')">20000 sari 충전하기</button>
+      </div>
+
+      <!-- 50000 sari -->
+      <div class="charge-card" id="card-c50000" onclick="cardClick(event,'c50000','50,000 sari 충전','충전','349,000원 (첫 충전 244,300원)','50,000 sari','5,000턴','2,500턴')">
+        <div class="cc-amount">50,000<span class="cc-amount-unit"> sari</span></div>
+        <div class="cc-normal">정상가 349,000원</div>
+        <div class="cc-first">첫 충전 244,300원</div>
+        <div class="cc-repeat">이후 <b>314,100원</b></div>
+        <div class="cc-turns">
+          <div>채팅 <b>5,000턴</b></div>
+          <div>롤플레잉 <b>2,500턴</b></div>
+        </div>
+        <button class="btn-charge" onclick="selectProd('c50000','50,000 sari 충전','충전','349,000원 (첫 충전 244,300원)','50,000 sari','5,000턴','2,500턴')">50000 sari 충전하기</button>
+      </div>
+
+    </div><!-- /charge-grid -->
+  </div><!-- /#chg-sec -->
+
+</div><!-- /wrap -->
+
+<!-- 고정 하단 CTA -->
+<div class="cta-bar">
+  <div class="cta-inner">
+    <div class="cta-info">
+      <div class="cta-lbl" id="ctaLbl">상품을 선택해 주세요</div>
+      <div class="cta-product" id="ctaProd">—</div>
+      <div class="cta-price" id="ctaPrice"></div>
+    </div>
+    <button class="btn-cta" id="ctaBtn" onclick="openModal()">선택한 상품 확인하기</button>
+  </div>
+</div>
+
+<!-- 상품 확인 모달 -->
+<div class="modal-bg" id="modalBg" onclick="closeModalOutside(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-title">상품 확인</div>
+    <p class="modal-desc">
+      선택한 상품을 확인해 주세요.<br>
+      현재 화면에서는 상품 구성과 가격만 확인할 수 있습니다.
+    </p>
+    <div class="modal-rows">
+      <div class="modal-row"><span class="modal-key">선택 상품</span><span class="modal-val" id="mProd">—</span></div>
+      <div class="modal-row"><span class="modal-key">상품 유형</span><span class="modal-val" id="mType">—</span></div>
+      <div class="modal-row"><span class="modal-key">가격</span><span class="modal-val" id="mPrice">—</span></div>
+      <div class="modal-row"><span class="modal-key">지급 SARI</span><span class="modal-val" id="mSari">—</span></div>
+      <div class="modal-row"><span class="modal-key">채팅 가능</span><span class="modal-val" id="mChat">—</span></div>
+      <div class="modal-row"><span class="modal-key">롤플레잉 가능</span><span class="modal-val" id="mRp">—</span></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-m-close" onclick="closeModal()">닫기</button>
+      <button class="btn-m-mypage" onclick="goToMypage()">마이페이지로 이동</button>
     </div>
   </div>
+</div>
 
-  <div class="payment-log-overlay" id="paymentLogOverlay" onclick="closePaymentLog(event)">
-    <div class="payment-log-card" onclick="event.stopPropagation()">
-      <div class="payment-log-badge">PAYMENT COMPLETED</div>
-      <div class="payment-log-title">
-        <span class="payment-log-check">✓</span>
-        <span>결제 완료</span>
-      </div>
-      <div class="payment-log-desc">선택한 멤버십 결제가 정상적으로 완료되었어요. 마이페이지 구독 상태도 바로 반영할게요.</div>
-      <div class="payment-log-list">
-        <div class="payment-log-item"><span class="payment-log-key">선택 멤버십</span><span class="payment-log-val" id="paymentLogPlan">FAN+</span></div>
-        <div class="payment-log-item"><span class="payment-log-key">결제 금액</span><span class="payment-log-val" id="paymentLogPrice">₩39,900</span></div>
-        <div class="payment-log-item"><span class="payment-log-key">결제 수단</span><span class="payment-log-val" id="paymentLogMethod">카드 결제</span></div>
-        <div class="payment-log-item"><span class="payment-log-key">승인 상태</span><span class="payment-log-val" id="paymentLogStatus">승인 완료</span></div>
-        <div class="payment-log-item"><span class="payment-log-key">결제 시각</span><span class="payment-log-val" id="paymentLogTime">-</span></div>
-        <div class="payment-log-item"><span class="payment-log-key">주문 번호</span><span class="payment-log-val" id="paymentLogOrder">-</span></div>
-      </div>
-      <div class="payment-log-actions">
-        <button class="payment-log-close" onclick="closePaymentLog()">닫기</button>
-        <button class="payment-log-confirm" onclick="confirmPaymentLog()">마이페이지로</button>
-      </div>
-    </div>
-  </div>
+<script>
+  const CARD_MAP = {
+    'fan-monthly':    'card-fan',
+    'fan-yearly':     'card-fan',
+    'fanplus-monthly':'card-fanplus',
+    'fanplus-yearly': 'card-fanplus',
+    'bori-monthly':   'card-bori',
+    'bori-yearly':    'card-bori',
+    'c300':   'card-c300',
+    'c1000':  'card-c1000',
+    'c3000':  'card-c3000',
+    'c5000':  'card-c5000',
+    'c7000':  'card-c7000',
+    'c10000': 'card-c10000',
+    'c20000': 'card-c20000',
+    'c50000': 'card-c50000',
+  };
 
-  <script>
-    const PLAN_INFO = {
-      fan:     { label: 'FAN',   price: '₩19,900', pageTitle: 'FAN 멤버십' },
-      fanplus: { label: 'FAN+',  price: '₩39,900', pageTitle: 'FAN+ 멤버십' },
-      bori:    { label: 'BORI',  price: '₩59,900', pageTitle: 'BORI 멤버십' },
-    };
-    let selectedTier = localStorage.getItem('hari-subscription-plan') || 'fanplus';
+  let sel = null;
+  let selectedId = null;
 
-    function syncSelectedPlanCard() {
-      const target = document.querySelector(`.plan-card[onclick*="'${selectedTier}'"]`);
-      if (target) selectPlan(target, selectedTier);
-    }
+  function cardClick(e, id, name, type, price, sari, chat, rp) {
+    if (e.target.tagName === 'BUTTON') return;
+    selectProd(id, name, type, price, sari, chat, rp);
+  }
 
-    function selectPlan(el, tier) {
-      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-      el.classList.add('selected');
-      selectedTier = tier;
-      localStorage.setItem('hari-subscription-plan', tier);
-    }
+  function selectProd(id, name, type, price, sari, chat, rp) {
+    document.querySelectorAll('.sub-card, .charge-card').forEach(c => c.classList.remove('selected'));
+    const el = document.getElementById(CARD_MAP[id]);
+    if (el) el.classList.add('selected');
 
-    function nextStep() {
-      showPaymentLog();
-    }
+    selectedId = id;
+    sel = { name, type, price, sari, chat, rp };
 
-    function showPaymentLog() {
-      const info = PLAN_INFO[selectedTier] || PLAN_INFO.fanplus;
-      const now = new Date();
-      const orderNo = 'HARI-' + now.getFullYear() +
-        String(now.getMonth() + 1).padStart(2, '0') +
-        String(now.getDate()).padStart(2, '0') +
-        '-' + String(now.getTime()).slice(-6);
-      document.getElementById('paymentLogPlan').textContent = info.label;
-      document.getElementById('paymentLogPrice').textContent = info.price;
-      document.getElementById('paymentLogMethod').textContent = '카드 결제';
-      document.getElementById('paymentLogStatus').textContent = '승인 완료';
-      document.getElementById('paymentLogTime').textContent = now.toLocaleString('ko-KR');
-      document.getElementById('paymentLogOrder').textContent = orderNo;
-      document.getElementById('paymentLogOverlay').style.display = 'flex';
-    }
+    document.getElementById('ctaLbl').textContent = '선택된 상품';
+    document.getElementById('ctaProd').textContent = name;
+    document.getElementById('ctaPrice').textContent = price;
+    document.getElementById('ctaBtn').classList.add('active');
+  }
 
-    function closePaymentLog(e) {
-      if (e && e.target !== e.currentTarget) return;
-      document.getElementById('paymentLogOverlay').style.display = 'none';
-    }
+  /* 구독 상품 ID → mypage localStorage 키 매핑 */
+  const SUB_PLAN_MAP = {
+    'fan-monthly':    'fan',
+    'fan-yearly':     'fan',
+    'fanplus-monthly':'fanplus',
+    'fanplus-yearly': 'fanplus',
+    'bori-monthly':   'bori',
+    'bori-yearly':    'bori',
+  };
 
-    function confirmPaymentLog() {
-      const info = PLAN_INFO[selectedTier] || PLAN_INFO.fanplus;
-      const paidAt = new Date();
-      localStorage.setItem('hari-mypage-subscription-plan', selectedTier);
-      localStorage.setItem('hari-mypage-subscription-state', 'active');
-      localStorage.setItem('hari-mypage-subscription-paid-at', paidAt.toISOString());
-      localStorage.setItem('hari-mypage-subscription-label', info.label);
-      localStorage.setItem('hari-mypage-subscription-price', info.price);
-      window.location.href = '/mypage/';
-    }
+  function openModal() {
+    if (!sel) return;
+    document.getElementById('mProd').textContent  = sel.name;
+    document.getElementById('mType').textContent  = sel.type;
+    document.getElementById('mPrice').textContent = sel.price;
+    document.getElementById('mSari').textContent  = sel.sari;
+    document.getElementById('mChat').textContent  = sel.chat;
+    document.getElementById('mRp').textContent    = sel.rp;
+    document.getElementById('modalBg').classList.add('open');
+  }
 
-    syncSelectedPlanCard();
+  function closeModal() {
+    document.getElementById('modalBg').classList.remove('open');
+  }
 
-    function cancelSubscription() {
-      if (confirm('정말로 구독을 취소하시겠습니까?\n구독 해지 후 서비스 이용이 제한됩니다.')) {
-        // TODO: 백엔드와 협의 필요
-        // - POST /api/cancel-subscription/ 또는 유사한 엔드포인트 필요
-        // - CSRF 토큰 포함
-        // - 성공 시: 홈으로 리다이렉트 또는 완료 메시지
-        alert('구독 취소 처리 중입니다...');
-        // window.location.href = '/cancel-subscription/';
+  function closeModalOutside(e) {
+    if (e.target === e.currentTarget) closeModal();
+  }
+
+  function goToMypage() {
+    if (sel) {
+      const planKey = SUB_PLAN_MAP[selectedId];
+      if (planKey) {
+        /* 구독 상품 선택 시 마이페이지 상태 저장 */
+        localStorage.setItem('hari-mypage-subscription-plan',  planKey);
+        localStorage.setItem('hari-mypage-subscription-state', 'active');
+        localStorage.setItem('hari-mypage-subscription-paid-at', new Date().toISOString());
       }
     }
-  </script>
+    location.href = '/mypage/';
+  }
+</script>
+
 </body>
 </html>
