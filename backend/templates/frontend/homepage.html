@@ -1629,7 +1629,7 @@ function closeDrawer(){ document.getElementById('drawer').classList.remove('open
   io.observe(el);
 })();
 
-function planSelect(btn,tier){ btn.textContent='처리 중...'; setTimeout(()=>{ btn.textContent=`${tier.toUpperCase()} 가입 완료! ✓`; btn.style.background='#2e8b52'; btn.style.borderColor='#2e8b52'; btn.style.color='#fff'; setTimeout(()=>{ btn.textContent=tier==='free'?'무료로 시작하기 →':tier==='fan+'?'Fan+ 시작하기 →':'VIP 시작하기 →'; btn.style.background=''; btn.style.borderColor=''; btn.style.color=''; },3000); },800); }
+function planSelect(btn){ btn.textContent='SARI 스토어로 이동 중...'; setTimeout(()=>{ window.location.href='/membership/'; },500); }
 
 
 
@@ -1665,7 +1665,7 @@ const termsContent = {
 <p>"서비스"란 회사가 제공하는 AI 기반 팬 커뮤니케이션 플랫폼 및 이에 부수하는 모든 기능을 말합니다.</p>
 <p>"회원"이란 본 약관에 동의하고 회원가입을 완료하여 서비스를 이용하는 자를 말합니다.</p>
 <p>"콘텐츠"란 회원이 서비스 내에서 생성·업로드하는 텍스트, 이미지, 파일 등 모든 정보를 말합니다.</p>
-<p>"포인트"란 서비스 내 재화로, 현금으로 환급되지 않습니다.</p>
+<p>"SARI"란 서비스 내 재화로, 현금으로 환급되지 않습니다.</p>
 <h3>제3조 (약관의 효력 및 변경)</h3>
 <p>본 약관은 서비스 화면에 게시하거나 기타 방법으로 공지함으로써 효력이 발생합니다. 회사는 관련 법령을 위반하지 않는 범위에서 약관을 개정할 수 있으며, 개정 시 적용 일자 및 개정 사유를 명시하여 7일 전부터 공지합니다.</p>
 <h3>제4조 (서비스 이용 자격)</h3>
@@ -1678,7 +1678,7 @@ const termsContent = {
 
   privacy: `<h3 style="margin-top:0;">1. 개인정보의 수집 및 이용 목적</h3>
 <p>주식회사 하리스튜디오는 다음의 목적을 위하여 개인정보를 처리합니다:</p>
-<ul style="padding-left:1.2rem;"><li>회원 가입·관리, 본인 확인, 부정 이용 방지</li><li>AI 채팅 서비스 제공 및 대화 품질 개선</li><li>멤버십·포인트 구매, 결제 처리 및 환불</li><li>고객 문의 응대 및 공지 사항 전달</li></ul>
+<ul style="padding-left:1.2rem;"><li>회원 가입·관리, 본인 확인, 부정 이용 방지</li><li>AI 채팅 서비스 제공 및 대화 품질 개선</li><li>멤버십·SARI 구매, 결제 처리 및 환불</li><li>고객 문의 응대 및 공지 사항 전달</li></ul>
 <h3>2. 수집하는 개인정보 항목</h3>
 <p><strong>필수:</strong> 이름, 닉네임, 이메일, 비밀번호(암호화)<br><strong>선택:</strong> 프로필 이미지, 생년월일<br><strong>자동 수집:</strong> IP, 접속 기기·OS, 쿠키, 서비스 이용 기록</p>
 <h3>3. 개인정보의 보유 및 이용 기간</h3>

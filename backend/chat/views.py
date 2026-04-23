@@ -196,17 +196,12 @@ def frontend_signup_view(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    if AuthUser.objects.filter(username__iexact=nickname).exists():
-        return Response(
-            {'username': ['이미 사용 중인 닉네임입니다.']},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
     user = AuthUser.objects.create_user(
-        username=nickname,
+        username=email,
         email=email,
         password=data['password'],
         first_name=data['name'],
+        last_name=nickname,
     )
 
     try:

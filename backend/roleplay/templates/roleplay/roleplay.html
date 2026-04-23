@@ -75,5 +75,166 @@
     </div>
   </div>
   <script type="module" src="{% static 'roleplay-app/roleplay-app.js' %}?v=20260415-1"></script>
+
+  <!-- SARI 뱃지 (fixed overlay — React 앱과 독립) -->
+  <style>
+    #rp-sari-badge {
+      position: fixed;
+      bottom: 28px;
+      left: 28px;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(214, 181, 122, 0.4);
+      background: rgba(24, 17, 13, 0.92);
+      backdrop-filter: blur(12px);
+      cursor: default;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+      transition: border-color 0.2s;
+    }
+    #rp-sari-badge:hover {
+      border-color: rgba(214, 181, 122, 0.75);
+    }
+    #rp-sari-badge .badge-gem {
+      font-size: 15px;
+      line-height: 1;
+    }
+    #rp-sari-badge .badge-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    #rp-sari-badge .badge-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #d6b57a;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    #rp-sari-badge .badge-sub {
+      font-size: 10px;
+      color: rgba(245, 234, 214, 0.5);
+      letter-spacing: 0.02em;
+    }
+
+    #rp-sari-tooltip {
+      display: none;
+      position: fixed;
+      bottom: 90px;
+      left: 28px;
+      z-index: 9999;
+      width: 210px;
+      background: rgba(20, 14, 10, 0.97);
+      border: 1px solid rgba(214, 181, 122, 0.4);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      font-family: "Noto Sans KR", sans-serif;
+    }
+    #rp-sari-tooltip .tt-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: #d6b57a;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    #rp-sari-tooltip .tt-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: rgba(214, 181, 122, 0.07);
+      border: 1px solid rgba(214, 181, 122, 0.12);
+      border-radius: 9px;
+      margin-bottom: 7px;
+    }
+    #rp-sari-tooltip .tt-key {
+      font-size: 12px;
+      color: rgba(245, 234, 214, 0.55);
+    }
+    #rp-sari-tooltip .tt-val {
+      font-size: 13px;
+      font-weight: 700;
+      color: #d6b57a;
+    }
+    #rp-sari-tooltip .tt-btn {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+      padding: 9px;
+      text-align: center;
+      background: rgba(214, 181, 122, 0.15);
+      border: 1px solid rgba(214, 181, 122, 0.45);
+      border-radius: 9px;
+      color: #d6b57a;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    #rp-sari-tooltip .tt-btn:hover {
+      background: rgba(214, 181, 122, 0.28);
+      border-color: rgba(214, 181, 122, 0.7);
+    }
+  </style>
+
+  <div id="rp-sari-badge"
+       onmouseenter="rpShowTooltip()"
+       onmouseleave="rpHideDelay()">
+    <span class="badge-gem">💎</span>
+    <div class="badge-text">
+      <span class="badge-label">SARI</span>
+      <span class="badge-sub">잔여 SARI 확인</span>
+    </div>
+  </div>
+
+  <div id="rp-sari-tooltip"
+       onmouseenter="rpCancelHide()"
+       onmouseleave="rpHideDelay()">
+    <div class="tt-title">SARI 안내</div>
+    <div class="tt-row">
+      <span class="tt-key">롤플레잉 1턴</span>
+      <span class="tt-val">20 sari</span>
+    </div>
+    <div class="tt-row">
+      <span class="tt-key">보유 SARI</span>
+      <span class="tt-val" id="rp-sari-balance">—</span>
+    </div>
+    <a href="/membership/" class="tt-btn">멤버십 구독하기</a>
+  </div>
+
+  <script>
+    (function () {
+      /* sari_wallet.js 없이 직접 localStorage 읽기 (roleplay는 별도 템플릿) */
+      function getRpBalance() {
+        var v = localStorage.getItem('hari-sari-balance');
+        var n = Math.max(0, Math.floor(Number(v) || 0));
+        return n.toLocaleString('ko-KR') + ' SARI';
+      }
+
+      var hideTimer = null;
+
+      window.rpShowTooltip = function () {
+        clearTimeout(hideTimer);
+        document.getElementById('rp-sari-balance').textContent = getRpBalance();
+        document.getElementById('rp-sari-tooltip').style.display = 'block';
+      };
+
+      window.rpHideDelay = function () {
+        hideTimer = setTimeout(function () {
+          document.getElementById('rp-sari-tooltip').style.display = 'none';
+        }, 150);
+      };
+
+      window.rpCancelHide = function () {
+        clearTimeout(hideTimer);
+      };
+    })();
+  </script>
 </body>
 </html>
