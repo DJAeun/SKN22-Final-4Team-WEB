@@ -1,7 +1,7 @@
 (function () {
   const BALANCE_KEY = 'hari-sari-balance';
   const STARTER_GRANTED_KEY = 'hari-sari-starter-granted';
-  const STARTER_AMOUNT = 300;
+  const STARTER_AMOUNT = 200;
   const CHAT_COST = 10;
   const ROLEPLAY_COST = 20;
 
