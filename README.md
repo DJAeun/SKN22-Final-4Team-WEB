@@ -77,7 +77,7 @@
 
 ### AI Modeling
 * **LLM:** LangChain, LangGraph (Multi-turn 대화 및 가드레일 제어)
-* **Voice:** GPT-SoVITS v4 (맞춤 성우 음성 기반 고정밀 음색 복제)
+* **Voice:** OmniVoice (맞춤 성우 음성 기반 고정밀 음색 복제)
 * **Vision:** Z-Image-turbo(이미지 생성), AI-toolkit(LoRA 학습), Heygen API (영상 생성)
 * **Preprocessing:** Pandas, Seedvr2 (이미지 업스케일링), Z-image-Turbo
 
