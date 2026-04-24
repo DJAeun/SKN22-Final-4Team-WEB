@@ -10,6 +10,11 @@
 <p align="center">
   <img width="1920" height="800" alt="33633563980734-1" src="https://github.com/user-attachments/assets/1bfbeded-425e-4589-9dd7-eab0fce49be2" />
 </p>
+<p align="center">
+  <a href="https://github.com/skn-ai22-251029/SKN22-Final-4Team-AI">
+    <img src="https://img.shields.io/badge/AI_Repository-Automation_%7C_TTS_%7C_YouTube-FF6B35?style=for-the-badge&logo=github&logoColor=white" alt="AI Repository"/>
+  </a>
+</p>
 
 ---
 
@@ -77,7 +82,7 @@
 
 ### AI Modeling
 * **LLM:** LangChain, LangGraph (Multi-turn 대화 및 가드레일 제어)
-* **Voice:** OmniVoice (맞춤 성우 음성 기반 고정밀 음색 복제)
+* **Voice:** GPT-SoVITS v4 (맞춤 성우 음성 기반 고정밀 음색 복제)
 * **Vision:** Z-Image-turbo(이미지 생성), AI-toolkit(LoRA 학습), Heygen API (영상 생성)
 * **Preprocessing:** Pandas, Seedvr2 (이미지 업스케일링), Z-image-Turbo
 
@@ -141,7 +146,7 @@ python manage.py runserver
 
 ## 7. Project Structure
 
-현재 레포지토리의 상세 디렉토리 구조입니다.
+본 레포는 웹 애플리케이션 중심으로 구성되어 있으며, AI 파이프라인과 자동화 서비스, 음성/이미지 생성 자산에 대한 상세 구조와 구현 내용은 별도 레포인 [SKN22-Final-4Team-AI](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN22-Final-4Team-AI)에서 확인할 수 있습니다.
 
 ```
 SKN22-Final-4Team-WEB/
@@ -297,7 +302,7 @@ Nginx → Daphne reverse proxy 및 static/media 서빙
 * **Web Serving:** `web` 컨테이너는 `migrate`, `collectstatic`, `daphne`를 순서대로 실행하고, Nginx가 80 포트에서 Daphne(8000)로 프록시합니다.
 
 ### 환경 변수 (`.env` / EB 환경 설정)
-로컬 개발용 `.env` 파일은 [`backend/.env.example`](c:\Users\minje\Documents\SKN22-FINAL-4TEAM_WEB\backend\.env.example)을 복사해 생성합니다.
+로컬 개발용 `.env` 파일은 [`backend/.env.example`]을 복사해 생성합니다.
 
 ```bash
 cd backend
@@ -354,17 +359,26 @@ cp .env.example .env
 
 | 사진 | 이름 | 역할 | 주요 업무 |
 | :---: | :--- | :--- | :--- |
-| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/17c43ef6-fbc6-484e-9fe2-09b365c283d1" /> | **최민호** | **PM** | PM, BM 개발, 시장 조사, QA |
-| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/28447344-fbb5-4f26-90bb-11ad3a8fd477" /> | **박준석** | **Frontend** | 기초 페르소나 구축, UI/UX 설계, 관리자 페이지 설계 |
-| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/71c56c29-1306-4cd4-9fe3-78c1b7942096" /> | **안민제** | **AI Lead** | TTS(GPT-SoVITS) 파인튜닝 및 추론 엔진, 롤플레잉 서비스 개발 |
-| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/c9470eb1-95db-43b0-b8f0-0d953a559891" /> | **한승혁** | **Backend** | 서버 관리, 이미지/영상 학습 및 생성, DB 총괄, 1:1 채팅 개발 |
-| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/05847c89-5f59-4184-81b3-355e85a85fa5" /> | **엄형은** | **Contents** | 대본 생성, 콘텐츠 생성-업로드 자동화 파이프라인 구축 |
+| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/17c43ef6-fbc6-484e-9fe2-09b365c283d1" /> | [**최민호**](https://github.com/minho8234) | **PM** | PM, BM 개발, 시장 조사, QA |
+| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/28447344-fbb5-4f26-90bb-11ad3a8fd477" /> | [**박준석**](https://github.com/junseok-dev) | **Frontend** | 기초 페르소나 구축, UI/UX 설계, 관리자 페이지 설계 |
+| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/71c56c29-1306-4cd4-9fe3-78c1b7942096" /> | [**안민제**](https://github.com/minje0209-ux) | **AI Lead** | TTS(GPT-SoVITS) 파인튜닝 및 추론 엔진, 롤플레잉 서비스 개발 |
+| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/c9470eb1-95db-43b0-b8f0-0d953a559891" /> | [**한승혁**](https://github.com/gksshing) | **Backend** | 서버 관리, 이미지/영상 학습 및 생성, DB 총괄, 1:1 채팅 개발 |
+| <img width="60" alt="Image" src="https://github.com/user-attachments/assets/05847c89-5f59-4184-81b3-355e85a85fa5" /> | [**엄형은**](https://github.com/DJAeun) | **Contents** | 콘텐츠 생성-업로드, 비용, 평가 자동화 파이프라인 구축 |
 
 ---
 
-## 11. License
+## 11. 시연 영상
+
+1. [홈페이지](https://youtu.be/hkwjfSGKjyY)
+2. [하리와 1대1 채팅](https://youtu.be/YFqdvJwkNgs)
+3. [하리와 롤플레잉](https://youtu.be/ozDhitf2RJE)
+4. [영상 생성 자동화](https://youtu.be/ka4o2h4AwOg)
+
+---
+
+## 12. License
 
 이 프로젝트는 [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/deed.ko) 라이선스를 따릅니다.
 - **비영리 목적으로만 사용 가능합니다.** (상업적 이용 금지)
 - 사용 시 원작자 및 출처를 반드시 명시해야 합니다.
-- 자유로운 복제, 배포 및 수정이 가능합니다.
+- 자유로운 복제, 배포 및 수정이 가능합니다. 
