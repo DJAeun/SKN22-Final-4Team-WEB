@@ -111,137 +111,6 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 
-/* ── FEATURED PICKS ── */
-.vd-featured{
-  display:grid;
-  grid-template-columns:minmax(0, 1.15fr) minmax(0, 0.85fr);
-  gap:1rem;
-  padding:2rem 2.5rem 0;
-}
-.vd-featured-left{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:1rem;
-}
-.vd-featured-card{
-  background:var(--bg);
-  border:0.5px solid var(--bdr);
-  border-radius:20px;
-  overflow:hidden;
-  box-shadow:0 16px 36px rgba(0,0,0,0.08);
-  transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
-}
-.vd-featured-card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 22px 44px rgba(0,0,0,0.12);
-  border-color:var(--bdr2);
-}
-.vd-featured-thumb{
-  position:relative;
-  aspect-ratio:9/16;
-  background:#111;
-}
-.vd-featured-thumb iframe{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  border:0;
-}
-.vd-featured-badge{
-  position:absolute;
-  top:14px;
-  left:14px;
-  z-index:1;
-  display:inline-flex;
-  align-items:center;
-  gap:4px;
-  padding:5px 10px;
-  border-radius:999px;
-  background:rgba(42,36,32,0.9);
-  color:#fff;
-  font-family:'DM Mono',monospace;
-  font-size:.56rem;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-}
-.vd-featured-info{
-  padding:1rem 1rem 1.1rem;
-}
-.vd-featured-kicker{
-  font-family:'DM Mono',monospace;
-  font-size:.56rem;
-  letter-spacing:.18em;
-  text-transform:uppercase;
-  color:var(--acc);
-  margin-bottom:.55rem;
-}
-.vd-featured-title{
-  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
-  font-size:1.02rem;
-  line-height:1.35;
-  font-weight:700;
-  letter-spacing:-0.02em;
-  color:var(--ink);
-  word-break:keep-all;
-  margin-bottom:.75rem;
-}
-.vd-featured-link{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
-  font-size:.84rem;
-  font-weight:600;
-  color:var(--dim);
-  text-decoration:none;
-  transition:color .2s;
-}
-.vd-featured-link:hover{color:var(--acc);}
-.vd-featured-side{
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-  padding:1.4rem 1.35rem;
-  border:0.5px solid var(--bdr);
-  border-radius:20px;
-  background:linear-gradient(180deg, rgba(255,123,138,0.05), rgba(255,123,138,0.02));
-}
-.vd-featured-side h3{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(2rem, 3vw, 3.1rem);
-  line-height:.9;
-  color:var(--ink);
-  margin-bottom:.8rem;
-}
-.vd-featured-side h3 em{
-  font-style:normal;
-  -webkit-text-stroke:1px var(--acc);
-  color:transparent;
-}
-.vd-featured-side p{
-  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
-  font-size:.95rem;
-  line-height:1.8;
-  color:var(--dim);
-  word-break:keep-all;
-}
-.vd-featured-side .vd-featured-callout{
-  margin-top:1rem;
-  padding-top:1rem;
-  border-top:0.5px solid var(--bdr);
-  display:flex;
-  flex-direction:column;
-  gap:.45rem;
-}
-.vd-featured-chip{
-  font-family:'DM Mono',monospace;
-  font-size:.55rem;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  color:var(--acc);
-}
-
 /* ── FILTER BAR (mobile) ── */
 .vd-mobile-bar{
   display:none;padding:.8rem 2.5rem;
@@ -415,8 +284,6 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
-  .vd-featured{grid-template-columns:1fr;padding:1.5rem 1.5rem 0;}
-  .vd-featured-left{grid-template-columns:1fr 1fr;}
   .vd-grid{grid-template-columns:repeat(2,1fr);padding:1.5rem;}
   .vd-card[data-type="full"]{grid-column:span 2;}
   .vd-filter-group{display:none;}
@@ -425,8 +292,6 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
 }
 @media(max-width:600px){
   .vd-nav{padding:0 1.2rem;height:56px;}
-  .vd-featured{padding:1.1rem 1.2rem 0;}
-  .vd-featured-left{grid-template-columns:1fr;}
   .vd-grid{grid-template-columns:1fr;padding:1rem;}
   .vd-card[data-type="full"]{grid-column:span 1;}
   .vd-footer{flex-direction:column;gap:1rem;text-align:center;}
@@ -480,44 +345,6 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
   </div>
 </div>
 
-<!-- FEATURED PICKS -->
-<section class="vd-featured">
-  <div class="vd-featured-left">
-    <article class="vd-featured-card">
-      <div class="vd-featured-thumb">
-        <span class="vd-featured-badge">Featured Shorts</span>
-        <iframe src="https://www.youtube.com/embed/ilXcHNv22PU" title="일론 머스크 또 뭔 짓 한거야? (feat. FSD 9개국 테스트 시작)" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
-      </div>
-      <div class="vd-featured-info">
-        <div class="vd-featured-kicker">Tech News</div>
-        <div class="vd-featured-title">일론 머스크 또 뭔 짓 한거야? (feat. FSD 9개국 테스트 시작)</div>
-        <a class="vd-featured-link" href="https://youtube.com/shorts/ilXcHNv22PU" target="_blank" rel="noopener">YouTube 앱에서 보기 ↗</a>
-      </div>
-    </article>
-    <article class="vd-featured-card">
-      <div class="vd-featured-thumb">
-        <span class="vd-featured-badge">Featured Shorts</span>
-        <iframe src="https://www.youtube.com/embed/pP_Idp7KDD0" title="AI 변기까지 나왔다고?! 지금 상황 정리해줌" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
-      </div>
-      <div class="vd-featured-info">
-        <div class="vd-featured-kicker">AI Trend</div>
-        <div class="vd-featured-title">AI 변기까지 나왔다고?! 지금 상황 정리해줌</div>
-        <a class="vd-featured-link" href="https://youtube.com/shorts/pP_Idp7KDD0" target="_blank" rel="noopener">YouTube 앱에서 보기 ↗</a>
-      </div>
-    </article>
-  </div>
-  <aside class="vd-featured-side">
-    <div>
-      <h3>HOT <em>NOW</em></h3>
-      <p>지금 바로 봐야 하는 테크 이슈 두 편을 먼저 배치했습니다. 비디오 페이지에서 가장 왼쪽, 가장 위에서 바로 확인할 수 있게 구성했어요.</p>
-    </div>
-    <div class="vd-featured-callout">
-      <div class="vd-featured-chip">Quick Picks</div>
-      <p>짧은 설명과 함께 바로 재생하거나, YouTube 앱으로 이동할 수 있습니다.</p>
-    </div>
-  </aside>
-</section>
-
 <!-- VIDEO SLIDER -->
 <div class="vd-slider-wrapper">
   <button class="vd-slider-btn" id="vd-prev" aria-label="이전">&#8249;</button>
@@ -525,6 +352,28 @@ html[data-theme="dark"] #theme-toggle.on::after{background:var(--ink);}
     <div class="vd-slider-track" id="vd-track">
 
     <!-- 영상 숨기려면 해당 article 태그에 style="display:none" 추가 -->
+    <article class="premium-vid-card">
+      <div class="premium-vid-thumb">
+        <iframe src="https://www.youtube.com/embed/ilXcHNv22PU" title="YouTube Video" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+        <span class="premium-shorts-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>Shorts</span>
+      </div>
+      <div class="premium-vid-info">
+        <div class="premium-vid-title">일론 머스크 또 뭔 짓 한거야? (feat. FSD 9개국 테스트 시작)</div>
+        <div class="premium-vid-meta">Shorts</div>
+        <a class="premium-vid-link" href="https://youtube.com/shorts/ilXcHNv22PU" target="_blank" rel="noopener"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg> YouTube 앱에서 보기 ↗</a>
+      </div>
+    </article>
+    <article class="premium-vid-card">
+      <div class="premium-vid-thumb">
+        <iframe src="https://www.youtube.com/embed/pP_Idp7KDD0" title="YouTube Video" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
+        <span class="premium-shorts-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg>Shorts</span>
+      </div>
+      <div class="premium-vid-info">
+        <div class="premium-vid-title">AI 변기까지 나왔다고?! 지금 상황 정리해줌</div>
+        <div class="premium-vid-meta">Shorts</div>
+        <a class="premium-vid-link" href="https://youtube.com/shorts/pP_Idp7KDD0" target="_blank" rel="noopener"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"></path></svg> YouTube 앱에서 보기 ↗</a>
+      </div>
+    </article>
     <article class="premium-vid-card">
       <div class="premium-vid-thumb">
         <iframe src="https://www.youtube.com/embed/NhPcWn9Hdtg" title="YouTube Video" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe>
